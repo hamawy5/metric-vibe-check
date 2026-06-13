@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, CheckCircle2, Circle, BookMarked, Rocket, ChevronDown } from "lucide-react";
 
-export const Route = createFileRoute("/studying/$grade/$subject")({
+export const Route = createFileRoute("/studying/$grade/$subject/")({
   head: ({ params }) => ({
     meta: [
       { title: `Grade ${params.grade} · ${params.subject} — MatricPulse AI` },

@@ -16,7 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as StudyingIndexRouteImport } from './routes/studying.index'
 import { Route as StudyingGradeRouteImport } from './routes/studying.$grade'
 import { Route as StudyingGradeIndexRouteImport } from './routes/studying.$grade.index'
-import { Route as StudyingGradeSubjectRouteImport } from './routes/studying.$grade.$subject'
+import { Route as StudyingGradeSubjectIndexRouteImport } from './routes/studying.$grade.$subject.index'
 import { Route as StudyingGradeSubjectQuizUnitRouteImport } from './routes/studying.$grade.$subject.quiz.$unit'
 
 const StudyingRoute = StudyingRouteImport.update({
@@ -54,16 +54,17 @@ const StudyingGradeIndexRoute = StudyingGradeIndexRouteImport.update({
   path: '/',
   getParentRoute: () => StudyingGradeRoute,
 } as any)
-const StudyingGradeSubjectRoute = StudyingGradeSubjectRouteImport.update({
-  id: '/$subject',
-  path: '/$subject',
-  getParentRoute: () => StudyingGradeRoute,
-} as any)
+const StudyingGradeSubjectIndexRoute =
+  StudyingGradeSubjectIndexRouteImport.update({
+    id: '/$subject/',
+    path: '/$subject/',
+    getParentRoute: () => StudyingGradeRoute,
+  } as any)
 const StudyingGradeSubjectQuizUnitRoute =
   StudyingGradeSubjectQuizUnitRouteImport.update({
-    id: '/quiz/$unit',
-    path: '/quiz/$unit',
-    getParentRoute: () => StudyingGradeSubjectRoute,
+    id: '/$subject/quiz/$unit',
+    path: '/$subject/quiz/$unit',
+    getParentRoute: () => StudyingGradeRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -73,8 +74,8 @@ export interface FileRoutesByFullPath {
   '/studying': typeof StudyingRouteWithChildren
   '/studying/$grade': typeof StudyingGradeRouteWithChildren
   '/studying/': typeof StudyingIndexRoute
-  '/studying/$grade/$subject': typeof StudyingGradeSubjectRouteWithChildren
   '/studying/$grade/': typeof StudyingGradeIndexRoute
+  '/studying/$grade/$subject/': typeof StudyingGradeSubjectIndexRoute
   '/studying/$grade/$subject/quiz/$unit': typeof StudyingGradeSubjectQuizUnitRoute
 }
 export interface FileRoutesByTo {
@@ -82,8 +83,8 @@ export interface FileRoutesByTo {
   '/exam': typeof ExamRoute
   '/lounge': typeof LoungeRoute
   '/studying': typeof StudyingIndexRoute
-  '/studying/$grade/$subject': typeof StudyingGradeSubjectRouteWithChildren
   '/studying/$grade': typeof StudyingGradeIndexRoute
+  '/studying/$grade/$subject': typeof StudyingGradeSubjectIndexRoute
   '/studying/$grade/$subject/quiz/$unit': typeof StudyingGradeSubjectQuizUnitRoute
 }
 export interface FileRoutesById {
@@ -94,8 +95,8 @@ export interface FileRoutesById {
   '/studying': typeof StudyingRouteWithChildren
   '/studying/$grade': typeof StudyingGradeRouteWithChildren
   '/studying/': typeof StudyingIndexRoute
-  '/studying/$grade/$subject': typeof StudyingGradeSubjectRouteWithChildren
   '/studying/$grade/': typeof StudyingGradeIndexRoute
+  '/studying/$grade/$subject/': typeof StudyingGradeSubjectIndexRoute
   '/studying/$grade/$subject/quiz/$unit': typeof StudyingGradeSubjectQuizUnitRoute
 }
 export interface FileRouteTypes {
@@ -107,8 +108,8 @@ export interface FileRouteTypes {
     | '/studying'
     | '/studying/$grade'
     | '/studying/'
-    | '/studying/$grade/$subject'
     | '/studying/$grade/'
+    | '/studying/$grade/$subject/'
     | '/studying/$grade/$subject/quiz/$unit'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -116,8 +117,8 @@ export interface FileRouteTypes {
     | '/exam'
     | '/lounge'
     | '/studying'
-    | '/studying/$grade/$subject'
     | '/studying/$grade'
+    | '/studying/$grade/$subject'
     | '/studying/$grade/$subject/quiz/$unit'
   id:
     | '__root__'
@@ -127,8 +128,8 @@ export interface FileRouteTypes {
     | '/studying'
     | '/studying/$grade'
     | '/studying/'
-    | '/studying/$grade/$subject'
     | '/studying/$grade/'
+    | '/studying/$grade/$subject/'
     | '/studying/$grade/$subject/quiz/$unit'
   fileRoutesById: FileRoutesById
 }
@@ -190,42 +191,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudyingGradeIndexRouteImport
       parentRoute: typeof StudyingGradeRoute
     }
-    '/studying/$grade/$subject': {
-      id: '/studying/$grade/$subject'
+    '/studying/$grade/$subject/': {
+      id: '/studying/$grade/$subject/'
       path: '/$subject'
-      fullPath: '/studying/$grade/$subject'
-      preLoaderRoute: typeof StudyingGradeSubjectRouteImport
+      fullPath: '/studying/$grade/$subject/'
+      preLoaderRoute: typeof StudyingGradeSubjectIndexRouteImport
       parentRoute: typeof StudyingGradeRoute
     }
     '/studying/$grade/$subject/quiz/$unit': {
       id: '/studying/$grade/$subject/quiz/$unit'
-      path: '/quiz/$unit'
+      path: '/$subject/quiz/$unit'
       fullPath: '/studying/$grade/$subject/quiz/$unit'
       preLoaderRoute: typeof StudyingGradeSubjectQuizUnitRouteImport
-      parentRoute: typeof StudyingGradeSubjectRoute
+      parentRoute: typeof StudyingGradeRoute
     }
   }
 }
 
-interface StudyingGradeSubjectRouteChildren {
+interface StudyingGradeRouteChildren {
+  StudyingGradeIndexRoute: typeof StudyingGradeIndexRoute
+  StudyingGradeSubjectIndexRoute: typeof StudyingGradeSubjectIndexRoute
   StudyingGradeSubjectQuizUnitRoute: typeof StudyingGradeSubjectQuizUnitRoute
 }
 
-const StudyingGradeSubjectRouteChildren: StudyingGradeSubjectRouteChildren = {
-  StudyingGradeSubjectQuizUnitRoute: StudyingGradeSubjectQuizUnitRoute,
-}
-
-const StudyingGradeSubjectRouteWithChildren =
-  StudyingGradeSubjectRoute._addFileChildren(StudyingGradeSubjectRouteChildren)
-
-interface StudyingGradeRouteChildren {
-  StudyingGradeSubjectRoute: typeof StudyingGradeSubjectRouteWithChildren
-  StudyingGradeIndexRoute: typeof StudyingGradeIndexRoute
-}
-
 const StudyingGradeRouteChildren: StudyingGradeRouteChildren = {
-  StudyingGradeSubjectRoute: StudyingGradeSubjectRouteWithChildren,
   StudyingGradeIndexRoute: StudyingGradeIndexRoute,
+  StudyingGradeSubjectIndexRoute: StudyingGradeSubjectIndexRoute,
+  StudyingGradeSubjectQuizUnitRoute: StudyingGradeSubjectQuizUnitRoute,
 }
 
 const StudyingGradeRouteWithChildren = StudyingGradeRoute._addFileChildren(
@@ -255,3 +247,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
