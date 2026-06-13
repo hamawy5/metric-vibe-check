@@ -15,6 +15,7 @@ import { Route as ExamRouteImport } from './routes/exam'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StudyingIndexRouteImport } from './routes/studying.index'
 import { Route as StudyingGradeRouteImport } from './routes/studying.$grade'
+import { Route as StudyingGradeIndexRouteImport } from './routes/studying.$grade.index'
 import { Route as StudyingGradeSubjectRouteImport } from './routes/studying.$grade.$subject'
 
 const StudyingRoute = StudyingRouteImport.update({
@@ -47,6 +48,11 @@ const StudyingGradeRoute = StudyingGradeRouteImport.update({
   path: '/$grade',
   getParentRoute: () => StudyingRoute,
 } as any)
+const StudyingGradeIndexRoute = StudyingGradeIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => StudyingGradeRoute,
+} as any)
 const StudyingGradeSubjectRoute = StudyingGradeSubjectRouteImport.update({
   id: '/$subject',
   path: '/$subject',
@@ -61,14 +67,15 @@ export interface FileRoutesByFullPath {
   '/studying/$grade': typeof StudyingGradeRouteWithChildren
   '/studying/': typeof StudyingIndexRoute
   '/studying/$grade/$subject': typeof StudyingGradeSubjectRoute
+  '/studying/$grade/': typeof StudyingGradeIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/exam': typeof ExamRoute
   '/lounge': typeof LoungeRoute
-  '/studying/$grade': typeof StudyingGradeRouteWithChildren
   '/studying': typeof StudyingIndexRoute
   '/studying/$grade/$subject': typeof StudyingGradeSubjectRoute
+  '/studying/$grade': typeof StudyingGradeIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -79,6 +86,7 @@ export interface FileRoutesById {
   '/studying/$grade': typeof StudyingGradeRouteWithChildren
   '/studying/': typeof StudyingIndexRoute
   '/studying/$grade/$subject': typeof StudyingGradeSubjectRoute
+  '/studying/$grade/': typeof StudyingGradeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -90,14 +98,15 @@ export interface FileRouteTypes {
     | '/studying/$grade'
     | '/studying/'
     | '/studying/$grade/$subject'
+    | '/studying/$grade/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/exam'
     | '/lounge'
-    | '/studying/$grade'
     | '/studying'
     | '/studying/$grade/$subject'
+    | '/studying/$grade'
   id:
     | '__root__'
     | '/'
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/studying/$grade'
     | '/studying/'
     | '/studying/$grade/$subject'
+    | '/studying/$grade/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -160,6 +170,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudyingGradeRouteImport
       parentRoute: typeof StudyingRoute
     }
+    '/studying/$grade/': {
+      id: '/studying/$grade/'
+      path: '/'
+      fullPath: '/studying/$grade/'
+      preLoaderRoute: typeof StudyingGradeIndexRouteImport
+      parentRoute: typeof StudyingGradeRoute
+    }
     '/studying/$grade/$subject': {
       id: '/studying/$grade/$subject'
       path: '/$subject'
@@ -172,10 +189,12 @@ declare module '@tanstack/react-router' {
 
 interface StudyingGradeRouteChildren {
   StudyingGradeSubjectRoute: typeof StudyingGradeSubjectRoute
+  StudyingGradeIndexRoute: typeof StudyingGradeIndexRoute
 }
 
 const StudyingGradeRouteChildren: StudyingGradeRouteChildren = {
   StudyingGradeSubjectRoute: StudyingGradeSubjectRoute,
+  StudyingGradeIndexRoute: StudyingGradeIndexRoute,
 }
 
 const StudyingGradeRouteWithChildren = StudyingGradeRoute._addFileChildren(
@@ -205,3 +224,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
