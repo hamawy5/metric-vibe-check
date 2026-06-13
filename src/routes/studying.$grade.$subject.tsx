@@ -161,10 +161,14 @@ function UnitsPage() {
         ))}
       </div>
 
-      <button className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-5 py-4 text-sm font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition active:scale-[0.99]">
+      <Link
+        to="/studying/$grade/$subject/quiz/$unit"
+        params={{ grade, subject, unit: String((openUnit && openUnit.startsWith("unit-") ? Number(openUnit.slice(5)) : 0) + 1) }}
+        className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-5 py-4 text-sm font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition active:scale-[0.99]"
+      >
         <Rocket className="h-4 w-4" />
         🚀 Launch Unit Mastery Quiz
-      </button>
+      </Link>
     </div>
   );
 }
