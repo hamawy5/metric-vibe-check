@@ -1,11 +1,6 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, CheckCircle2, Circle, BookMarked, Rocket } from "lucide-react";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { ArrowLeft, CheckCircle2, Circle, BookMarked, Rocket, ChevronDown } from "lucide-react";
 
 export const Route = createFileRoute("/studying/$grade/$subject")({
   head: ({ params }) => ({
@@ -79,6 +74,7 @@ function prettySubject(slug: string) {
 function UnitsPage() {
   const { grade, subject } = Route.useParams();
   const units = getUnits(subject);
+  const [openUnit, setOpenUnit] = useState("unit-0");
 
   return (
     <div className="px-5 pt-12 pb-8">
@@ -101,14 +97,19 @@ function UnitsPage() {
         </p>
       </header>
 
-      <Accordion type="single" collapsible defaultValue="unit-0" className="mt-6 space-y-3">
+      <div className="mt-6 space-y-3">
         {units.map((unit, i) => (
-          <AccordionItem
+          <section
             key={unit.title}
-            value={`unit-${i}`}
-            className="overflow-hidden rounded-3xl border border-white/5 bg-card px-0 data-[state=open]:border-white/10"
+            className="overflow-hidden rounded-3xl border border-white/5 bg-card px-0 transition data-[state=open]:border-white/10"
+            data-state={openUnit === `unit-${i}` ? "open" : "closed"}
           >
-            <AccordionTrigger className="px-4 py-4 hover:no-underline [&>svg]:shrink-0">
+            <button
+              type="button"
+              aria-expanded={openUnit === `unit-${i}`}
+              className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left"
+              onClick={() => setOpenUnit(openUnit === `unit-${i}` ? "" : `unit-${i}`)}
+            >
               <div className="flex items-center gap-3 text-left">
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 text-primary">
                   <BookMarked className="h-5 w-5" />
@@ -122,10 +123,16 @@ function UnitsPage() {
                   </p>
                 </div>
               </div>
-            </AccordionTrigger>
+              <ChevronDown
+                className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${
+                  openUnit === `unit-${i}` ? "rotate-180" : ""
+                }`}
+              />
+            </button>
 
-            <AccordionContent className="border-t border-white/5 pb-3 pt-0">
-              <div className="space-y-2 p-3 pt-2">
+            {openUnit === `unit-${i}` ? (
+              <div className="border-t border-white/5 pb-3 pt-0">
+                <div className="space-y-2 p-3 pt-2">
                 {unit.subunits.map((sub, j) => (
                   <div
                     key={sub.label}
@@ -147,11 +154,12 @@ function UnitsPage() {
                     </span>
                   </div>
                 ))}
+                </div>
               </div>
-            </AccordionContent>
-          </AccordionItem>
+            ) : null}
+          </section>
         ))}
-      </Accordion>
+      </div>
 
       <button className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-5 py-4 text-sm font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition active:scale-[0.99]">
         <Rocket className="h-4 w-4" />
