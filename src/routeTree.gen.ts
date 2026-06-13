@@ -13,6 +13,8 @@ import { Route as StudyingRouteImport } from './routes/studying'
 import { Route as LoungeRouteImport } from './routes/lounge'
 import { Route as ExamRouteImport } from './routes/exam'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StudyingGradeRouteImport } from './routes/studying.$grade'
+import { Route as StudyingGradeSubjectRouteImport } from './routes/studying.$grade.$subject'
 
 const StudyingRoute = StudyingRouteImport.update({
   id: '/studying',
@@ -34,39 +36,74 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudyingGradeRoute = StudyingGradeRouteImport.update({
+  id: '/$grade',
+  path: '/$grade',
+  getParentRoute: () => StudyingRoute,
+} as any)
+const StudyingGradeSubjectRoute = StudyingGradeSubjectRouteImport.update({
+  id: '/$subject',
+  path: '/$subject',
+  getParentRoute: () => StudyingGradeRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/exam': typeof ExamRoute
   '/lounge': typeof LoungeRoute
-  '/studying': typeof StudyingRoute
+  '/studying': typeof StudyingRouteWithChildren
+  '/studying/$grade': typeof StudyingGradeRouteWithChildren
+  '/studying/$grade/$subject': typeof StudyingGradeSubjectRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/exam': typeof ExamRoute
   '/lounge': typeof LoungeRoute
-  '/studying': typeof StudyingRoute
+  '/studying': typeof StudyingRouteWithChildren
+  '/studying/$grade': typeof StudyingGradeRouteWithChildren
+  '/studying/$grade/$subject': typeof StudyingGradeSubjectRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/exam': typeof ExamRoute
   '/lounge': typeof LoungeRoute
-  '/studying': typeof StudyingRoute
+  '/studying': typeof StudyingRouteWithChildren
+  '/studying/$grade': typeof StudyingGradeRouteWithChildren
+  '/studying/$grade/$subject': typeof StudyingGradeSubjectRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/exam' | '/lounge' | '/studying'
+  fullPaths:
+    | '/'
+    | '/exam'
+    | '/lounge'
+    | '/studying'
+    | '/studying/$grade'
+    | '/studying/$grade/$subject'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/exam' | '/lounge' | '/studying'
-  id: '__root__' | '/' | '/exam' | '/lounge' | '/studying'
+  to:
+    | '/'
+    | '/exam'
+    | '/lounge'
+    | '/studying'
+    | '/studying/$grade'
+    | '/studying/$grade/$subject'
+  id:
+    | '__root__'
+    | '/'
+    | '/exam'
+    | '/lounge'
+    | '/studying'
+    | '/studying/$grade'
+    | '/studying/$grade/$subject'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ExamRoute: typeof ExamRoute
   LoungeRoute: typeof LoungeRoute
-  StudyingRoute: typeof StudyingRoute
+  StudyingRoute: typeof StudyingRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -99,14 +136,52 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/studying/$grade': {
+      id: '/studying/$grade'
+      path: '/$grade'
+      fullPath: '/studying/$grade'
+      preLoaderRoute: typeof StudyingGradeRouteImport
+      parentRoute: typeof StudyingRoute
+    }
+    '/studying/$grade/$subject': {
+      id: '/studying/$grade/$subject'
+      path: '/$subject'
+      fullPath: '/studying/$grade/$subject'
+      preLoaderRoute: typeof StudyingGradeSubjectRouteImport
+      parentRoute: typeof StudyingGradeRoute
+    }
   }
 }
+
+interface StudyingGradeRouteChildren {
+  StudyingGradeSubjectRoute: typeof StudyingGradeSubjectRoute
+}
+
+const StudyingGradeRouteChildren: StudyingGradeRouteChildren = {
+  StudyingGradeSubjectRoute: StudyingGradeSubjectRoute,
+}
+
+const StudyingGradeRouteWithChildren = StudyingGradeRoute._addFileChildren(
+  StudyingGradeRouteChildren,
+)
+
+interface StudyingRouteChildren {
+  StudyingGradeRoute: typeof StudyingGradeRouteWithChildren
+}
+
+const StudyingRouteChildren: StudyingRouteChildren = {
+  StudyingGradeRoute: StudyingGradeRouteWithChildren,
+}
+
+const StudyingRouteWithChildren = StudyingRoute._addFileChildren(
+  StudyingRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ExamRoute: ExamRoute,
   LoungeRoute: LoungeRoute,
-  StudyingRoute: StudyingRoute,
+  StudyingRoute: StudyingRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
