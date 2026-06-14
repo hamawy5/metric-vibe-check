@@ -13,6 +13,7 @@ import {
   Landmark,
   Coins,
   Lock,
+  Scale,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStream, subjectStream } from "@/lib/stream";
