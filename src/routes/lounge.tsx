@@ -5,7 +5,6 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { StreamGate } from "@/components/StreamGate";
 
 export const Route = createFileRoute("/lounge")({
   head: () => ({
@@ -115,7 +114,6 @@ function LoungePage() {
   };
 
   return (
-    <StreamGate>
     <div className="flex h-[100dvh] flex-col">
       {/* Header */}
       <header className="flex items-center justify-between border-b border-white/5 bg-background/80 px-4 py-3 backdrop-blur-xl">
@@ -325,6 +323,5 @@ function LoungePage() {
         </div>
       )}
     </div>
-    </StreamGate>
   );
 }
