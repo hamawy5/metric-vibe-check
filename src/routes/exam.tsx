@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ClipboardCheck, Clock, Target, Trophy, Play } from "lucide-react";
+import { StreamGate } from "@/components/StreamGate";
 
 export const Route = createFileRoute("/exam")({
   head: () => ({
