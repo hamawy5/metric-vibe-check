@@ -14,6 +14,7 @@ export const Route = createFileRoute("/exam")({
 
 function ExamPage() {
   return (
+    <StreamGate>
     <div className="px-5 pt-12">
       <header>
         <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Mock test</p>
