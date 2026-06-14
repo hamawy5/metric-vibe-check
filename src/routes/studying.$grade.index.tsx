@@ -73,7 +73,10 @@ function SubjectsPage() {
       </header>
 
       <div className="mt-6 grid grid-cols-2 gap-3">
-        {SUBJECTS.map(({ slug, name, Icon, color }) => {
+        {SUBJECTS.filter(({ slug }) => {
+          const ss = subjectStream(slug);
+          return !stream || ss === "both" || ss === stream;
+        }).map(({ slug, name, Icon, color }) => {
           const ss = subjectStream(slug);
           const isLocked = !!stream && ss !== "both" && ss !== stream;
           return (
