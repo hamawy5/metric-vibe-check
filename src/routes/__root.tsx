@@ -158,6 +158,7 @@ function RootComponent() {
           <Outlet />
         </main>
         <BottomNav />
+        <Toaster />
       </div>
     </QueryClientProvider>
   );
