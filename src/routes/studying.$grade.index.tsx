@@ -13,6 +13,7 @@ import {
   Landmark,
   Coins,
   Lock,
+  Scale,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStream, subjectStream } from "@/lib/stream";
@@ -30,6 +31,7 @@ const SUBJECTS = [
   { slug: "geography", name: "Geography", Icon: Globe2, color: "from-orange-400 to-amber-300" },
   { slug: "history", name: "History", Icon: Landmark, color: "from-yellow-400 to-amber-300" },
   { slug: "economics", name: "Economics", Icon: Coins, color: "from-teal-400 to-cyan-300" },
+  { slug: "civics", name: "Civics", Icon: Scale, color: "from-indigo-400 to-violet-300" },
   { slug: "english", name: "English", Icon: BookOpen, color: "from-amber-400 to-orange-300" },
   { slug: "aptitude", name: "Aptitude", Icon: Brain, color: "from-rose-400 to-pink-300" },
 ];
@@ -71,7 +73,10 @@ function SubjectsPage() {
       </header>
 
       <div className="mt-6 grid grid-cols-2 gap-3">
-        {SUBJECTS.map(({ slug, name, Icon, color }) => {
+        {SUBJECTS.filter(({ slug }) => {
+          const ss = subjectStream(slug);
+          return !stream || ss === "both" || ss === stream;
+        }).map(({ slug, name, Icon, color }) => {
           const ss = subjectStream(slug);
           const isLocked = !!stream && ss !== "both" && ss !== stream;
           return (

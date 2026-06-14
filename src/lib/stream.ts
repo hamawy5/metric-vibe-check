@@ -46,6 +46,7 @@ export const NATURAL_SUBJECTS = new Set([
 ]);
 
 export const SOCIAL_SUBJECTS = new Set([
+  "mathematics",
   "geography",
   "history",
   "economics",
