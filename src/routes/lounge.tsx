@@ -325,5 +325,6 @@ function LoungePage() {
         </div>
       )}
     </div>
+    </StreamGate>
   );
 }
