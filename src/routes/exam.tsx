@@ -79,6 +79,7 @@ function ExamPage() {
         </div>
       </section>
     </div>
+    </StreamGate>
   );
 }
 
