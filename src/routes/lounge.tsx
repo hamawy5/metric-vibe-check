@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { StreamGate } from "@/components/StreamGate";
 
 export const Route = createFileRoute("/lounge")({
   head: () => ({
