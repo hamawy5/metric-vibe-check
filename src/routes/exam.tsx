@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ClipboardCheck, Clock, Target, Trophy, Play } from "lucide-react";
+import { StreamGate } from "@/components/StreamGate";
 
 export const Route = createFileRoute("/exam")({
   head: () => ({
@@ -8,7 +9,11 @@ export const Route = createFileRoute("/exam")({
       { name: "description", content: "Take full-length mock national exams under timed conditions." },
     ],
   }),
-  component: ExamPage,
+  component: () => (
+    <StreamGate>
+      <ExamPage />
+    </StreamGate>
+  ),
 });
 
 function ExamPage() {
