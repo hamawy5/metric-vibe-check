@@ -37,16 +37,33 @@ function QuizPage() {
     setQuestion(null);
     (async () => {
       const { data, error } = await supabase
-        .from("questions" as never)
-        .select("id, question_text, options, correct_answer, explanation")
-        .eq("subject", subjectLabel)
-        .eq("grade", grade)
-        .eq("unit", unit)
-        .limit(1)
-        .maybeSingle();
+        .from("questions")
+        .select("id, question_text, options, correct_answer, explanation, subject, grade, unit")
+        .ilike("subject", subjectLabel)
+        .eq("grade", String(grade))
+        .eq("unit", String(unit))
+        .limit(1);
       if (!active) return;
-      if (error) setError(error.message);
-      else if (data) setQuestion(data as unknown as Question);
+      if (error) {
+        console.error("[quiz] supabase error:", error);
+        setError(error.message);
+      } else if (data && data.length > 0) {
+        const row = data[0] as { id: string; question_text: string; options: unknown; correct_answer: string; explanation: string | null };
+        const opts = Array.isArray(row.options)
+          ? (row.options as string[])
+          : typeof row.options === "string"
+            ? (JSON.parse(row.options) as string[])
+            : [];
+        setQuestion({
+          id: row.id,
+          question_text: row.question_text,
+          options: opts,
+          correct_answer: row.correct_answer,
+          explanation: row.explanation,
+        });
+      } else {
+        console.warn("[quiz] no rows for", { subjectLabel, grade, unit });
+      }
       setLoading(false);
     })();
     return () => {
