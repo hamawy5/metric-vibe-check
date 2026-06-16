@@ -105,12 +105,28 @@ function QuizPage() {
         Close Quiz
       </Link>
 
-      <header className="mt-5">
-        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-          Grade {grade} · {subjectLabel} · Unit {unit}
-        </p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight">Unit Mastery Quiz</h1>
+      <header className="mt-5 flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+            Grade {grade} · {subjectLabel} · Unit {unit}
+          </p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight">Unit Mastery Quiz</h1>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowDebug((s) => !s)}
+          className="shrink-0 rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-300"
+        >
+          {showDebug ? "Hide" : "Debug"}
+        </button>
       </header>
+
+      {showDebug && debug ? (
+        <pre className="mt-4 overflow-auto rounded-2xl border border-amber-500/30 bg-amber-500/5 p-3 text-[10px] leading-relaxed text-amber-200">
+{JSON.stringify(debug, null, 2)}
+        </pre>
+      ) : null}
+
 
       {loading ? (
         <div className="mt-12 flex items-center justify-center text-muted-foreground">
