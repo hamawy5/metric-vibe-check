@@ -20,12 +20,22 @@ type Question = {
 
 const LETTERS = ["A", "B", "C", "D"] as const;
 
+type DebugInfo = {
+  query: { table: string; subject: string; grade: string; unit: string };
+  rowCount: number;
+  error: string | null;
+  rawRows: unknown;
+  ms: number;
+};
+
 function QuizPage() {
   const { grade, subject, unit } = Route.useParams();
   const [question, setQuestion] = useState<Question | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [debug, setDebug] = useState<DebugInfo | null>(null);
+  const [showDebug, setShowDebug] = useState(false);
 
   const subjectLabel = subject.charAt(0).toUpperCase() + subject.slice(1);
 
@@ -35,6 +45,7 @@ function QuizPage() {
     setError(null);
     setSelected(null);
     setQuestion(null);
+    const startedAt = performance.now();
     (async () => {
       const { data, error } = await supabase
         .from("questions")
@@ -44,6 +55,14 @@ function QuizPage() {
         .eq("unit", String(unit))
         .limit(1);
       if (!active) return;
+      const ms = Math.round(performance.now() - startedAt);
+      setDebug({
+        query: { table: "questions", subject: subjectLabel, grade: String(grade), unit: String(unit) },
+        rowCount: data?.length ?? 0,
+        error: error?.message ?? null,
+        rawRows: data,
+        ms,
+      });
       if (error) {
         console.error("[quiz] supabase error:", error);
         setError(error.message);
