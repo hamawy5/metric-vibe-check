@@ -1,7 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Check, X, Sparkles, Loader2, BookOpen } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { ArrowLeft, Check, X, Sparkles, Loader2, BookOpen, ChevronRight } from "lucide-react";
+import {
+  externalQuestions,
+  parseChoices,
+  type ExternalQuestion,
+} from "@/integrations/external-questions/client";
 
 export const Route = createFileRoute("/studying/$grade/$subject/quiz/$unit")({
   head: ({ params }) => ({
@@ -11,7 +15,7 @@ export const Route = createFileRoute("/studying/$grade/$subject/quiz/$unit")({
 });
 
 type Question = {
-  id: string;
+  id: number;
   question_text: string;
   options: string[];
   correct_answer: string;
@@ -24,13 +28,13 @@ type DebugInfo = {
   query: { table: string; subject: string; grade: string; unit: string };
   rowCount: number;
   error: string | null;
-  rawRows: unknown;
   ms: number;
 };
 
 function QuizPage() {
   const { grade, subject, unit } = Route.useParams();
-  const [question, setQuestion] = useState<Question | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
@@ -44,44 +48,38 @@ function QuizPage() {
     setLoading(true);
     setError(null);
     setSelected(null);
-    setQuestion(null);
+    setQuestions([]);
+    setIndex(0);
     const startedAt = performance.now();
     (async () => {
-      const { data, error } = await supabase
-        .from("questions")
-        .select("id, question_text, options, correct_answer, explanation, subject, grade, unit")
+      const { data, error } = await externalQuestions
+        .from("Questions")
+        .select("id, question_text, choices, correct_answer, explanation, subject, grade, unit, stream, exam_year")
         .ilike("subject", subjectLabel)
         .eq("grade", String(grade))
-        .eq("unit", String(unit))
-        .limit(1);
+        .eq("unit", String(unit));
       if (!active) return;
       const ms = Math.round(performance.now() - startedAt);
       setDebug({
-        query: { table: "questions", subject: subjectLabel, grade: String(grade), unit: String(unit) },
+        query: { table: "Questions", subject: subjectLabel, grade: String(grade), unit: String(unit) },
         rowCount: data?.length ?? 0,
         error: error?.message ?? null,
-        rawRows: data,
         ms,
       });
       if (error) {
         console.error("[quiz] supabase error:", error);
         setError(error.message);
-      } else if (data && data.length > 0) {
-        const row = data[0] as { id: string; question_text: string; options: unknown; correct_answer: string; explanation: string | null };
-        const opts = Array.isArray(row.options)
-          ? (row.options as string[])
-          : typeof row.options === "string"
-            ? (JSON.parse(row.options) as string[])
-            : [];
-        setQuestion({
-          id: row.id,
-          question_text: row.question_text,
-          options: opts,
-          correct_answer: row.correct_answer,
-          explanation: row.explanation,
-        });
       } else {
-        console.warn("[quiz] no rows for", { subjectLabel, grade, unit });
+        const rows = (data ?? []) as ExternalQuestion[];
+        setQuestions(
+          rows.map((r) => ({
+            id: r.id,
+            question_text: r.question_text,
+            options: parseChoices(r.choices),
+            correct_answer: r.correct_answer,
+            explanation: r.explanation,
+          })),
+        );
       }
       setLoading(false);
     })();
@@ -89,6 +87,8 @@ function QuizPage() {
       active = false;
     };
   }, [subjectLabel, grade, unit]);
+
+  const question = useMemo(() => questions[index] ?? null, [questions, index]);
 
   const options = Array.isArray(question?.options) ? question!.options : [];
   const correct = question?.correct_answer ?? "";
@@ -148,7 +148,7 @@ function QuizPage() {
         <>
           <section className="mt-6 rounded-3xl border border-white/5 bg-card p-5">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">
-              Question 1
+              Question {index + 1} of {questions.length}
             </p>
             <p className="mt-2 text-base font-medium leading-relaxed">
               {question.question_text}
@@ -218,6 +218,23 @@ function QuizPage() {
               <p className="mt-3 text-sm leading-relaxed text-foreground/85">
                 {question.explanation ?? "No explanation available for this question."}
               </p>
+              {index < questions.length - 1 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelected(null);
+                    setIndex((i) => i + 1);
+                  }}
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-5 py-3.5 text-sm font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition active:scale-[0.99]"
+                >
+                  Next Question
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              ) : (
+                <p className="mt-5 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  🎉 End of unit · {questions.length} question{questions.length === 1 ? "" : "s"}
+                </p>
+              )}
             </section>
           ) : null}
         </>
@@ -225,3 +242,4 @@ function QuizPage() {
     </div>
   );
 }
+

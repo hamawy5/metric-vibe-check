@@ -134,9 +134,11 @@ function UnitsPage() {
               <div className="border-t border-white/5 pb-3 pt-0">
                 <div className="space-y-2 p-3 pt-2">
                 {unit.subunits.map((sub, j) => (
-                  <div
+                  <Link
                     key={sub.label}
-                    className="flex items-center gap-3 rounded-xl bg-secondary/50 px-3 py-3"
+                    to="/studying/$grade/$subject/reading/$unit/$sub"
+                    params={{ grade, subject, unit: String(i + 1), sub: String(j + 1) }}
+                    className="flex items-center gap-3 rounded-xl bg-secondary/50 px-3 py-3 transition hover:bg-secondary active:scale-[0.99]"
                   >
                     {sub.status === "completed" ? (
                       <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />
@@ -146,13 +148,13 @@ function UnitsPage() {
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium">{sub.label}</p>
                       <p className="text-[11px] text-muted-foreground">
-                        {sub.status === "completed" ? "Completed" : "Not started"}
+                        {sub.status === "completed" ? "Completed" : "Open reading"}
                       </p>
                     </div>
                     <span className="rounded-full bg-background/60 px-2 py-1 text-[10px] font-semibold text-muted-foreground">
                       {i + 1}.{j + 1}
                     </span>
-                  </div>
+                  </Link>
                 ))}
                 <Link
                   to="/studying/$grade/$subject/quiz/$unit"

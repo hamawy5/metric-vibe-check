@@ -20,6 +20,7 @@ import { Route as StudyingGradeIndexRouteImport } from './routes/studying.$grade
 import { Route as StudyingGradeSubjectRouteImport } from './routes/studying.$grade.$subject'
 import { Route as StudyingGradeSubjectIndexRouteImport } from './routes/studying.$grade.$subject.index'
 import { Route as StudyingGradeSubjectQuizUnitRouteImport } from './routes/studying.$grade.$subject.quiz.$unit'
+import { Route as StudyingGradeSubjectReadingUnitSubRouteImport } from './routes/studying.$grade.$subject.reading.$unit.$sub'
 
 const StudyingRoute = StudyingRouteImport.update({
   id: '/studying',
@@ -78,6 +79,12 @@ const StudyingGradeSubjectQuizUnitRoute =
     path: '/quiz/$unit',
     getParentRoute: () => StudyingGradeSubjectRoute,
   } as any)
+const StudyingGradeSubjectReadingUnitSubRoute =
+  StudyingGradeSubjectReadingUnitSubRouteImport.update({
+    id: '/reading/$unit/$sub',
+    path: '/reading/$unit/$sub',
+    getParentRoute: () => StudyingGradeSubjectRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/studying/$grade/': typeof StudyingGradeIndexRoute
   '/studying/$grade/$subject/': typeof StudyingGradeSubjectIndexRoute
   '/studying/$grade/$subject/quiz/$unit': typeof StudyingGradeSubjectQuizUnitRoute
+  '/studying/$grade/$subject/reading/$unit/$sub': typeof StudyingGradeSubjectReadingUnitSubRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -101,6 +109,7 @@ export interface FileRoutesByTo {
   '/studying/$grade': typeof StudyingGradeIndexRoute
   '/studying/$grade/$subject': typeof StudyingGradeSubjectIndexRoute
   '/studying/$grade/$subject/quiz/$unit': typeof StudyingGradeSubjectQuizUnitRoute
+  '/studying/$grade/$subject/reading/$unit/$sub': typeof StudyingGradeSubjectReadingUnitSubRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -115,6 +124,7 @@ export interface FileRoutesById {
   '/studying/$grade/': typeof StudyingGradeIndexRoute
   '/studying/$grade/$subject/': typeof StudyingGradeSubjectIndexRoute
   '/studying/$grade/$subject/quiz/$unit': typeof StudyingGradeSubjectQuizUnitRoute
+  '/studying/$grade/$subject/reading/$unit/$sub': typeof StudyingGradeSubjectReadingUnitSubRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/studying/$grade/'
     | '/studying/$grade/$subject/'
     | '/studying/$grade/$subject/quiz/$unit'
+    | '/studying/$grade/$subject/reading/$unit/$sub'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/studying/$grade'
     | '/studying/$grade/$subject'
     | '/studying/$grade/$subject/quiz/$unit'
+    | '/studying/$grade/$subject/reading/$unit/$sub'
   id:
     | '__root__'
     | '/'
@@ -153,6 +165,7 @@ export interface FileRouteTypes {
     | '/studying/$grade/'
     | '/studying/$grade/$subject/'
     | '/studying/$grade/$subject/quiz/$unit'
+    | '/studying/$grade/$subject/reading/$unit/$sub'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -242,17 +255,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudyingGradeSubjectQuizUnitRouteImport
       parentRoute: typeof StudyingGradeSubjectRoute
     }
+    '/studying/$grade/$subject/reading/$unit/$sub': {
+      id: '/studying/$grade/$subject/reading/$unit/$sub'
+      path: '/reading/$unit/$sub'
+      fullPath: '/studying/$grade/$subject/reading/$unit/$sub'
+      preLoaderRoute: typeof StudyingGradeSubjectReadingUnitSubRouteImport
+      parentRoute: typeof StudyingGradeSubjectRoute
+    }
   }
 }
 
 interface StudyingGradeSubjectRouteChildren {
   StudyingGradeSubjectIndexRoute: typeof StudyingGradeSubjectIndexRoute
   StudyingGradeSubjectQuizUnitRoute: typeof StudyingGradeSubjectQuizUnitRoute
+  StudyingGradeSubjectReadingUnitSubRoute: typeof StudyingGradeSubjectReadingUnitSubRoute
 }
 
 const StudyingGradeSubjectRouteChildren: StudyingGradeSubjectRouteChildren = {
   StudyingGradeSubjectIndexRoute: StudyingGradeSubjectIndexRoute,
   StudyingGradeSubjectQuizUnitRoute: StudyingGradeSubjectQuizUnitRoute,
+  StudyingGradeSubjectReadingUnitSubRoute:
+    StudyingGradeSubjectReadingUnitSubRoute,
 }
 
 const StudyingGradeSubjectRouteWithChildren =
@@ -296,13 +319,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
