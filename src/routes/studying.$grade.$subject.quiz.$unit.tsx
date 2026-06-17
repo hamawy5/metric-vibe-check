@@ -148,7 +148,7 @@ function QuizPage() {
         <>
           <section className="mt-6 rounded-3xl border border-white/5 bg-card p-5">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">
-              Question 1
+              Question {index + 1} of {questions.length}
             </p>
             <p className="mt-2 text-base font-medium leading-relaxed">
               {question.question_text}
@@ -218,8 +218,30 @@ function QuizPage() {
               <p className="mt-3 text-sm leading-relaxed text-foreground/85">
                 {question.explanation ?? "No explanation available for this question."}
               </p>
+              {index < questions.length - 1 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelected(null);
+                    setIndex((i) => i + 1);
+                  }}
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-5 py-3.5 text-sm font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition active:scale-[0.99]"
+                >
+                  Next Question
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              ) : (
+                <p className="mt-5 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  🎉 End of unit · {questions.length} question{questions.length === 1 ? "" : "s"}
+                </p>
+              )}
             </section>
           ) : null}
+        </>
+      )}
+    </div>
+  );
+}
         </>
       )}
     </div>
