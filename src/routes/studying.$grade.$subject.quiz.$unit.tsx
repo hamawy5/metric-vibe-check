@@ -242,8 +242,4 @@ function QuizPage() {
     </div>
   );
 }
-        </>
-      )}
-    </div>
-  );
-}
+
