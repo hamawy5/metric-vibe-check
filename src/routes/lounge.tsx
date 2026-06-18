@@ -121,27 +121,36 @@ function LoungePage() {
   return (
     <div className="flex h-[100dvh] flex-col">
       {/* Header */}
-      <header className="flex items-center justify-between border-b border-white/5 bg-background/80 px-4 py-3 backdrop-blur-xl">
-        <button
-          onClick={() => setDrawer(true)}
-          className="flex items-center gap-1.5 rounded-xl bg-secondary px-3 py-2 text-xs font-semibold transition hover:bg-secondary/80"
-          aria-label="Open history"
+      <header className="flex items-center justify-between gap-2 border-b border-white/5 bg-background/80 px-3 py-3 backdrop-blur-xl">
+        <Link
+          to="/"
+          className="flex items-center gap-1.5 rounded-xl bg-[image:var(--gradient-primary)] px-3 py-2 text-xs font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition active:scale-95"
+          aria-label="Back to Home"
         >
-          <Menu className="h-4 w-4" /> History
-        </button>
-        <div className="flex items-center gap-2">
+          <ArrowLeft className="h-4 w-4" /> Home
+        </Link>
+        <div className="flex items-center gap-1.5">
           <div className="grid h-7 w-7 place-items-center rounded-lg bg-[image:var(--gradient-primary)]">
             <Sparkles className="h-4 w-4 text-primary-foreground" />
           </div>
           <span className="text-sm font-bold">AI Lounge</span>
         </div>
-        <button
-          onClick={() => setShareOpen(true)}
-          className="flex items-center gap-1.5 rounded-xl bg-secondary px-3 py-2 text-xs font-semibold transition hover:bg-secondary/80"
-          aria-label="Share"
-        >
-          <Share2 className="h-4 w-4" /> Share
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setDrawer(true)}
+            className="grid h-9 w-9 place-items-center rounded-xl bg-secondary transition hover:bg-secondary/80"
+            aria-label="Open history"
+          >
+            <Menu className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setShareOpen(true)}
+            className="grid h-9 w-9 place-items-center rounded-xl bg-secondary transition hover:bg-secondary/80"
+            aria-label="Share"
+          >
+            <Share2 className="h-4 w-4" />
+          </button>
+        </div>
       </header>
 
       {/* Messages */}
