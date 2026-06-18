@@ -246,7 +246,7 @@ function QuizPage() {
                   key={opt}
                   type="button"
                   disabled={answered}
-                  onClick={() => setSelected(opt)}
+                  onClick={() => handleSelect(opt)}
                   className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-4 text-left text-sm font-semibold transition active:scale-[0.99] disabled:cursor-default ${cls}`}
                 >
                   <span
@@ -285,23 +285,85 @@ function QuizPage() {
               <p className="mt-3 text-sm leading-relaxed text-foreground/85">
                 {question.explanation ?? "No explanation available for this question."}
               </p>
-              {index < questions.length - 1 ? (
+
+              {/* Study More */}
+              <button
+                type="button"
+                onClick={handleStudyMore}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-primary/10 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-primary transition hover:bg-primary/15 active:scale-[0.99]"
+              >
+                {deep?.loading ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Thinking…
+                  </>
+                ) : deep?.open ? (
+                  <>
+                    <ChevronUp className="h-3.5 w-3.5" /> Back to Quiz Options
+                  </>
+                ) : (
+                  <>
+                    <GraduationCap className="h-3.5 w-3.5" />
+                    {deep?.content ? "Show Deep Dive" : "Study More"}
+                  </>
+                )}
+              </button>
+
+              {deep?.open ? (
+                <div className="mt-4 animate-fade-in rounded-2xl border border-primary/20 bg-primary/[0.04] p-4">
+                  {deep.error ? (
+                    <p className="text-sm text-destructive">{deep.error}</p>
+                  ) : deep.loading ? (
+                    <p className="text-sm text-muted-foreground">
+                      Generating a tailored deep-dive explanation…
+                    </p>
+                  ) : deep.content ? (
+                    <div className="prose prose-sm prose-invert max-w-none prose-headings:mt-3 prose-headings:mb-1.5 prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0.5 prose-strong:text-foreground">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {deep.content}
+                      </ReactMarkdown>
+                    </div>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setDeepByQ((d) => ({
+                        ...d,
+                        [question.id]: { ...(d[question.id] ?? { loading: false, content: null, error: null, open: true }), open: false },
+                      }))
+                    }
+                    className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground transition hover:text-foreground"
+                  >
+                    <ChevronUp className="h-3 w-3" /> Collapse · Back to Quiz Options
+                  </button>
+                </div>
+              ) : null}
+
+              {/* Prev / Next navigation */}
+              <div className="mt-5 flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    setSelected(null);
-                    setIndex((i) => i + 1);
-                  }}
-                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-5 py-3.5 text-sm font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition active:scale-[0.99]"
+                  disabled={index === 0}
+                  onClick={() => setIndex((i) => Math.max(0, i - 1))}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-foreground transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  Next Question
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
                 </button>
-              ) : (
-                <p className="mt-5 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  🎉 End of unit · {questions.length} question{questions.length === 1 ? "" : "s"}
-                </p>
-              )}
+                {index < questions.length - 1 ? (
+                  <button
+                    type="button"
+                    onClick={() => setIndex((i) => i + 1)}
+                    className="flex flex-[1.4] items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-4 py-3 text-sm font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition active:scale-[0.99]"
+                  >
+                    Next Question
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <div className="flex flex-[1.4] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    🎉 End of unit
+                  </div>
+                )}
+              </div>
             </section>
           ) : null}
         </>
