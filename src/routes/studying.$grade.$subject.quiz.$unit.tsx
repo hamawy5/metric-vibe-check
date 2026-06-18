@@ -45,13 +45,21 @@ type DebugInfo = {
   ms: number;
 };
 
+type DeepState = {
+  loading: boolean;
+  content: string | null;
+  error: string | null;
+  open: boolean;
+};
+
 function QuizPage() {
   const { grade, subject, unit } = Route.useParams();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [deepByQ, setDeepByQ] = useState<Record<number, DeepState>>({});
   const [debug, setDebug] = useState<DebugInfo | null>(null);
   const [showDebug, setShowDebug] = useState(false);
 
@@ -61,7 +69,8 @@ function QuizPage() {
     let active = true;
     setLoading(true);
     setError(null);
-    setSelected(null);
+    setAnswers({});
+    setDeepByQ({});
     setQuestions([]);
     setIndex(0);
     const startedAt = performance.now();
@@ -106,7 +115,51 @@ function QuizPage() {
 
   const options = Array.isArray(question?.options) ? question!.options : [];
   const correct = question?.correct_answer ?? "";
+  const selected = question ? (answers[question.id] ?? null) : null;
   const answered = selected !== null;
+  const deep = question ? deepByQ[question.id] : undefined;
+
+  const handleSelect = (opt: string) => {
+    if (!question || answers[question.id]) return;
+    setAnswers((a) => ({ ...a, [question.id]: opt }));
+  };
+
+  const handleStudyMore = async () => {
+    if (!question) return;
+    const current = deepByQ[question.id];
+    if (current?.content) {
+      setDeepByQ((d) => ({ ...d, [question.id]: { ...current, open: !current.open } }));
+      return;
+    }
+    setDeepByQ((d) => ({
+      ...d,
+      [question.id]: { loading: true, content: null, error: null, open: true },
+    }));
+    try {
+      const { content } = await deepExplain({
+        data: {
+          question: question.question_text,
+          correctAnswer: correct,
+          subject: subjectLabel,
+          grade: String(grade),
+          unit: String(unit),
+          baseExplanation: question.explanation ?? undefined,
+        },
+      });
+      setDeepByQ((d) => ({
+        ...d,
+        [question.id]: { loading: false, content, error: null, open: true },
+      }));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to generate explanation.";
+      setDeepByQ((d) => ({
+        ...d,
+        [question.id]: { loading: false, content: null, error: msg, open: true },
+      }));
+    }
+  };
+
+
 
   return (
     <div className="min-h-dvh bg-background px-5 pt-12 pb-12">
