@@ -103,6 +103,11 @@ const NAV = [
 
 function BottomNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const focusMode =
+    pathname.startsWith("/lounge") ||
+    pathname.includes("/quiz/") ||
+    pathname.includes("/reading/");
+  if (focusMode) return null;
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/5 bg-background/80 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
       <div className="mx-auto flex max-w-md items-center justify-around px-2 py-2">
@@ -142,6 +147,11 @@ function BottomNav() {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const focusMode =
+    pathname.startsWith("/lounge") ||
+    pathname.includes("/quiz/") ||
+    pathname.includes("/reading/");
   return (
     <QueryClientProvider client={queryClient}>
       <div className="relative mx-auto min-h-screen max-w-md bg-background">
@@ -154,7 +164,7 @@ function RootComponent() {
               "radial-gradient(60% 60% at 30% 0%, oklch(0.72 0.18 295 / 0.35), transparent 70%), radial-gradient(60% 60% at 80% 10%, oklch(0.78 0.15 200 / 0.25), transparent 70%)",
           }}
         />
-        <main className="relative z-10 pb-28">
+        <main className={cn("relative z-10", focusMode ? "pb-0" : "pb-28")}>
           <Outlet />
         </main>
         <BottomNav />
