@@ -1,11 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Check, X, Sparkles, Loader2, BookOpen, ChevronRight } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  X,
+  Sparkles,
+  Loader2,
+  BookOpen,
+  ChevronRight,
+  ChevronLeft,
+  GraduationCap,
+  ChevronUp,
+} from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   externalQuestions,
   parseChoices,
   type ExternalQuestion,
 } from "@/integrations/external-questions/client";
+import { deepExplain } from "@/lib/api/deep-explain.functions";
 
 export const Route = createFileRoute("/studying/$grade/$subject/quiz/$unit")({
   head: ({ params }) => ({
