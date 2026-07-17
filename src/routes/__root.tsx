@@ -131,7 +131,7 @@ function BottomNav() {
                   "flex h-10 w-10 items-center justify-center rounded-xl transition-all",
                   active
                     ? "bg-[image:var(--gradient-primary)] text-primary-foreground shadow-[var(--shadow-glow)]"
-                    : "text-muted-foreground group-hover:text-foreground",
+                    : "text-slate-500 group-hover:text-slate-900 dark:text-muted-foreground dark:group-hover:text-foreground",
                 )}
               >
                 <Icon className="h-5 w-5" strokeWidth={active ? 2.5 : 2} />
