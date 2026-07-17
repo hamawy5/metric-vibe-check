@@ -15,7 +15,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
-import { ThemeToggle } from "@/components/ThemeToggle";
+
 
 function NotFoundComponent() {
   return (
@@ -83,11 +83,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('theme');if(t?t==='dark':true){document.documentElement.classList.add('dark')}}catch(e){document.documentElement.classList.add('dark')}`,
+          }}
+        />
       </head>
       <body className="bg-background text-foreground antialiased">
+
         {children}
         <Scripts />
       </body>
@@ -110,7 +116,7 @@ function BottomNav() {
     pathname.includes("/reading/");
   if (focusMode) return null;
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/5 bg-background/80 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/80 bg-white/85 backdrop-blur-md pb-[env(safe-area-inset-bottom)] dark:border-white/5 dark:bg-background/80">
       <div className="mx-auto flex max-w-md items-center justify-around px-2 py-2">
         {NAV.map(({ to, label, icon: Icon }) => {
           const active = pathname === to;
@@ -125,7 +131,7 @@ function BottomNav() {
                   "flex h-10 w-10 items-center justify-center rounded-xl transition-all",
                   active
                     ? "bg-[image:var(--gradient-primary)] text-primary-foreground shadow-[var(--shadow-glow)]"
-                    : "text-muted-foreground group-hover:text-foreground",
+                    : "text-slate-500 group-hover:text-slate-900 dark:text-muted-foreground dark:group-hover:text-foreground",
                 )}
               >
                 <Icon className="h-5 w-5" strokeWidth={active ? 2.5 : 2} />
@@ -133,7 +139,7 @@ function BottomNav() {
               <span
                 className={cn(
                   "text-[10px] font-medium tracking-wide transition-colors",
-                  active ? "text-foreground" : "text-muted-foreground",
+                  active ? "text-foreground" : "text-slate-500 dark:text-muted-foreground",
                 )}
               >
                 {label}
@@ -169,7 +175,7 @@ function RootComponent() {
           <Outlet />
         </main>
         <BottomNav />
-        <ThemeToggle />
+        
         <Toaster />
       </div>
     </QueryClientProvider>

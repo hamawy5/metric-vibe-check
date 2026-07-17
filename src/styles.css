@@ -63,25 +63,30 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
+  /* Soft off-white with the slightest indigo tint so cards can float above it */
+  --background: oklch(0.985 0.006 260);
+  --foreground: oklch(0.18 0.03 265);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
+  --card-foreground: oklch(0.18 0.03 265);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.18 0.03 265);
+  /* Match dark mode: vibrant violet primary + cyan glow so gradients render in both themes */
+  --primary: oklch(0.55 0.22 285);
+  --primary-foreground: oklch(1 0 0);
+  --primary-glow: oklch(0.68 0.16 220);
+  --secondary: oklch(0.955 0.012 260);
+  --secondary-foreground: oklch(0.22 0.04 265);
+  --muted: oklch(0.955 0.012 260);
+  --muted-foreground: oklch(0.42 0.03 260);
+  --accent: oklch(0.68 0.16 220);
+  --accent-foreground: oklch(1 0 0);
+  --gradient-primary: linear-gradient(135deg, oklch(0.55 0.22 285), oklch(0.68 0.16 220));
+  --shadow-glow: 0 10px 30px -10px oklch(0.55 0.22 285 / 0.45);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  --border: oklch(0.9 0.015 260);
+  --input: oklch(0.9 0.015 260);
+  --ring: oklch(0.55 0.22 285);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -143,5 +148,40 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    background-image:
+      radial-gradient(60% 60% at 15% 0%, oklch(0.72 0.15 285 / 0.10), transparent 70%),
+      radial-gradient(60% 60% at 90% 10%, oklch(0.78 0.12 220 / 0.10), transparent 70%);
+    background-attachment: fixed;
+  }
+
+  html.dark body {
+    background-image:
+      radial-gradient(60% 60% at 15% 0%, oklch(0.72 0.18 295 / 0.18), transparent 70%),
+      radial-gradient(60% 60% at 90% 10%, oklch(0.78 0.15 200 / 0.14), transparent 70%);
   }
 }
+
+/*
+ * Light-mode remap for the many components that hard-code white borders/dividers.
+ * In dark mode `border-white/5` gives a subtle glass edge; in light mode it renders
+ * as an invisible ~5% white on white. Remap common values to slate tones so cards
+ * and nav bars keep their crisp edges without editing every component.
+ */
+html:not(.dark) [class*="border-white/"] {
+  border-color: oklch(0.9 0.015 260 / 0.9);
+}
+html:not(.dark) [class*="bg-background/80"],
+html:not(.dark) [class*="bg-background/95"] {
+  background-color: oklch(1 0 0 / 0.85);
+}
+html:not(.dark) [class*="bg-card/40"],
+html:not(.dark) [class*="bg-card/60"],
+html:not(.dark) [class*="bg-card/70"] {
+  background-color: oklch(1 0 0 / 0.9);
+}
+
+/* Ensure cards have real depth in light mode without editing each component */
+html:not(.dark) .bg-card {
+  box-shadow: 0 1px 2px oklch(0.2 0.03 265 / 0.04), 0 8px 24px -12px oklch(0.2 0.03 265 / 0.08);
+}
+

@@ -10,6 +10,7 @@ import {
   LogIn,
 } from "lucide-react";
 import { StreamSelectorModal } from "@/components/StreamSelectorModal";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { clearStream, useStream } from "@/lib/stream";
 
 export const Route = createFileRoute("/")({
@@ -36,6 +37,8 @@ function HomePage() {
 
   return (
     <div className="px-5 pt-12">
+      <ThemeToggle />
+
       <header className="flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Welcome back</p>
@@ -55,7 +58,7 @@ function HomePage() {
           <Link
             to="/leaderboard"
             aria-label="National Leaderboard"
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/10 bg-card text-amber-300 transition hover:border-amber-300/60"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-slate-200/80 bg-card text-amber-500 shadow-sm transition hover:border-amber-400/60 dark:border-white/10 dark:text-amber-300"
           >
             <Trophy className="h-5 w-5" />
           </Link>
