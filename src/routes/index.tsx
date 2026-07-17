@@ -58,7 +58,7 @@ function HomePage() {
           <Link
             to="/leaderboard"
             aria-label="National Leaderboard"
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/10 bg-card text-amber-300 transition hover:border-amber-300/60"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-slate-200/80 bg-card text-amber-500 shadow-sm transition hover:border-amber-400/60 dark:border-white/10 dark:text-amber-300"
           >
             <Trophy className="h-5 w-5" />
           </Link>
