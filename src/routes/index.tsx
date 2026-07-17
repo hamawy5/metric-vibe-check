@@ -10,6 +10,7 @@ import {
   LogIn,
 } from "lucide-react";
 import { StreamSelectorModal } from "@/components/StreamSelectorModal";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { clearStream, useStream } from "@/lib/stream";
 
 export const Route = createFileRoute("/")({
