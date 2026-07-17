@@ -15,6 +15,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 function NotFoundComponent() {
   return (
@@ -168,6 +169,7 @@ function RootComponent() {
           <Outlet />
         </main>
         <BottomNav />
+        <ThemeToggle />
         <Toaster />
       </div>
     </QueryClientProvider>
