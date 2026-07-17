@@ -139,7 +139,7 @@ function BottomNav() {
               <span
                 className={cn(
                   "text-[10px] font-medium tracking-wide transition-colors",
-                  active ? "text-foreground" : "text-muted-foreground",
+                  active ? "text-foreground" : "text-slate-500 dark:text-muted-foreground",
                 )}
               >
                 {label}
