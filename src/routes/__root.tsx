@@ -116,7 +116,7 @@ function BottomNav() {
     pathname.includes("/reading/");
   if (focusMode) return null;
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/5 bg-background/80 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/80 bg-white/85 backdrop-blur-md pb-[env(safe-area-inset-bottom)] dark:border-white/5 dark:bg-background/80">
       <div className="mx-auto flex max-w-md items-center justify-around px-2 py-2">
         {NAV.map(({ to, label, icon: Icon }) => {
           const active = pathname === to;
