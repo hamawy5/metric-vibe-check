@@ -37,6 +37,8 @@ function HomePage() {
 
   return (
     <div className="px-5 pt-12">
+      <ThemeToggle />
+
       <header className="flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Welcome back</p>
