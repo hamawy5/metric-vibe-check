@@ -86,28 +86,6 @@ function ReadingPage() {
           ) : null}
         </header>
 
-        {/* Quick Summary card */}
-        {summaryBullets.length > 0 ? (
-          <section className="mt-5 rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5 p-5">
-            <div className="flex items-center gap-2 text-primary">
-              <Sparkles className="h-4 w-4" />
-              <p className="text-[11px] font-bold uppercase tracking-wider">
-                Quick Summary · Exam Takeaways
-              </p>
-            </div>
-            <ul className="mt-3 space-y-2.5">
-              {summaryBullets.map((b, i) => (
-                <li key={i} className="flex gap-2.5 text-sm leading-relaxed text-foreground/90">
-                  <span className="mt-1 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-primary/25 text-[10px] font-bold text-primary">
-                    {i + 1}
-                  </span>
-                  <MarkdownInline text={b} />
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-
         {loading ? (
           <div className="mt-6 space-y-3">
             {[0, 1, 2].map((i) => (
@@ -135,17 +113,78 @@ function ReadingPage() {
         ) : null}
 
         {data?.readable_material ? (
-          <article className="prose prose-invert mt-6 max-w-none rounded-3xl border border-white/5 bg-card p-5 text-[15px] leading-relaxed text-foreground/90
-            prose-headings:font-bold prose-headings:tracking-tight
-            prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg
-            prose-p:my-3 prose-li:my-1
-            prose-strong:text-foreground
-            prose-blockquote:border-l-primary prose-blockquote:bg-primary/5 prose-blockquote:py-1 prose-blockquote:not-italic
-            prose-code:rounded prose-code:bg-secondary prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[13px] prose-code:before:content-none prose-code:after:content-none
-            prose-a:text-primary">
+          <article className="mt-6 max-w-none rounded-3xl border border-slate-200/70 bg-card p-6 dark:border-white/5">
             <ReactMarkdown
               remarkPlugins={[remarkGfm, remarkMath]}
               rehypePlugins={[rehypeKatex]}
+              components={{
+                h1: ({ children }) => (
+                  <h1 className="mt-6 mb-3 border-l-4 border-indigo-500 pl-3 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                    {children}
+                  </h1>
+                ),
+                h2: ({ children }) => (
+                  <h2 className="mt-6 mb-2 border-l-4 border-indigo-500 pl-3 text-lg font-bold text-slate-900 dark:text-white">
+                    {children}
+                  </h2>
+                ),
+                h3: ({ children }) => (
+                  <h3 className="mt-6 mb-2 border-l-4 border-indigo-500 pl-3 text-lg font-bold text-slate-900 dark:text-white">
+                    {children}
+                  </h3>
+                ),
+                h4: ({ children }) => (
+                  <h4 className="mt-5 mb-2 border-l-4 border-indigo-400 pl-3 text-base font-bold text-slate-900 dark:text-white">
+                    {children}
+                  </h4>
+                ),
+                p: ({ children }) => {
+                  const arr = Array.isArray(children) ? children : [children];
+                  const first = arr[0] as unknown;
+                  const isDefCard =
+                    !!first &&
+                    typeof first === "object" &&
+                    (first as { type?: unknown }).type === "strong";
+                  if (isDefCard) {
+                    return (
+                      <div className="my-3 rounded-xl border border-slate-200/80 bg-slate-50 p-4 leading-relaxed text-slate-700 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300">
+                        {children}
+                      </div>
+                    );
+                  }
+                  return (
+                    <p className="mb-4 leading-relaxed text-slate-700 dark:text-slate-300">
+                      {children}
+                    </p>
+                  );
+                },
+                ul: ({ children }) => (
+                  <ul className="my-4 list-disc space-y-2 pl-6 text-slate-700 dark:text-slate-300">{children}</ul>
+                ),
+                ol: ({ children }) => (
+                  <ol className="my-4 list-decimal space-y-2 pl-6 text-slate-700 dark:text-slate-300">{children}</ol>
+                ),
+                li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                strong: ({ children }) => (
+                  <strong className="font-bold text-slate-900 dark:text-white">{children}</strong>
+                ),
+                blockquote: ({ children }) => (
+                  <blockquote className="my-4 rounded-xl border border-indigo-200/60 bg-indigo-50/70 p-4 text-slate-700 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-slate-200">
+                    {children}
+                  </blockquote>
+                ),
+                code: ({ children }) => (
+                  <code className="rounded bg-slate-100 px-1.5 py-0.5 text-[13px] text-slate-900 dark:bg-secondary dark:text-foreground">
+                    {children}
+                  </code>
+                ),
+                a: ({ children, href }) => (
+                  <a href={href} className="text-primary underline underline-offset-2">
+                    {children}
+                  </a>
+                ),
+                hr: () => <hr className="my-6 border-slate-200 dark:border-white/10" />,
+              }}
             >
               {data.readable_material}
             </ReactMarkdown>
