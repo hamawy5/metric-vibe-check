@@ -1,6 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Rocket, StickyNote, X, BookOpen } from "lucide-react";
+import { ArrowLeft, Rocket, StickyNote, X, BookOpen, Sparkles } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import { fetchSubUnit, type SubUnit } from "@/integrations/external-questions/client";
 
 export const Route = createFileRoute("/studying/$grade/$subject/reading/$unit/$sub")({
   head: ({ params }) => ({
@@ -14,8 +19,38 @@ export const Route = createFileRoute("/studying/$grade/$subject/reading/$unit/$s
 function ReadingPage() {
   const { grade, subject, unit, sub } = Route.useParams();
   const [summaryOpen, setSummaryOpen] = useState(false);
+  const [data, setData] = useState<SubUnit | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const subjectLabel = subject.charAt(0).toUpperCase() + subject.slice(1);
+  const subunitCode = `${unit}.${sub}`;
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    setData(null);
+    fetchSubUnit(grade, subject, subunitCode)
+      .then((r) => {
+        if (cancelled) return;
+        setData(r);
+        setLoading(false);
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        setError(e?.message ?? "Failed to load reading");
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [grade, subject, subunitCode]);
+
+  const summaryBullets = (data?.corner_summary ?? "")
+    .split(/\n+/)
+    .map((l) => l.replace(/^[•\-*]\s*/, "").trim())
+    .filter(Boolean);
 
   return (
     <div className="relative min-h-dvh bg-background">
@@ -41,53 +76,81 @@ function ReadingPage() {
 
         <header className="mt-5">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-            Grade {grade} · {subjectLabel} · Unit {unit}.{sub}
+            Grade {grade} · {subjectLabel} · Unit {subunitCode}
           </p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight">Reading Material</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Work through the textbook section below, then launch the quiz.
-          </p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight">
+            {data?.title ?? (loading ? "Loading…" : "Reading Material")}
+          </h1>
+          {data?.unit_title ? (
+            <p className="mt-1 text-sm text-muted-foreground">Unit {data.unit_number}: {data.unit_title}</p>
+          ) : null}
         </header>
 
-        <article className="prose prose-invert mt-6 max-w-none space-y-5 text-[15px] leading-relaxed text-foreground/90">
-          <section className="rounded-3xl border border-white/5 bg-card p-5">
+        {/* Quick Summary card */}
+        {summaryBullets.length > 0 ? (
+          <section className="mt-5 rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5 p-5">
             <div className="flex items-center gap-2 text-primary">
-              <BookOpen className="h-4 w-4" />
+              <Sparkles className="h-4 w-4" />
               <p className="text-[11px] font-bold uppercase tracking-wider">
-                Introduction
+                Quick Summary · Exam Takeaways
               </p>
             </div>
-            <p className="mt-3">
-              This section introduces the core ideas of Subunit {unit}.{sub}. Read
-              carefully — the worked examples build directly on these foundations
-              and will appear in your Unit Mastery Quiz.
-            </p>
-          </section>
-
-          <section className="rounded-3xl border border-white/5 bg-card p-5">
-            <h2 className="text-base font-bold">Key Concepts</h2>
-            <p className="mt-2">
-              The textbook content for this subunit will appear here. Expect
-              definitions, derivations, and worked examples laid out in a clean,
-              readable format optimized for matric study sessions.
-            </p>
-            <ul className="mt-3 list-disc space-y-1.5 pl-5 text-foreground/85">
-              <li>Definitions and terminology</li>
-              <li>Step-by-step derivations</li>
-              <li>Worked examples with explanations</li>
-              <li>Common pitfalls and exam tips</li>
+            <ul className="mt-3 space-y-2.5">
+              {summaryBullets.map((b, i) => (
+                <li key={i} className="flex gap-2.5 text-sm leading-relaxed text-foreground/90">
+                  <span className="mt-1 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-primary/25 text-[10px] font-bold text-primary">
+                    {i + 1}
+                  </span>
+                  <MarkdownInline text={b} />
+                </li>
+              ))}
             </ul>
           </section>
+        ) : null}
 
-          <section className="rounded-3xl border border-white/5 bg-card p-5">
-            <h2 className="text-base font-bold">Practice Application</h2>
-            <p className="mt-2">
-              Once you've absorbed the material above, tap the button at the
-              bottom of this screen to test yourself on the unit's questions
-              pulled from past EUEE exams.
+        {loading ? (
+          <div className="mt-6 space-y-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-24 animate-pulse rounded-3xl border border-white/5 bg-card" />
+            ))}
+          </div>
+        ) : null}
+
+        {error ? (
+          <div className="mt-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
+            {error}
+          </div>
+        ) : null}
+
+        {!loading && !error && !data ? (
+          <div className="mt-8 rounded-3xl border border-white/5 bg-card p-8 text-center">
+            <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-secondary text-muted-foreground">
+              <BookOpen className="h-5 w-5" />
+            </div>
+            <p className="mt-3 text-base font-bold">Content coming soon</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Reading for {subunitCode} isn't published yet.
             </p>
-          </section>
-        </article>
+          </div>
+        ) : null}
+
+        {data?.readable_material ? (
+          <article className="prose prose-invert mt-6 max-w-none rounded-3xl border border-white/5 bg-card p-5 text-[15px] leading-relaxed text-foreground/90
+            prose-headings:font-bold prose-headings:tracking-tight
+            prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg
+            prose-p:my-3 prose-li:my-1
+            prose-strong:text-foreground
+            prose-blockquote:border-l-primary prose-blockquote:bg-primary/5 prose-blockquote:py-1 prose-blockquote:not-italic
+            prose-code:rounded prose-code:bg-secondary prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[13px] prose-code:before:content-none prose-code:after:content-none
+            prose-a:text-primary">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm, remarkMath]}
+              rehypePlugins={[rehypeKatex]}
+            >
+              {data.readable_material}
+            </ReactMarkdown>
+          </article>
+        ) : null}
       </div>
 
       {/* Sticky Launch Quiz button */}
@@ -109,56 +172,55 @@ function ReadingPage() {
             className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
             onClick={() => setSummaryOpen(false)}
           />
-          <aside className="fixed right-0 top-0 z-50 flex h-dvh w-[88%] max-w-sm flex-col border-l border-white/10 bg-zinc-950 shadow-2xl animate-in slide-in-from-right duration-200">
+          <aside className="fixed right-0 top-0 z-50 flex h-dvh w-[88%] max-w-sm flex-col border-l border-white/10 bg-card shadow-2xl animate-in slide-in-from-right duration-200">
             <header className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
               <div className="flex items-center gap-2 text-primary">
                 <StickyNote className="h-4 w-4" />
                 <p className="text-[11px] font-bold uppercase tracking-wider">
-                  Cheat Sheet · {unit}.{sub}
+                  Cheat Sheet · {subunitCode}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setSummaryOpen(false)}
-                className="grid h-8 w-8 place-items-center rounded-full bg-white/5 text-muted-foreground transition hover:text-foreground"
+                className="grid h-8 w-8 place-items-center rounded-full bg-secondary text-muted-foreground transition hover:text-foreground"
                 aria-label="Close summary"
               >
                 <X className="h-4 w-4" />
               </button>
             </header>
             <div className="flex-1 overflow-y-auto px-5 py-5 text-sm leading-relaxed text-foreground/90">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Key Points
-              </h3>
-              <ul className="mt-3 space-y-2.5 list-disc pl-5">
-                <li>Quick bullet recaps of the section's main ideas.</li>
-                <li>Use these as a final-minute review before the quiz.</li>
-                <li>Definitions are kept short and exam-focused.</li>
-              </ul>
-
-              <h3 className="mt-6 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Key Formulas
-              </h3>
-              <div className="mt-3 space-y-2">
-                <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 font-mono text-[13px]">
-                  formula = placeholder · value
-                </div>
-                <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 font-mono text-[13px]">
-                  Δx = x₂ − x₁
-                </div>
-              </div>
-
-              <h3 className="mt-6 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Exam Tips
-              </h3>
-              <ul className="mt-3 space-y-2.5 list-disc pl-5">
-                <li>Read every option before selecting an answer.</li>
-                <li>Watch units — most distractors hinge on them.</li>
-              </ul>
+              {summaryBullets.length === 0 ? (
+                <p className="text-muted-foreground">No summary available yet.</p>
+              ) : (
+                <ul className="space-y-3">
+                  {summaryBullets.map((b, i) => (
+                    <li key={i} className="flex gap-2.5">
+                      <span className="mt-1 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-primary/25 text-[10px] font-bold text-primary">
+                        {i + 1}
+                      </span>
+                      <MarkdownInline text={b} />
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </aside>
         </>
       ) : null}
+    </div>
+  );
+}
+
+function MarkdownInline({ text }: { text: string }) {
+  return (
+    <div className="[&>p]:m-0 [&_code]:rounded [&_code]:bg-secondary [&_code]:px-1 [&_code]:py-0.5">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeKatex]}
+      >
+        {text}
+      </ReactMarkdown>
     </div>
   );
 }
