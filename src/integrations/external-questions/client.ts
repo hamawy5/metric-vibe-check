@@ -51,6 +51,7 @@ export type SubUnit = {
   title: string;
   readable_material: string | null;
   corner_summary: string | null;
+  quiz_questions: string | null;
 };
 
 export type UnitGroup = {
