@@ -20,7 +20,7 @@ function UnitsPage() {
   const { grade, subject } = Route.useParams();
   const [units, setUnits] = useState<UnitGroup[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [openUnit, setOpenUnit] = useState<string>("unit-0");
+  const [openUnit, setOpenUnit] = useState<string>("");
 
   useEffect(() => {
     let cancelled = false;
