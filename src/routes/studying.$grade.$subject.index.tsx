@@ -20,7 +20,7 @@ function UnitsPage() {
   const { grade, subject } = Route.useParams();
   const [units, setUnits] = useState<UnitGroup[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [openUnit, setOpenUnit] = useState<string>("unit-0");
+  const [openUnit, setOpenUnit] = useState<string>("");
 
   useEffect(() => {
     let cancelled = false;
@@ -151,7 +151,7 @@ function UnitsPage() {
                       className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-5 py-4 text-sm font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition active:scale-[0.99]"
                     >
                       <Rocket className="h-4 w-4" />
-                      🚀 Launch Unit {unit.unit_number} Mastery Quiz
+                      🚀 Launch Unit {unit.unit_number} Mastery Exam
                     </Link>
                   </div>
                 </div>
