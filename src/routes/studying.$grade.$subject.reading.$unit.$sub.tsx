@@ -149,7 +149,7 @@ function ReadingPage() {
           <article className="mt-6 max-w-none rounded-3xl border border-slate-200/70 bg-card p-6 dark:border-white/5">
             <ReactMarkdown
               remarkPlugins={[remarkGfm, remarkMath]}
-              rehypePlugins={[rehypeKatex]}
+              rehypePlugins={[rehypeRaw, rehypeKatex]}
               components={{
                 h1: ({ children }) => (
                   <h1 className="mt-6 mb-3 border-l-4 border-indigo-500 pl-3 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{children}</h1>
