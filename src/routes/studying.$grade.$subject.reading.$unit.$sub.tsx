@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import rehypeRaw from "rehype-raw";
 import { fetchSubUnit, type SubUnit } from "@/integrations/external-questions/client";
 
 export const Route = createFileRoute("/studying/$grade/$subject/reading/$unit/$sub")({
