@@ -204,6 +204,35 @@ function ReadingPage() {
                   <a href={href} className="text-primary underline underline-offset-2">{children}</a>
                 ),
                 hr: () => <hr className="my-6 border-slate-200 dark:border-white/10" />,
+                table: ({ children }) => (
+                  <div className="my-5 -mx-2 overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-white/10">
+                    <table className="w-full min-w-[480px] border-collapse text-sm">
+                      {children}
+                    </table>
+                  </div>
+                ),
+                thead: ({ children }) => (
+                  <thead className="bg-slate-100/80 dark:bg-white/5">{children}</thead>
+                ),
+                tbody: ({ children }) => (
+                  <tbody className="[&_tr:nth-child(even)]:bg-slate-50/70 dark:[&_tr:nth-child(even)]:bg-white/[0.03]">
+                    {children}
+                  </tbody>
+                ),
+                tr: ({ children }) => (
+                  <tr className="border-b border-slate-200/70 last:border-0 dark:border-white/10">{children}</tr>
+                ),
+                th: ({ children }) => (
+                  <th className="border-b border-slate-300/80 p-3 text-left text-[13px] font-bold text-slate-900 dark:border-white/15 dark:text-white">
+                    {children}
+                  </th>
+                ),
+                td: ({ children }) => (
+                  <td className="border-r border-slate-200/60 p-3 align-top text-slate-700 last:border-r-0 dark:border-white/10 dark:text-slate-300">
+                    {children}
+                  </td>
+                ),
+                br: () => <br />,
               }}
             >
               {data.readable_material}
