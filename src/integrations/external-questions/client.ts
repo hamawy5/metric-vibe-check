@@ -63,7 +63,7 @@ export type UnitGroup = {
 export async function fetchSubUnits(grade: string, subject: string): Promise<UnitGroup[]> {
   const { data, error } = await externalQuestions
     .from("sub_units")
-    .select("id,grade,subject,unit_number,unit_title,subunit_code,title,readable_material,corner_summary")
+    .select("id,grade,subject,unit_number,unit_title,subunit_code,title,readable_material,corner_summary,quiz_questions")
     .eq("grade", String(grade))
     .ilike("subject", subject)
     .order("unit_number", { ascending: true })
@@ -93,7 +93,7 @@ export async function fetchSubUnit(
 ): Promise<SubUnit | null> {
   const { data, error } = await externalQuestions
     .from("sub_units")
-    .select("id,grade,subject,unit_number,unit_title,subunit_code,title,readable_material,corner_summary")
+    .select("id,grade,subject,unit_number,unit_title,subunit_code,title,readable_material,corner_summary,quiz_questions")
     .eq("grade", String(grade))
     .ilike("subject", subject)
     .eq("subunit_code", subunitCode)
