@@ -7,6 +7,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import { fetchSubUnit, type SubUnit } from "@/integrations/external-questions/client";
+import { MermaidDiagram } from "@/components/MermaidDiagram";
 
 export const Route = createFileRoute("/studying/$grade/$subject/reading/$unit/$sub")({
   head: ({ params }) => ({
