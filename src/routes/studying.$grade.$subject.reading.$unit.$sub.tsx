@@ -197,11 +197,30 @@ function ReadingPage() {
                     {children}
                   </blockquote>
                 ),
-                code: ({ children }) => (
-                  <code className="rounded bg-slate-100 px-1.5 py-0.5 text-[13px] text-slate-900 dark:bg-secondary dark:text-foreground">
-                    {children}
-                  </code>
-                ),
+                code: ({ className, children, ...props }: any) => {
+                  const lang = /language-(\w+)/.exec(className || "")?.[1];
+                  if (lang === "mermaid") {
+                    return <MermaidDiagram code={String(children)} />;
+                  }
+                  return (
+                    <code className="rounded bg-slate-100 px-1.5 py-0.5 text-[13px] text-slate-900 dark:bg-secondary dark:text-foreground">
+                      {children}
+                    </code>
+                  );
+                },
+                pre: ({ children, className, ...props }: any) => {
+                  const child: any = Array.isArray(children) ? children[0] : children;
+                  // <pre class="mermaid">...</pre> raw HTML path
+                  if (typeof className === "string" && className.includes("mermaid")) {
+                    const text = typeof child === "string" ? child : child?.props?.children;
+                    return <MermaidDiagram code={String(text ?? "")} />;
+                  }
+                  // ```mermaid fenced block: child is <code> which we already replace with MermaidDiagram
+                  if (child?.props?.className?.includes?.("language-mermaid")) {
+                    return <>{children}</>;
+                  }
+                  return <pre className={className} {...props}>{children}</pre>;
+                },
                 a: ({ children, href }) => (
                   <a href={href} className="text-primary underline underline-offset-2">{children}</a>
                 ),
