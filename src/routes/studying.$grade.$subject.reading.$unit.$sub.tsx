@@ -1,14 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, StickyNote, X, BookOpen, Sparkles, CheckCircle2, XCircle, RotateCcw, ChevronDown } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, ArrowRight, StickyNote, X, BookOpen, Sparkles, CheckCircle2, XCircle, RotateCcw, ChevronDown } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
-import { fetchSubUnit, type SubUnit } from "@/integrations/external-questions/client";
+import QuickPinchZoom, { make3dTransformValue } from "react-quick-pinch-zoom";
+import { fetchSubUnit, fetchUnitSubUnits, type SubUnit } from "@/integrations/external-questions/client";
 import { MermaidDiagram } from "@/components/MermaidDiagram";
 import { openImageLightbox } from "@/components/ImageLightbox";
+
 
 export const Route = createFileRoute("/studying/$grade/$subject/reading/$unit/$sub")({
   head: ({ params }) => ({
