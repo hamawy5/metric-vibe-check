@@ -8,6 +8,7 @@ import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import { fetchSubUnit, type SubUnit } from "@/integrations/external-questions/client";
 import { MermaidDiagram } from "@/components/MermaidDiagram";
+import { openImageLightbox } from "@/components/ImageLightbox";
 
 export const Route = createFileRoute("/studying/$grade/$subject/reading/$unit/$sub")({
   head: ({ params }) => ({
@@ -254,6 +255,16 @@ function ReadingPage() {
                   </td>
                 ),
                 br: () => <br />,
+                img: ({ src, alt }) => (
+                  <div className="my-4 overflow-x-auto rounded-xl border border-slate-200/80 bg-card p-2 dark:border-white/10">
+                    <img
+                      src={typeof src === "string" ? src : ""}
+                      alt={alt ?? ""}
+                      onClick={() => src && openImageLightbox(String(src), alt)}
+                      className="mx-auto block min-w-[320px] max-w-full cursor-zoom-in rounded-lg"
+                    />
+                  </div>
+                ),
               }}
             >
               {data.readable_material}

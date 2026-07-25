@@ -15,6 +15,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
+import { LightboxHost } from "@/components/ImageLightbox";
 
 
 function NotFoundComponent() {
@@ -177,6 +178,7 @@ function RootComponent() {
         <BottomNav />
         
         <Toaster />
+        <LightboxHost />
       </div>
     </QueryClientProvider>
   );
