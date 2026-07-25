@@ -1,14 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, StickyNote, X, BookOpen, Sparkles, CheckCircle2, XCircle, RotateCcw, ChevronDown } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, ArrowRight, StickyNote, X, BookOpen, Sparkles, CheckCircle2, XCircle, RotateCcw, ChevronDown } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
-import { fetchSubUnit, type SubUnit } from "@/integrations/external-questions/client";
+import QuickPinchZoom, { make3dTransformValue } from "react-quick-pinch-zoom";
+import { fetchSubUnit, fetchUnitSubUnits, type SubUnit } from "@/integrations/external-questions/client";
 import { MermaidDiagram } from "@/components/MermaidDiagram";
 import { openImageLightbox } from "@/components/ImageLightbox";
+
 
 export const Route = createFileRoute("/studying/$grade/$subject/reading/$unit/$sub")({
   head: ({ params }) => ({
@@ -50,11 +52,14 @@ function parseQuizQuestions(raw: string | null | undefined): ParsedQ[] {
 
 function ReadingPage() {
   const { grade, subject, unit, sub } = Route.useParams();
+  const navigate = useNavigate();
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [data, setData] = useState<SubUnit | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quizOpen, setQuizOpen] = useState(false);
+  const [siblings, setSiblings] = useState<SubUnit[]>([]);
+  const zoomTargetRef = useRef<HTMLDivElement>(null);
 
   const subjectLabel = subject.charAt(0).toUpperCase() + subject.slice(1);
   const subunitCode = `${unit}.${sub}`;
@@ -65,10 +70,14 @@ function ReadingPage() {
     setError(null);
     setData(null);
     setQuizOpen(false);
-    fetchSubUnit(grade, subject, subunitCode)
-      .then((r) => {
+    Promise.all([
+      fetchSubUnit(grade, subject, subunitCode),
+      fetchUnitSubUnits(grade, subject, unit).catch(() => [] as SubUnit[]),
+    ])
+      .then(([r, sibs]) => {
         if (cancelled) return;
         setData(r);
+        setSiblings(sibs);
         setLoading(false);
       })
       .catch((e) => {
@@ -79,7 +88,7 @@ function ReadingPage() {
     return () => {
       cancelled = true;
     };
-  }, [grade, subject, subunitCode]);
+  }, [grade, subject, unit, subunitCode]);
 
   const summaryBullets = (data?.corner_summary ?? "")
     .split(/\n+/)
@@ -87,6 +96,26 @@ function ReadingPage() {
     .filter(Boolean);
 
   const questions = useMemo(() => parseQuizQuestions(data?.quiz_questions), [data?.quiz_questions]);
+
+  const currentIdx = siblings.findIndex((s) => s.subunit_code === subunitCode);
+  const prevSub = currentIdx > 0 ? siblings[currentIdx - 1] : null;
+  const nextSub = currentIdx >= 0 && currentIdx < siblings.length - 1 ? siblings[currentIdx + 1] : null;
+
+  const goTo = (s: SubUnit) => {
+    const parts = s.subunit_code.split(".");
+    const u = parts[0];
+    const rest = parts.slice(1).join(".");
+    navigate({
+      to: "/studying/$grade/$subject/reading/$unit/$sub",
+      params: { grade, subject, unit: u, sub: rest },
+    });
+  };
+
+  const onPinchUpdate = ({ x, y, scale }: { x: number; y: number; scale: number }) => {
+    const el = zoomTargetRef.current;
+    if (el) el.style.setProperty("transform", make3dTransformValue({ x, y, scale }));
+  };
+
 
   return (
     <div className="relative min-h-dvh bg-background">
@@ -148,7 +177,16 @@ function ReadingPage() {
         ) : null}
 
         {data?.readable_material ? (
-          <article className="mt-6 max-w-none rounded-3xl border border-slate-200/70 bg-card p-6 dark:border-white/5">
+          <QuickPinchZoom
+            onUpdate={onPinchUpdate}
+            minZoom={0.75}
+            maxZoom={4}
+            doubleTapZoomOutOnMaxScale
+            tapZoomFactor={2}
+            wheelScaleFactor={500}
+          >
+          <article ref={zoomTargetRef} style={{ transformOrigin: "0 0" }} className="mt-6 max-w-none rounded-3xl border border-slate-200/70 bg-card p-6 dark:border-white/5">
+
             <ReactMarkdown
               remarkPlugins={[remarkGfm, remarkMath]}
               rehypePlugins={[rehypeRaw, rehypeKatex]}
@@ -270,6 +308,7 @@ function ReadingPage() {
               {data.readable_material}
             </ReactMarkdown>
           </article>
+          </QuickPinchZoom>
         ) : null}
 
         {/* Inline Quick Quiz launcher / player */}
@@ -290,7 +329,40 @@ function ReadingPage() {
             )}
           </div>
         ) : null}
+
+        {/* Subunit navigation */}
+        {data && !loading && (prevSub || nextSub) ? (
+          <nav className="mt-8 mb-4 flex items-stretch gap-2">
+            {prevSub ? (
+              <button
+                type="button"
+                onClick={() => goTo(prevSub)}
+                className="flex flex-1 items-center gap-2 rounded-2xl border border-white/10 bg-secondary px-4 py-3 text-left text-xs font-semibold text-foreground transition active:scale-[0.99]"
+              >
+                <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <span className="min-w-0">
+                  <span className="block text-[10px] uppercase tracking-wider text-muted-foreground">Previous</span>
+                  <span className="block truncate">{prevSub.subunit_code} {prevSub.title}</span>
+                </span>
+              </button>
+            ) : <div className="flex-1" />}
+            {nextSub ? (
+              <button
+                type="button"
+                onClick={() => goTo(nextSub)}
+                className="flex flex-1 items-center justify-end gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-4 py-3 text-right text-xs font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition active:scale-[0.99]"
+              >
+                <span className="min-w-0">
+                  <span className="block text-[10px] uppercase tracking-wider opacity-80">Next Subunit</span>
+                  <span className="block truncate">{nextSub.subunit_code} {nextSub.title}</span>
+                </span>
+                <ArrowRight className="h-4 w-4 shrink-0" />
+              </button>
+            ) : <div className="flex-1" />}
+          </nav>
+        ) : null}
       </div>
+
 
       {summaryOpen ? (
         <>
