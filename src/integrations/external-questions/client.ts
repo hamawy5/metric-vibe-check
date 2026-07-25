@@ -104,3 +104,23 @@ export async function fetchSubUnit(
   }
   return (data as SubUnit | null) ?? null;
 }
+
+export async function fetchUnitSubUnits(
+  grade: string,
+  subject: string,
+  unitNumber: string,
+): Promise<SubUnit[]> {
+  const { data, error } = await externalQuestions
+    .from("sub_units")
+    .select("id,grade,subject,unit_number,unit_title,subunit_code,title,readable_material,corner_summary,quiz_questions")
+    .eq("grade", String(grade))
+    .ilike("subject", subject)
+    .eq("unit_number", String(unitNumber))
+    .order("subunit_code", { ascending: true });
+  if (error) {
+    console.error("[sub_units] fetch unit error", error);
+    throw error;
+  }
+  return (data ?? []) as SubUnit[];
+}
+
