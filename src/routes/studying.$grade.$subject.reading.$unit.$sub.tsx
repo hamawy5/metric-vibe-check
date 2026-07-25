@@ -308,6 +308,7 @@ function ReadingPage() {
               {data.readable_material}
             </ReactMarkdown>
           </article>
+          </QuickPinchZoom>
         ) : null}
 
         {/* Inline Quick Quiz launcher / player */}
@@ -328,7 +329,40 @@ function ReadingPage() {
             )}
           </div>
         ) : null}
+
+        {/* Subunit navigation */}
+        {data && !loading && (prevSub || nextSub) ? (
+          <nav className="mt-8 mb-4 flex items-stretch gap-2">
+            {prevSub ? (
+              <button
+                type="button"
+                onClick={() => goTo(prevSub)}
+                className="flex flex-1 items-center gap-2 rounded-2xl border border-white/10 bg-secondary px-4 py-3 text-left text-xs font-semibold text-foreground transition active:scale-[0.99]"
+              >
+                <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <span className="min-w-0">
+                  <span className="block text-[10px] uppercase tracking-wider text-muted-foreground">Previous</span>
+                  <span className="block truncate">{prevSub.subunit_code} {prevSub.title}</span>
+                </span>
+              </button>
+            ) : <div className="flex-1" />}
+            {nextSub ? (
+              <button
+                type="button"
+                onClick={() => goTo(nextSub)}
+                className="flex flex-1 items-center justify-end gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-4 py-3 text-right text-xs font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition active:scale-[0.99]"
+              >
+                <span className="min-w-0">
+                  <span className="block text-[10px] uppercase tracking-wider opacity-80">Next Subunit</span>
+                  <span className="block truncate">{nextSub.subunit_code} {nextSub.title}</span>
+                </span>
+                <ArrowRight className="h-4 w-4 shrink-0" />
+              </button>
+            ) : <div className="flex-1" />}
+          </nav>
+        ) : null}
       </div>
+
 
       {summaryOpen ? (
         <>
