@@ -186,3 +186,20 @@ html:not(.dark) .bg-card {
   box-shadow: 0 1px 2px oklch(0.2 0.03 265 / 0.04), 0 8px 24px -12px oklch(0.2 0.03 265 / 0.08);
 }
 
+/* KaTeX: horizontal scroll for long equations on mobile */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  padding: 0.5rem 0;
+  -webkit-overflow-scrolling: touch;
+}
+.katex-display > .katex {
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .katex-display { font-size: 0.9em; }
+  .katex { font-size: 0.95em; }
+}
+
+
