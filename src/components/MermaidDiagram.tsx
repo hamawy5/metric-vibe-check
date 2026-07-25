@@ -60,11 +60,31 @@ export function MermaidDiagram({ code }: { code: string }) {
   }, [code]);
 
   return (
-    <div className="my-5 overflow-x-auto rounded-xl border border-slate-200/80 bg-card p-4 dark:border-white/10">
+    <div className="relative my-5 overflow-x-auto rounded-xl border border-slate-200/80 bg-card p-4 dark:border-white/10">
       {error ? (
         <pre className="text-xs text-red-400 whitespace-pre-wrap">{error}</pre>
       ) : (
-        <div ref={ref} className="mermaid-render flex justify-center [&_svg]:max-w-full [&_svg]:h-auto" />
+        <>
+          <button
+            type="button"
+            onClick={() => {
+              const svg = ref.current?.querySelector("svg");
+              if (svg) openHtmlLightbox(svg.outerHTML);
+            }}
+            className="absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-background/80 text-muted-foreground backdrop-blur transition hover:text-foreground active:scale-95"
+            aria-label="Zoom diagram"
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
+          </button>
+          <div
+            ref={ref}
+            onClick={() => {
+              const svg = ref.current?.querySelector("svg");
+              if (svg) openHtmlLightbox(svg.outerHTML);
+            }}
+            className="mermaid-render flex min-w-[400px] cursor-zoom-in justify-center [&_svg]:h-auto [&_svg]:max-w-full"
+          />
+        </>
       )}
     </div>
   );
