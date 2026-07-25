@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import mermaid from "mermaid";
+import { openHtmlLightbox } from "@/components/ImageLightbox";
+import { Maximize2 } from "lucide-react";
 
 let initialized = false;
 let idCounter = 0;
