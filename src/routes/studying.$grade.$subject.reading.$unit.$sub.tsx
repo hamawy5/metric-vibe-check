@@ -177,7 +177,16 @@ function ReadingPage() {
         ) : null}
 
         {data?.readable_material ? (
-          <article className="mt-6 max-w-none rounded-3xl border border-slate-200/70 bg-card p-6 dark:border-white/5">
+          <QuickPinchZoom
+            onUpdate={onPinchUpdate}
+            minZoom={0.75}
+            maxZoom={4}
+            doubleTapZoomOutOnMaxScale
+            tapZoomFactor={2}
+            wheelScaleFactor={500}
+          >
+          <article ref={zoomTargetRef} style={{ transformOrigin: "0 0" }} className="mt-6 max-w-none rounded-3xl border border-slate-200/70 bg-card p-6 dark:border-white/5">
+
             <ReactMarkdown
               remarkPlugins={[remarkGfm, remarkMath]}
               rehypePlugins={[rehypeRaw, rehypeKatex]}
