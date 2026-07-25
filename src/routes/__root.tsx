@@ -178,6 +178,7 @@ function RootComponent() {
         <BottomNav />
         
         <Toaster />
+        <LightboxHost />
       </div>
     </QueryClientProvider>
   );
