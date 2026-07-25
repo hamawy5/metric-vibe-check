@@ -52,11 +52,14 @@ function parseQuizQuestions(raw: string | null | undefined): ParsedQ[] {
 
 function ReadingPage() {
   const { grade, subject, unit, sub } = Route.useParams();
+  const navigate = useNavigate();
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [data, setData] = useState<SubUnit | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quizOpen, setQuizOpen] = useState(false);
+  const [siblings, setSiblings] = useState<SubUnit[]>([]);
+  const zoomTargetRef = useRef<HTMLDivElement>(null);
 
   const subjectLabel = subject.charAt(0).toUpperCase() + subject.slice(1);
   const subunitCode = `${unit}.${sub}`;
@@ -67,10 +70,14 @@ function ReadingPage() {
     setError(null);
     setData(null);
     setQuizOpen(false);
-    fetchSubUnit(grade, subject, subunitCode)
-      .then((r) => {
+    Promise.all([
+      fetchSubUnit(grade, subject, subunitCode),
+      fetchUnitSubUnits(grade, subject, unit).catch(() => [] as SubUnit[]),
+    ])
+      .then(([r, sibs]) => {
         if (cancelled) return;
         setData(r);
+        setSiblings(sibs);
         setLoading(false);
       })
       .catch((e) => {
@@ -81,7 +88,7 @@ function ReadingPage() {
     return () => {
       cancelled = true;
     };
-  }, [grade, subject, subunitCode]);
+  }, [grade, subject, unit, subunitCode]);
 
   const summaryBullets = (data?.corner_summary ?? "")
     .split(/\n+/)
@@ -89,6 +96,26 @@ function ReadingPage() {
     .filter(Boolean);
 
   const questions = useMemo(() => parseQuizQuestions(data?.quiz_questions), [data?.quiz_questions]);
+
+  const currentIdx = siblings.findIndex((s) => s.subunit_code === subunitCode);
+  const prevSub = currentIdx > 0 ? siblings[currentIdx - 1] : null;
+  const nextSub = currentIdx >= 0 && currentIdx < siblings.length - 1 ? siblings[currentIdx + 1] : null;
+
+  const goTo = (s: SubUnit) => {
+    const parts = s.subunit_code.split(".");
+    const u = parts[0];
+    const rest = parts.slice(1).join(".");
+    navigate({
+      to: "/studying/$grade/$subject/reading/$unit/$sub",
+      params: { grade, subject, unit: u, sub: rest },
+    });
+  };
+
+  const onPinchUpdate = ({ x, y, scale }: { x: number; y: number; scale: number }) => {
+    const el = zoomTargetRef.current;
+    if (el) el.style.setProperty("transform", make3dTransformValue({ x, y, scale }));
+  };
+
 
   return (
     <div className="relative min-h-dvh bg-background">
