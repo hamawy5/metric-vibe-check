@@ -325,7 +325,62 @@ function ReadingPage() {
             )}
           </div>
         ) : null}
+
+        {/* Subunit navigation */}
+        {siblings.length > 1 && currentIdx >= 0 ? (
+          <nav className="mt-10 border-t border-slate-200/70 pt-6 dark:border-white/10">
+            <div className="flex flex-col gap-2.5">
+              {prevSub ? (
+                <button
+                  type="button"
+                  onClick={() => goToSub(prevSub)}
+                  className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-card px-4 py-3.5 text-left transition active:scale-[0.99] dark:border-white/10"
+                >
+                  <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Previous Subunit
+                    </span>
+                    <span className="block truncate text-sm font-semibold text-foreground">
+                      {prevSub.subunit_code} {prevSub.title}
+                    </span>
+                  </span>
+                </button>
+              ) : null}
+
+              {nextSub ? (
+                <button
+                  type="button"
+                  onClick={() => goToSub(nextSub)}
+                  className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-4 py-3.5 text-left text-primary-foreground shadow-[var(--shadow-glow)] transition active:scale-[0.99]"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[11px] font-bold uppercase tracking-wider opacity-80">
+                      Next Subunit
+                    </span>
+                    <span className="block truncate text-sm font-bold">
+                      Next: {nextSub.subunit_code} {nextSub.title}
+                    </span>
+                  </span>
+                  <ArrowRight className="h-4 w-4 shrink-0" />
+                </button>
+              ) : null}
+
+              {isLast ? (
+                <Link
+                  to="/studying/$grade/$subject"
+                  params={{ grade, subject }}
+                  className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-400 px-5 py-4 text-sm font-bold text-white shadow-lg transition active:scale-[0.99]"
+                >
+                  <Flag className="h-4 w-4" />
+                  Complete Unit {unit}
+                </Link>
+              ) : null}
+            </div>
+          </nav>
+        ) : null}
       </div>
+
 
       {summaryOpen ? (
         <>
