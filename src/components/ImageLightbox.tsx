@@ -50,7 +50,23 @@ export function LightboxHost() {
   let startX = 0;
   let startY = 0;
   let panning = false;
+  const pointers = new Map<number, { x: number; y: number }>();
+  let pinchStartDist = 0;
+  let pinchStartScale = 1;
+
+  const dist = () => {
+    const [a, b] = Array.from(pointers.values());
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  };
+
   const onPointerDown = (e: React.PointerEvent) => {
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2) {
+      panning = false;
+      pinchStartDist = dist();
+      pinchStartScale = scale;
+      return;
+    }
     if (scale <= 1) return;
     panning = true;
     startX = e.clientX - tx;
@@ -58,11 +74,19 @@ export function LightboxHost() {
     (e.target as Element).setPointerCapture?.(e.pointerId);
   };
   const onPointerMove = (e: React.PointerEvent) => {
+    if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2 && pinchStartDist > 0) {
+      const next = (dist() / pinchStartDist) * pinchStartScale;
+      setScale(Math.min(5, Math.max(0.5, next)));
+      return;
+    }
     if (!panning) return;
     setTx(e.clientX - startX);
     setTy(e.clientY - startY);
   };
-  const onPointerUp = () => {
+  const onPointerUp = (e?: React.PointerEvent) => {
+    if (e) pointers.delete(e.pointerId);
+    if (pointers.size < 2) pinchStartDist = 0;
     panning = false;
   };
 
