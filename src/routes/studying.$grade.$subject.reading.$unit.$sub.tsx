@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, StickyNote, X, BookOpen, Sparkles, CheckCircle2, XCircle, RotateCcw, ChevronDown, Flag } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
-import { fetchSubUnit, fetchSubUnits, type SubUnit } from "@/integrations/external-questions/client";
+import { type SubUnit } from "@/integrations/external-questions/client";
+import { subUnitsQuery } from "@/lib/curriculum";
 import { MermaidDiagram } from "@/components/MermaidDiagram";
 import { openImageLightbox } from "@/components/ImageLightbox";
 
@@ -52,50 +54,36 @@ function ReadingPage() {
   const { grade, subject, unit, sub } = Route.useParams();
   const navigate = useNavigate();
   const [summaryOpen, setSummaryOpen] = useState(false);
-  const [data, setData] = useState<SubUnit | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [quizOpen, setQuizOpen] = useState(false);
-  const [siblings, setSiblings] = useState<SubUnit[]>([]);
 
   const subjectLabel = subject.charAt(0).toUpperCase() + subject.slice(1);
   const subunitCode = `${unit}.${sub}`;
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    setData(null);
-    setQuizOpen(false);
-    fetchSubUnit(grade, subject, subunitCode)
-      .then((r) => {
-        if (cancelled) return;
-        setData(r);
-        setLoading(false);
-      })
-      .catch((e) => {
-        if (cancelled) return;
-        setError(e?.message ?? "Failed to load reading");
-        setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [grade, subject, subunitCode]);
+  const { data: groups, isPending, error: queryError } = useQuery(
+    subUnitsQuery(grade, subject),
+  );
+
+  const siblings = useMemo(
+    () => groups?.find((g) => String(g.unit_number) === String(unit))?.subunits ?? [],
+    [groups, unit],
+  );
+
+  const data: SubUnit | null = useMemo(() => {
+    if (!groups) return null;
+    for (const g of groups) {
+      const found = g.subunits.find((s) => s.subunit_code === subunitCode);
+      if (found) return found;
+    }
+    return null;
+  }, [groups, subunitCode]);
+
+  const loading = isPending;
+  const error = queryError ? ((queryError as Error).message ?? "Failed to load reading") : null;
 
   useEffect(() => {
-    let cancelled = false;
-    fetchSubUnits(grade, subject)
-      .then((groups) => {
-        if (cancelled) return;
-        const group = groups.find((g) => String(g.unit_number) === String(unit));
-        setSiblings(group?.subunits ?? []);
-      })
-      .catch(() => setSiblings([]));
-    return () => {
-      cancelled = true;
-    };
-  }, [grade, subject, unit]);
+    setQuizOpen(false);
+  }, [subunitCode]);
+
 
   const currentIdx = siblings.findIndex((s) => s.subunit_code === subunitCode);
   const prevSub = currentIdx > 0 ? siblings[currentIdx - 1] : null;

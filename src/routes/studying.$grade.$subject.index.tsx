@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, BookMarked, Rocket, ChevronDown, Circle, Inbox } from "lucide-react";
-import { fetchSubUnits, type UnitGroup } from "@/integrations/external-questions/client";
+import { subUnitsQuery, getOpenUnit, setOpenUnit } from "@/lib/curriculum";
 
 export const Route = createFileRoute("/studying/$grade/$subject/")({
   head: ({ params }) => ({
@@ -9,6 +10,9 @@ export const Route = createFileRoute("/studying/$grade/$subject/")({
       { title: `Grade ${params.grade} · ${params.subject} — MatricPulse AI` },
     ],
   }),
+  loader: ({ context, params }) => {
+    context.queryClient.ensureQueryData(subUnitsQuery(params.grade, params.subject));
+  },
   component: UnitsPage,
 });
 
@@ -18,27 +22,15 @@ function prettySubject(slug: string) {
 
 function UnitsPage() {
   const { grade, subject } = Route.useParams();
-  const [units, setUnits] = useState<UnitGroup[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [openUnit, setOpenUnit] = useState<string>("");
+  const { data: units, error } = useQuery(subUnitsQuery(grade, subject));
+  const [openUnit, setOpenUnitState] = useState<string>(() => getOpenUnit(grade, subject));
 
-  useEffect(() => {
-    let cancelled = false;
-    setUnits(null);
-    setError(null);
-    fetchSubUnits(grade, subject)
-      .then((data) => {
-        if (cancelled) return;
-        setUnits(data);
-      })
-      .catch((e) => {
-        if (cancelled) return;
-        setError(e?.message ?? "Failed to load curriculum");
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [grade, subject]);
+  const toggleUnit = (key: string) => {
+    const next = openUnit === key ? "" : key;
+    setOpenUnitState(next);
+    setOpenUnit(grade, subject, next);
+  };
+
 
   return (
     <div className="px-5 pt-12 pb-8">
@@ -63,7 +55,7 @@ function UnitsPage() {
 
       {error ? (
         <div className="mt-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
-          {error}
+          {(error as Error).message ?? "Failed to load curriculum"}
         </div>
       ) : null}
 
@@ -88,8 +80,9 @@ function UnitsPage() {
       ) : null}
 
       <div className="mt-6 space-y-3">
-        {units?.map((unit, i) => {
-          const open = openUnit === `unit-${i}`;
+        {units?.map((unit) => {
+          const key = `unit-${unit.unit_number}`;
+          const open = openUnit === key;
           return (
             <section
               key={unit.unit_number}
@@ -100,7 +93,7 @@ function UnitsPage() {
                 type="button"
                 aria-expanded={open}
                 className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left"
-                onClick={() => setOpenUnit(open ? "" : `unit-${i}`)}
+                onClick={() => toggleUnit(key)}
               >
                 <div className="flex items-center gap-3 text-left">
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 text-primary">
