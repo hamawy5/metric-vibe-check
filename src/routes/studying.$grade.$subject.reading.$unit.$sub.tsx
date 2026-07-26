@@ -83,6 +83,39 @@ function ReadingPage() {
     };
   }, [grade, subject, subunitCode]);
 
+  useEffect(() => {
+    let cancelled = false;
+    fetchSubUnits(grade, subject)
+      .then((groups) => {
+        if (cancelled) return;
+        const group = groups.find((g) => String(g.unit_number) === String(unit));
+        setSiblings(group?.subunits ?? []);
+      })
+      .catch(() => setSiblings([]));
+    return () => {
+      cancelled = true;
+    };
+  }, [grade, subject, unit]);
+
+  const currentIdx = siblings.findIndex((s) => s.subunit_code === subunitCode);
+  const prevSub = currentIdx > 0 ? siblings[currentIdx - 1] : null;
+  const nextSub =
+    currentIdx >= 0 && currentIdx < siblings.length - 1 ? siblings[currentIdx + 1] : null;
+  const isLast = currentIdx >= 0 && currentIdx === siblings.length - 1;
+
+  const goToSub = (target: SubUnit) => {
+    navigate({
+      to: "/studying/$grade/$subject/reading/$unit/$sub",
+      params: {
+        grade,
+        subject,
+        unit: String(target.unit_number),
+        sub: target.subunit_code.split(".").pop() ?? target.subunit_code,
+      },
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const summaryBullets = (data?.corner_summary ?? "")
     .split(/\n+/)
     .map((l) => l.replace(/^[•\-*]\s*/, "").trim())
