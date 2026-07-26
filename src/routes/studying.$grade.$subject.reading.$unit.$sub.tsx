@@ -50,11 +50,13 @@ function parseQuizQuestions(raw: string | null | undefined): ParsedQ[] {
 
 function ReadingPage() {
   const { grade, subject, unit, sub } = Route.useParams();
+  const navigate = useNavigate();
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [data, setData] = useState<SubUnit | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quizOpen, setQuizOpen] = useState(false);
+  const [siblings, setSiblings] = useState<SubUnit[]>([]);
 
   const subjectLabel = subject.charAt(0).toUpperCase() + subject.slice(1);
   const subunitCode = `${unit}.${sub}`;
