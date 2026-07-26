@@ -55,7 +55,7 @@ function UnitsPage() {
 
       {error ? (
         <div className="mt-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
-          {error}
+          {(error as Error).message ?? "Failed to load curriculum"}
         </div>
       ) : null}
 
@@ -80,8 +80,9 @@ function UnitsPage() {
       ) : null}
 
       <div className="mt-6 space-y-3">
-        {units?.map((unit, i) => {
-          const open = openUnit === `unit-${i}`;
+        {units?.map((unit) => {
+          const key = `unit-${unit.unit_number}`;
+          const open = openUnit === key;
           return (
             <section
               key={unit.unit_number}
@@ -92,7 +93,7 @@ function UnitsPage() {
                 type="button"
                 aria-expanded={open}
                 className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left"
-                onClick={() => setOpenUnit(open ? "" : `unit-${i}`)}
+                onClick={() => toggleUnit(key)}
               >
                 <div className="flex items-center gap-3 text-left">
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 text-primary">
