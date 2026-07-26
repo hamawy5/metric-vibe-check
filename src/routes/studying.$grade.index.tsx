@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { subUnitsQuery } from "@/lib/curriculum";
 import {
   ArrowLeft,
   ChevronRight,
