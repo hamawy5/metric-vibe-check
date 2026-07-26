@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, BookMarked, Rocket, ChevronDown, Circle, Inbox } from "lucide-react";
-import { fetchSubUnits, type UnitGroup } from "@/integrations/external-questions/client";
+import { subUnitsQuery, getOpenUnit, setOpenUnit } from "@/lib/curriculum";
 
 export const Route = createFileRoute("/studying/$grade/$subject/")({
   head: ({ params }) => ({
@@ -9,6 +10,9 @@ export const Route = createFileRoute("/studying/$grade/$subject/")({
       { title: `Grade ${params.grade} · ${params.subject} — MatricPulse AI` },
     ],
   }),
+  loader: ({ context, params }) => {
+    context.queryClient.ensureQueryData(subUnitsQuery(params.grade, params.subject));
+  },
   component: UnitsPage,
 });
 
@@ -18,27 +22,15 @@ function prettySubject(slug: string) {
 
 function UnitsPage() {
   const { grade, subject } = Route.useParams();
-  const [units, setUnits] = useState<UnitGroup[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [openUnit, setOpenUnit] = useState<string>("");
+  const { data: units, error } = useQuery(subUnitsQuery(grade, subject));
+  const [openUnit, setOpenUnitState] = useState<string>(() => getOpenUnit(grade, subject));
 
-  useEffect(() => {
-    let cancelled = false;
-    setUnits(null);
-    setError(null);
-    fetchSubUnits(grade, subject)
-      .then((data) => {
-        if (cancelled) return;
-        setUnits(data);
-      })
-      .catch((e) => {
-        if (cancelled) return;
-        setError(e?.message ?? "Failed to load curriculum");
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [grade, subject]);
+  const toggleUnit = (key: string) => {
+    const next = openUnit === key ? "" : key;
+    setOpenUnitState(next);
+    setOpenUnit(grade, subject, next);
+  };
+
 
   return (
     <div className="px-5 pt-12 pb-8">
