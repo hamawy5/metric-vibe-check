@@ -36,6 +36,13 @@ const SUBJECTS = [
 function SubjectsPage() {
   const { grade } = Route.useParams();
   const stream = useStream();
+  const queryClient = useQueryClient();
+
+  // Warm the cache for a subject's full curriculum before the user lands on it.
+  const prefetchSubject = (slug: string) => {
+    queryClient.prefetchQuery(subUnitsQuery(grade, slug));
+  };
+
 
   // StreamGate on /studying ensures stream is set, but guard for SSR/transitions
   const allowed = stream === "social" ? SOCIAL_SUBJECTS : NATURAL_SUBJECTS;
@@ -65,6 +72,8 @@ function SubjectsPage() {
             key={slug}
             to="/studying/$grade/$subject"
             params={{ grade, subject: slug }}
+            onPointerEnter={() => prefetchSubject(slug)}
+            onPointerDown={() => prefetchSubject(slug)}
             className={cn(
               "group relative flex flex-col gap-3 rounded-3xl border border-white/5 bg-card p-4 transition active:scale-[0.98]",
             )}
