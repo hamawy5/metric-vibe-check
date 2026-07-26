@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, StickyNote, X, BookOpen, Sparkles, CheckCircle2, XCircle, RotateCcw, ChevronDown } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, ArrowRight, StickyNote, X, BookOpen, Sparkles, CheckCircle2, XCircle, RotateCcw, ChevronDown, Flag } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
-import { fetchSubUnit, type SubUnit } from "@/integrations/external-questions/client";
+import { fetchSubUnit, fetchSubUnits, type SubUnit } from "@/integrations/external-questions/client";
 import { MermaidDiagram } from "@/components/MermaidDiagram";
 import { openImageLightbox } from "@/components/ImageLightbox";
 
@@ -50,11 +50,13 @@ function parseQuizQuestions(raw: string | null | undefined): ParsedQ[] {
 
 function ReadingPage() {
   const { grade, subject, unit, sub } = Route.useParams();
+  const navigate = useNavigate();
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [data, setData] = useState<SubUnit | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quizOpen, setQuizOpen] = useState(false);
+  const [siblings, setSiblings] = useState<SubUnit[]>([]);
 
   const subjectLabel = subject.charAt(0).toUpperCase() + subject.slice(1);
   const subunitCode = `${unit}.${sub}`;
@@ -80,6 +82,39 @@ function ReadingPage() {
       cancelled = true;
     };
   }, [grade, subject, subunitCode]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchSubUnits(grade, subject)
+      .then((groups) => {
+        if (cancelled) return;
+        const group = groups.find((g) => String(g.unit_number) === String(unit));
+        setSiblings(group?.subunits ?? []);
+      })
+      .catch(() => setSiblings([]));
+    return () => {
+      cancelled = true;
+    };
+  }, [grade, subject, unit]);
+
+  const currentIdx = siblings.findIndex((s) => s.subunit_code === subunitCode);
+  const prevSub = currentIdx > 0 ? siblings[currentIdx - 1] : null;
+  const nextSub =
+    currentIdx >= 0 && currentIdx < siblings.length - 1 ? siblings[currentIdx + 1] : null;
+  const isLast = currentIdx >= 0 && currentIdx === siblings.length - 1;
+
+  const goToSub = (target: SubUnit) => {
+    navigate({
+      to: "/studying/$grade/$subject/reading/$unit/$sub",
+      params: {
+        grade,
+        subject,
+        unit: String(target.unit_number),
+        sub: target.subunit_code.split(".").pop() ?? target.subunit_code,
+      },
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const summaryBullets = (data?.corner_summary ?? "")
     .split(/\n+/)
@@ -290,7 +325,62 @@ function ReadingPage() {
             )}
           </div>
         ) : null}
+
+        {/* Subunit navigation */}
+        {siblings.length > 1 && currentIdx >= 0 ? (
+          <nav className="mt-10 border-t border-slate-200/70 pt-6 dark:border-white/10">
+            <div className="flex flex-col gap-2.5">
+              {prevSub ? (
+                <button
+                  type="button"
+                  onClick={() => goToSub(prevSub)}
+                  className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-card px-4 py-3.5 text-left transition active:scale-[0.99] dark:border-white/10"
+                >
+                  <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Previous Subunit
+                    </span>
+                    <span className="block truncate text-sm font-semibold text-foreground">
+                      {prevSub.subunit_code} {prevSub.title}
+                    </span>
+                  </span>
+                </button>
+              ) : null}
+
+              {nextSub ? (
+                <button
+                  type="button"
+                  onClick={() => goToSub(nextSub)}
+                  className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-4 py-3.5 text-left text-primary-foreground shadow-[var(--shadow-glow)] transition active:scale-[0.99]"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[11px] font-bold uppercase tracking-wider opacity-80">
+                      Next Subunit
+                    </span>
+                    <span className="block truncate text-sm font-bold">
+                      Next: {nextSub.subunit_code} {nextSub.title}
+                    </span>
+                  </span>
+                  <ArrowRight className="h-4 w-4 shrink-0" />
+                </button>
+              ) : null}
+
+              {isLast ? (
+                <Link
+                  to="/studying/$grade/$subject"
+                  params={{ grade, subject }}
+                  className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-400 px-5 py-4 text-sm font-bold text-white shadow-lg transition active:scale-[0.99]"
+                >
+                  <Flag className="h-4 w-4" />
+                  Complete Unit {unit}
+                </Link>
+              ) : null}
+            </div>
+          </nav>
+        ) : null}
       </div>
+
 
       {summaryOpen ? (
         <>
