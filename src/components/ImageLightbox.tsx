@@ -45,50 +45,54 @@ export function LightboxHost() {
     return () => window.removeEventListener("keydown", onKey);
   }, [state]);
 
-  if (!state) return null;
-
-  let startX = 0;
-  let startY = 0;
-  let panning = false;
-  const pointers = new Map<number, { x: number; y: number }>();
-  let pinchStartDist = 0;
-  let pinchStartScale = 1;
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const panning = useRef(false);
+  const start = useRef({ x: 0, y: 0 });
+  const pinch = useRef({ dist: 0, scale: 1 });
 
   const dist = () => {
-    const [a, b] = Array.from(pointers.values());
+    const [a, b] = Array.from(pointers.current.values());
+    if (!a || !b) return 0;
     return Math.hypot(a.x - b.x, a.y - b.y);
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pointers.size === 2) {
-      panning = false;
-      pinchStartDist = dist();
-      pinchStartScale = scale;
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+    if (pointers.current.size === 2) {
+      panning.current = false;
+      pinch.current = { dist: dist(), scale: scaleRef.current };
       return;
     }
-    if (scale <= 1) return;
-    panning = true;
-    startX = e.clientX - tx;
-    startY = e.clientY - ty;
-    (e.target as Element).setPointerCapture?.(e.pointerId);
+    panning.current = true;
+    start.current = { x: e.clientX - txRef.current, y: e.clientY - tyRef.current };
   };
   const onPointerMove = (e: React.PointerEvent) => {
-    if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pointers.size === 2 && pinchStartDist > 0) {
-      const next = (dist() / pinchStartDist) * pinchStartScale;
-      setScale(Math.min(5, Math.max(0.5, next)));
+    if (!pointers.current.has(e.pointerId)) return;
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.current.size >= 2 && pinch.current.dist > 0) {
+      const next = (dist() / pinch.current.dist) * pinch.current.scale;
+      const clamped = Math.min(3, Math.max(1, next));
+      scaleRef.current = clamped;
+      setScale(clamped);
       return;
     }
-    if (!panning) return;
-    setTx(e.clientX - startX);
-    setTy(e.clientY - startY);
+    if (!panning.current || scaleRef.current <= 1) return;
+    const nx = e.clientX - start.current.x;
+    const ny = e.clientY - start.current.y;
+    txRef.current = nx;
+    tyRef.current = ny;
+    setTx(nx);
+    setTy(ny);
   };
   const onPointerUp = (e?: React.PointerEvent) => {
-    if (e) pointers.delete(e.pointerId);
-    if (pointers.size < 2) pinchStartDist = 0;
-    panning = false;
+    if (e) pointers.current.delete(e.pointerId);
+    if (pointers.current.size < 2) pinch.current.dist = 0;
+    if (pointers.current.size === 0) panning.current = false;
   };
+
+  if (!state) return null;
+
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-black/95 backdrop-blur-sm animate-in fade-in duration-150">
