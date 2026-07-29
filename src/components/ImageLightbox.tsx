@@ -158,7 +158,7 @@ export function LightboxHost() {
         <div
           style={{
             transform: `translate(${tx}px, ${ty}px) scale(${scale})`,
-            transition: panning ? "none" : "transform 0.15s ease",
+            transition: panning.current ? "none" : "transform 0.15s ease",
             cursor: scale > 1 ? "grab" : "zoom-in",
           }}
           className="max-h-full max-w-full"
