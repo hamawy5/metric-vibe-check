@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 
 type LightboxState = { src: string; alt?: string } | { html: string } | null;
