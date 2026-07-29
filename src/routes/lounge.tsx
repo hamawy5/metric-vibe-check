@@ -69,18 +69,62 @@ function LoungePage() {
     inputRef.current?.focus();
   }, []);
 
-  const send = () => {
+  const send = async () => {
     const q = input.trim();
     if (!q || typing) return;
-    setMessages((m) => [...m, { role: "user", text: q }]);
+    const history = [...messages, { role: "user" as const, text: q }];
+    setMessages(history);
     setInput("");
     setTyping(true);
-    setTimeout(() => {
-      setMessages((m) => [...m, { role: "ai", text: generateTutorResponse(q) }]);
+
+    try {
+      const res = await fetch("/api/ai-tutor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: history.map((m) => ({
+            role: m.role === "ai" ? "assistant" : "user",
+            content: m.text,
+          })),
+        }),
+      });
+
+      if (!res.ok || !res.body) {
+        const err = await res.text().catch(() => "");
+        throw new Error(err || "The tutor could not respond right now.");
+      }
+
+      setTyping(false);
+      setMessages((m) => [...m, { role: "ai", text: "" }]);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let acc = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        acc += decoder.decode(value, { stream: true });
+        setMessages((m) => {
+          const next = [...m];
+          next[next.length - 1] = { role: "ai", text: acc };
+          return next;
+        });
+      }
+      if (!acc.trim()) {
+        setMessages((m) => {
+          const next = [...m];
+          next[next.length - 1] = { role: "ai", text: "_No response — please try again._" };
+          return next;
+        });
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
       setTyping(false);
       inputRef.current?.focus();
-    }, 900);
+    }
   };
+
 
   const copyLink = async () => {
     try {
