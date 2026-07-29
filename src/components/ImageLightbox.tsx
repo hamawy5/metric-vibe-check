@@ -22,6 +22,12 @@ export function LightboxHost() {
   const [scale, setScale] = useState(1);
   const [tx, setTx] = useState(0);
   const [ty, setTy] = useState(0);
+  const scaleRef = useRef(1);
+  const txRef = useRef(0);
+  const tyRef = useRef(0);
+  scaleRef.current = scale;
+  txRef.current = tx;
+  tyRef.current = ty;
 
   useEffect(() => {
     const l = (s: LightboxState) => {
