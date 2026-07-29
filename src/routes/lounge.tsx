@@ -48,29 +48,6 @@ const HISTORY_GROUPS = [
 
 type Msg = { role: "user" | "ai"; text: string };
 
-function generateTutorResponse(q: string): string {
-  const topic = q.trim().replace(/[?.!]+$/, "");
-  return `Great question! Let's break down **${topic}** the way it's taught in the Ethiopian curriculum 🇪🇹.
-
-### 🎯 Core Idea
-This concept appears frequently in the **Grade 11 & 12 Matric exams**, so understanding it deeply will pay off.
-
-### 📘 Step-by-Step Explanation
-1. **Define the basics** — start with the precise definition from your textbook.
-2. **Visualize it** — draw a diagram or sketch (most marks come from clear visuals).
-3. **Apply the formula** — substitute carefully and watch your units.
-4. **Verify your answer** — does it make physical sense?
-
-### 💡 Key Points to Remember
-- Always show your working — the matric examiners award **method marks**.
-- Common mistake: forgetting to convert units (cm → m, °C → K).
-- Practice with **past national exam questions** to lock it in.
-
-### ✅ Quick Example
-> If asked: *"${topic}"*, structure your answer in **3 parts**: definition → formula → worked example.
-
-Want me to generate a **practice quiz** on this topic, or explain it in **Amharic**? 🚀`;
-}
 
 function LoungePage() {
   const [drawer, setDrawer] = useState(false);
