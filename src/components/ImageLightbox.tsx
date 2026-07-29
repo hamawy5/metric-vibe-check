@@ -114,7 +114,7 @@ export function LightboxHost() {
           </button>
           <button
             type="button"
-            onClick={() => setScale((s) => Math.min(5, s + 0.25))}
+            onClick={() => setScale((s) => Math.min(3, s + 0.25))}
             className="grid h-9 w-9 place-items-center rounded-full bg-white/10 transition active:scale-95"
             aria-label="Zoom in"
           >
