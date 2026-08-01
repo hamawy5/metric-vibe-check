@@ -50,8 +50,19 @@ const HISTORY_GROUPS = [
   },
 ];
 
-type Msg = { role: "user" | "ai"; text: string };
+type Attachment = { name: string; mimeType: string; data: string; preview?: string };
+type Msg = { role: "user" | "ai"; text: string; attachments?: Attachment[] };
 
+const ACCEPT = "image/png,image/jpeg,image/webp,application/pdf,text/plain";
+
+function readAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = () => reject(new Error("Could not read file"));
+    r.readAsDataURL(file);
+  });
+}
 
 function LoungePage() {
   const [drawer, setDrawer] = useState(false);
@@ -59,26 +70,49 @@ function LoungePage() {
   const [copied, setCopied] = useState(false);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [messages, setMessages] = useState<Msg[]>([
     { role: "ai", text: "Hi! I'm your **MatricPulse tutor**. Ask me anything from your Ethiopian curriculum — Math, Physics, Biology, English, or Aptitude. What should we tackle today?" },
   ]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, typing]);
 
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+  const pickFiles = async (files: FileList | null) => {
+    if (!files?.length) return;
+    const picked: Attachment[] = [];
+    for (const file of Array.from(files).slice(0, 5)) {
+      if (file.size > 15 * 1024 * 1024) {
+        toast.error(`${file.name} is larger than 15MB.`);
+        continue;
+      }
+      try {
+        const dataUrl = await readAsDataUrl(file);
+        picked.push({
+          name: file.name,
+          mimeType: file.type || "application/octet-stream",
+          data: dataUrl.split(",").pop() ?? "",
+          preview: file.type.startsWith("image/") ? dataUrl : undefined,
+        });
+      } catch {
+        toast.error(`Could not read ${file.name}.`);
+      }
+    }
+    setAttachments((a) => [...a, ...picked].slice(0, 5));
+  };
 
   const send = async () => {
     const q = input.trim();
-    if (!q || typing) return;
-    const history = [...messages, { role: "user" as const, text: q }];
+    if ((!q && attachments.length === 0) || typing) return;
+    const userMsg: Msg = { role: "user", text: q, attachments };
+    const history = [...messages, userMsg];
     setMessages(history);
     setInput("");
+    setAttachments([]);
     setTyping(true);
 
     try {
@@ -89,6 +123,11 @@ function LoungePage() {
             messages: history.map((m) => ({
               role: m.role === "ai" ? "assistant" : "user",
               content: m.text,
+              attachments: m.attachments?.map((a) => ({
+                name: a.name,
+                mimeType: a.mimeType,
+                data: a.data,
+              })),
             })),
           },
         },
@@ -106,7 +145,6 @@ function LoungePage() {
       toast.error(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setTyping(false);
-      inputRef.current?.focus();
     }
   };
 
