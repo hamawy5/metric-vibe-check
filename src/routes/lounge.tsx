@@ -82,45 +82,26 @@ function LoungePage() {
     setTyping(true);
 
     try {
-      const res = await fetch("/api/ai-tutor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: history.map((m) => ({
-            role: m.role === "ai" ? "assistant" : "user",
-            content: m.text,
-          })),
-        }),
-      });
+      const { data, error } = await supabase.functions.invoke<{ content?: string; error?: string }>(
+        "ai-tutor",
+        {
+          body: {
+            messages: history.map((m) => ({
+              role: m.role === "ai" ? "assistant" : "user",
+              content: m.text,
+            })),
+          },
+        },
+      );
 
-      if (!res.ok || !res.body) {
-        const err = await res.text().catch(() => "");
-        throw new Error(err || "The tutor could not respond right now.");
-      }
+      if (error) throw new Error(error.message || "The tutor could not respond right now.");
+      if (data?.error) throw new Error(data.error);
 
-      setTyping(false);
-      setMessages((m) => [...m, { role: "ai", text: "" }]);
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let acc = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        acc += decoder.decode(value, { stream: true });
-        setMessages((m) => {
-          const next = [...m];
-          next[next.length - 1] = { role: "ai", text: acc };
-          return next;
-        });
-      }
-      if (!acc.trim()) {
-        setMessages((m) => {
-          const next = [...m];
-          next[next.length - 1] = { role: "ai", text: "_No response — please try again._" };
-          return next;
-        });
-      }
+      const content = data?.content?.trim();
+      setMessages((m) => [
+        ...m,
+        { role: "ai", text: content || "_No response — please try again._" },
+      ]);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
@@ -128,6 +109,7 @@ function LoungePage() {
       inputRef.current?.focus();
     }
   };
+
 
 
   const copyLink = async () => {
