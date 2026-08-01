@@ -3,9 +3,13 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Menu, Plus, Send, Sparkles, MessageSquare, X, Share2, Link2, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { StreamGate } from "@/components/StreamGate";
+import { supabase } from "@/integrations/supabase/client";
+
 
 export const Route = createFileRoute("/lounge")({
   head: () => ({

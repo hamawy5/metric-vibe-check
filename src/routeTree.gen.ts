@@ -16,7 +16,6 @@ import { Route as ExamRouteImport } from './routes/exam'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StudyingIndexRouteImport } from './routes/studying.index'
 import { Route as StudyingGradeRouteImport } from './routes/studying.$grade'
-import { Route as ApiAiTutorRouteImport } from './routes/api/ai-tutor'
 import { Route as StudyingGradeIndexRouteImport } from './routes/studying.$grade.index'
 import { Route as StudyingGradeSubjectRouteImport } from './routes/studying.$grade.$subject'
 import { Route as StudyingGradeSubjectIndexRouteImport } from './routes/studying.$grade.$subject.index'
@@ -58,11 +57,6 @@ const StudyingGradeRoute = StudyingGradeRouteImport.update({
   path: '/$grade',
   getParentRoute: () => StudyingRoute,
 } as any)
-const ApiAiTutorRoute = ApiAiTutorRouteImport.update({
-  id: '/api/ai-tutor',
-  path: '/api/ai-tutor',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const StudyingGradeIndexRoute = StudyingGradeIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -98,7 +92,6 @@ export interface FileRoutesByFullPath {
   '/leaderboard': typeof LeaderboardRoute
   '/lounge': typeof LoungeRoute
   '/studying': typeof StudyingRouteWithChildren
-  '/api/ai-tutor': typeof ApiAiTutorRoute
   '/studying/$grade': typeof StudyingGradeRouteWithChildren
   '/studying/': typeof StudyingIndexRoute
   '/studying/$grade/$subject': typeof StudyingGradeSubjectRouteWithChildren
@@ -112,7 +105,6 @@ export interface FileRoutesByTo {
   '/exam': typeof ExamRoute
   '/leaderboard': typeof LeaderboardRoute
   '/lounge': typeof LoungeRoute
-  '/api/ai-tutor': typeof ApiAiTutorRoute
   '/studying': typeof StudyingIndexRoute
   '/studying/$grade': typeof StudyingGradeIndexRoute
   '/studying/$grade/$subject': typeof StudyingGradeSubjectIndexRoute
@@ -126,7 +118,6 @@ export interface FileRoutesById {
   '/leaderboard': typeof LeaderboardRoute
   '/lounge': typeof LoungeRoute
   '/studying': typeof StudyingRouteWithChildren
-  '/api/ai-tutor': typeof ApiAiTutorRoute
   '/studying/$grade': typeof StudyingGradeRouteWithChildren
   '/studying/': typeof StudyingIndexRoute
   '/studying/$grade/$subject': typeof StudyingGradeSubjectRouteWithChildren
@@ -143,7 +134,6 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/lounge'
     | '/studying'
-    | '/api/ai-tutor'
     | '/studying/$grade'
     | '/studying/'
     | '/studying/$grade/$subject'
@@ -157,7 +147,6 @@ export interface FileRouteTypes {
     | '/exam'
     | '/leaderboard'
     | '/lounge'
-    | '/api/ai-tutor'
     | '/studying'
     | '/studying/$grade'
     | '/studying/$grade/$subject'
@@ -170,7 +159,6 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/lounge'
     | '/studying'
-    | '/api/ai-tutor'
     | '/studying/$grade'
     | '/studying/'
     | '/studying/$grade/$subject'
@@ -186,7 +174,6 @@ export interface RootRouteChildren {
   LeaderboardRoute: typeof LeaderboardRoute
   LoungeRoute: typeof LoungeRoute
   StudyingRoute: typeof StudyingRouteWithChildren
-  ApiAiTutorRoute: typeof ApiAiTutorRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -239,13 +226,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/studying/$grade'
       preLoaderRoute: typeof StudyingGradeRouteImport
       parentRoute: typeof StudyingRoute
-    }
-    '/api/ai-tutor': {
-      id: '/api/ai-tutor'
-      path: '/api/ai-tutor'
-      fullPath: '/api/ai-tutor'
-      preLoaderRoute: typeof ApiAiTutorRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/studying/$grade/': {
       id: '/studying/$grade/'
@@ -335,7 +315,6 @@ const rootRouteChildren: RootRouteChildren = {
   LeaderboardRoute: LeaderboardRoute,
   LoungeRoute: LoungeRoute,
   StudyingRoute: StudyingRouteWithChildren,
-  ApiAiTutorRoute: ApiAiTutorRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
