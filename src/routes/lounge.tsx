@@ -3,9 +3,13 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Menu, Plus, Send, Sparkles, MessageSquare, X, Share2, Link2, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { StreamGate } from "@/components/StreamGate";
+import { supabase } from "@/integrations/supabase/client";
+
 
 export const Route = createFileRoute("/lounge")({
   head: () => ({
@@ -78,45 +82,26 @@ function LoungePage() {
     setTyping(true);
 
     try {
-      const res = await fetch("/api/ai-tutor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: history.map((m) => ({
-            role: m.role === "ai" ? "assistant" : "user",
-            content: m.text,
-          })),
-        }),
-      });
+      const { data, error } = await supabase.functions.invoke<{ content?: string; error?: string }>(
+        "ai-tutor",
+        {
+          body: {
+            messages: history.map((m) => ({
+              role: m.role === "ai" ? "assistant" : "user",
+              content: m.text,
+            })),
+          },
+        },
+      );
 
-      if (!res.ok || !res.body) {
-        const err = await res.text().catch(() => "");
-        throw new Error(err || "The tutor could not respond right now.");
-      }
+      if (error) throw new Error(error.message || "The tutor could not respond right now.");
+      if (data?.error) throw new Error(data.error);
 
-      setTyping(false);
-      setMessages((m) => [...m, { role: "ai", text: "" }]);
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let acc = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        acc += decoder.decode(value, { stream: true });
-        setMessages((m) => {
-          const next = [...m];
-          next[next.length - 1] = { role: "ai", text: acc };
-          return next;
-        });
-      }
-      if (!acc.trim()) {
-        setMessages((m) => {
-          const next = [...m];
-          next[next.length - 1] = { role: "ai", text: "_No response — please try again._" };
-          return next;
-        });
-      }
+      const content = data?.content?.trim();
+      setMessages((m) => [
+        ...m,
+        { role: "ai", text: content || "_No response — please try again._" },
+      ]);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
@@ -124,6 +109,7 @@ function LoungePage() {
       inputRef.current?.focus();
     }
   };
+
 
 
   const copyLink = async () => {
@@ -175,7 +161,7 @@ function LoungePage() {
       </header>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
+      <div ref={scrollRef} className="flex-1 space-y-6 overflow-y-auto px-4 py-6">
         {messages.map((m, i) => (
           <div
             key={i}
@@ -185,21 +171,49 @@ function LoungePage() {
             )}
           >
             {m.role === "ai" && (
-              <div className="mr-2 mt-1 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[image:var(--gradient-primary)]">
+              <div className="mr-2.5 mt-1 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[image:var(--gradient-primary)]">
                 <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
               </div>
             )}
             <div
               className={cn(
-                "max-w-[82%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
+                "text-[15px] leading-7",
                 m.role === "user"
-                  ? "rounded-br-md bg-[image:var(--gradient-primary)] text-primary-foreground"
-                  : "rounded-bl-md bg-card text-foreground",
+                  ? "max-w-[85%] rounded-3xl rounded-br-lg bg-[image:var(--gradient-primary)] px-4 py-3 text-primary-foreground shadow-[var(--shadow-glow)]"
+                  : "max-w-[92%] rounded-3xl rounded-bl-lg border border-border/60 bg-card px-4 py-3.5 text-foreground shadow-sm",
               )}
             >
               {m.role === "ai" ? (
-                <div className="prose prose-sm prose-invert max-w-none prose-headings:mt-3 prose-headings:mb-1.5 prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5 prose-strong:text-foreground prose-blockquote:border-l-primary prose-blockquote:text-muted-foreground">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
+                <div className="max-w-none space-y-3 [&_h1]:mb-2 [&_h1]:mt-4 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-base [&_h2]:font-bold [&_h3]:mb-1.5 [&_h3]:mt-3.5 [&_h3]:text-sm [&_h3]:font-bold [&_h3]:uppercase [&_h3]:tracking-wide [&_h3]:text-muted-foreground [&_a]:text-primary [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-primary [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground [&_code]:rounded [&_code]:bg-secondary [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-[13px] [&_hr]:my-4 [&_hr]:border-border [&_li]:my-1 [&_li>p]:my-0 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5 [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-secondary [&_pre]:p-3 [&_pre_code]:bg-transparent [&_strong]:font-bold [&_strong]:text-foreground [&_ul]:my-2 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5 [&_:first-child]:mt-0 [&_:last-child]:mb-0">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm, remarkMath]}
+                    rehypePlugins={[rehypeKatex]}
+                    components={{
+                      table: ({ children }) => (
+                        <div className="my-3 max-w-full overflow-x-auto rounded-xl border border-border">
+                          <table className="w-full border-collapse text-left text-[13px]">
+                            {children}
+                          </table>
+                        </div>
+                      ),
+                      thead: ({ children }) => (
+                        <thead className="bg-secondary/70">{children}</thead>
+                      ),
+                      th: ({ children }) => (
+                        <th className="border-b border-border p-3 font-bold text-foreground">
+                          {children}
+                        </th>
+                      ),
+                      tbody: ({ children }) => (
+                        <tbody className="[&>tr:nth-child(even)]:bg-secondary/30">{children}</tbody>
+                      ),
+                      td: ({ children }) => (
+                        <td className="border-b border-border/60 p-3 align-top">{children}</td>
+                      ),
+                    }}
+                  >
+                    {m.text}
+                  </ReactMarkdown>
                 </div>
               ) : (
                 m.text
@@ -207,6 +221,7 @@ function LoungePage() {
             </div>
           </div>
         ))}
+
         {typing && (
           <div className="flex animate-fade-in justify-start">
             <div className="mr-2 mt-1 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[image:var(--gradient-primary)]">
