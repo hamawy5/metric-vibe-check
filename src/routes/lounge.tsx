@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Menu, Plus, Send, Sparkles, MessageSquare, X, Share2, Link2, Check } from "lucide-react";
+import { ArrowLeft, Menu, Plus, Send, Sparkles, MessageSquare, X, Share2, Link2, Check, FileText, Paperclip } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
