@@ -4,7 +4,12 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-type ChatMessage = { role: "user" | "assistant"; content: string };
+type Attachment = { name?: string; mimeType: string; data: string };
+type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+  attachments?: Attachment[];
+};
 
 const SYSTEM_PROMPT = `You are MatricPulse AI, an expert Grade 12 Ethiopian National Exam (matric) tutor for secondary school students (17-19 years old).
 
