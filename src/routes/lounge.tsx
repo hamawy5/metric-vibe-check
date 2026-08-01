@@ -300,7 +300,49 @@ function LoungePage() {
 
       {/* Composer */}
       <div className="border-t border-white/5 bg-background/80 px-3 py-3 backdrop-blur-xl">
+        {attachments.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-2">
+            {attachments.map((a, i) => (
+              <div
+                key={i}
+                className="flex max-w-[190px] items-center gap-2 rounded-xl border border-border/60 bg-secondary px-2 py-1.5"
+              >
+                {a.preview ? (
+                  <img src={a.preview} alt={a.name} className="h-8 w-8 rounded-md object-cover" />
+                ) : (
+                  <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                )}
+                <span className="truncate text-[11px]">{a.name}</span>
+                <button
+                  onClick={() => setAttachments((prev) => prev.filter((_, j) => j !== i))}
+                  className="grid h-5 w-5 shrink-0 place-items-center rounded-md bg-background/60"
+                  aria-label={`Remove ${a.name}`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         <div className="flex items-end gap-2 rounded-2xl border border-white/10 bg-card p-2">
+          <input
+            ref={fileRef}
+            type="file"
+            accept={ACCEPT}
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              pickFiles(e.target.files);
+              e.target.value = "";
+            }}
+          />
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-secondary text-foreground transition hover:bg-secondary/80"
+            aria-label="Attach file"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
           <textarea
             ref={inputRef}
             value={input}
@@ -317,7 +359,7 @@ function LoungePage() {
           />
           <button
             onClick={send}
-            disabled={!input.trim() || typing}
+            disabled={(!input.trim() && attachments.length === 0) || typing}
             className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[image:var(--gradient-primary)] text-primary-foreground shadow-[var(--shadow-glow)] transition disabled:opacity-40"
             aria-label="Send"
           >
@@ -325,6 +367,7 @@ function LoungePage() {
           </button>
         </div>
       </div>
+
 
       {/* History Drawer */}
       {drawer && (
