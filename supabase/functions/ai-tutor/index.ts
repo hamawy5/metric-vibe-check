@@ -4,7 +4,12 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-type ChatMessage = { role: "user" | "assistant"; content: string };
+type Attachment = { name?: string; mimeType: string; data: string };
+type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+  attachments?: Attachment[];
+};
 
 const SYSTEM_PROMPT = `You are MatricPulse AI, an expert Grade 12 Ethiopian National Exam (matric) tutor for secondary school students (17-19 years old).
 
@@ -44,10 +49,18 @@ Deno.serve(async (req) => {
       });
     }
 
-    const contents = messages.map((m) => ({
-      role: m.role === "assistant" ? "model" : "user",
-      parts: [{ text: String(m.content ?? "").slice(0, 8000) }],
-    }));
+    const contents = messages.map((m) => {
+      const parts: Array<Record<string, unknown>> = [];
+      const text = String(m.content ?? "").slice(0, 8000);
+      if (text) parts.push({ text });
+      for (const a of m.attachments ?? []) {
+        if (!a?.data || !a?.mimeType) continue;
+        const raw = a.data.includes(",") ? a.data.split(",").pop()! : a.data;
+        parts.push({ inlineData: { mimeType: a.mimeType, data: raw } });
+      }
+      if (parts.length === 0) parts.push({ text: "(empty)" });
+      return { role: m.role === "assistant" ? "model" : "user", parts };
+    });
 
     const res = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",

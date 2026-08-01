@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Menu, Plus, Send, Sparkles, MessageSquare, X, Share2, Link2, Check } from "lucide-react";
+import { ArrowLeft, Menu, Plus, Send, Sparkles, MessageSquare, X, Share2, Link2, Check, FileText } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -50,8 +50,19 @@ const HISTORY_GROUPS = [
   },
 ];
 
-type Msg = { role: "user" | "ai"; text: string };
+type Attachment = { name: string; mimeType: string; data: string; preview?: string };
+type Msg = { role: "user" | "ai"; text: string; attachments?: Attachment[] };
 
+const ACCEPT = "image/png,image/jpeg,image/webp,application/pdf,text/plain";
+
+function readAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = () => reject(new Error("Could not read file"));
+    r.readAsDataURL(file);
+  });
+}
 
 function LoungePage() {
   const [drawer, setDrawer] = useState(false);
@@ -59,26 +70,49 @@ function LoungePage() {
   const [copied, setCopied] = useState(false);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [messages, setMessages] = useState<Msg[]>([
     { role: "ai", text: "Hi! I'm your **MatricPulse tutor**. Ask me anything from your Ethiopian curriculum — Math, Physics, Biology, English, or Aptitude. What should we tackle today?" },
   ]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, typing]);
 
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+  const pickFiles = async (files: FileList | null) => {
+    if (!files?.length) return;
+    const picked: Attachment[] = [];
+    for (const file of Array.from(files).slice(0, 5)) {
+      if (file.size > 15 * 1024 * 1024) {
+        toast.error(`${file.name} is larger than 15MB.`);
+        continue;
+      }
+      try {
+        const dataUrl = await readAsDataUrl(file);
+        picked.push({
+          name: file.name,
+          mimeType: file.type || "application/octet-stream",
+          data: dataUrl.split(",").pop() ?? "",
+          preview: file.type.startsWith("image/") ? dataUrl : undefined,
+        });
+      } catch {
+        toast.error(`Could not read ${file.name}.`);
+      }
+    }
+    setAttachments((a) => [...a, ...picked].slice(0, 5));
+  };
 
   const send = async () => {
     const q = input.trim();
-    if (!q || typing) return;
-    const history = [...messages, { role: "user" as const, text: q }];
+    if ((!q && attachments.length === 0) || typing) return;
+    const userMsg: Msg = { role: "user", text: q, attachments };
+    const history = [...messages, userMsg];
     setMessages(history);
     setInput("");
+    setAttachments([]);
     setTyping(true);
 
     try {
@@ -89,6 +123,11 @@ function LoungePage() {
             messages: history.map((m) => ({
               role: m.role === "ai" ? "assistant" : "user",
               content: m.text,
+              attachments: m.attachments?.map((a) => ({
+                name: a.name,
+                mimeType: a.mimeType,
+                data: a.data,
+              })),
             })),
           },
         },
@@ -106,7 +145,6 @@ function LoungePage() {
       toast.error(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setTyping(false);
-      inputRef.current?.focus();
     }
   };
 
@@ -216,7 +254,31 @@ function LoungePage() {
                   </ReactMarkdown>
                 </div>
               ) : (
-                m.text
+                <div className="space-y-2">
+                  {m.attachments && m.attachments.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {m.attachments.map((a, ai) =>
+                        a.preview ? (
+                          <img
+                            key={ai}
+                            src={a.preview}
+                            alt={a.name}
+                            className="h-20 w-20 rounded-xl object-cover ring-1 ring-white/30"
+                          />
+                        ) : (
+                          <span
+                            key={ai}
+                            className="flex max-w-[180px] items-center gap-1.5 rounded-lg bg-black/20 px-2 py-1 text-[11px]"
+                          >
+                            <FileText className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">{a.name}</span>
+                          </span>
+                        ),
+                      )}
+                    </div>
+                  )}
+                  {m.text && <p className="whitespace-pre-wrap">{m.text}</p>}
+                </div>
               )}
             </div>
           </div>
@@ -238,7 +300,49 @@ function LoungePage() {
 
       {/* Composer */}
       <div className="border-t border-white/5 bg-background/80 px-3 py-3 backdrop-blur-xl">
+        {attachments.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-2">
+            {attachments.map((a, i) => (
+              <div
+                key={i}
+                className="flex max-w-[190px] items-center gap-2 rounded-xl border border-border/60 bg-secondary px-2 py-1.5"
+              >
+                {a.preview ? (
+                  <img src={a.preview} alt={a.name} className="h-8 w-8 rounded-md object-cover" />
+                ) : (
+                  <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                )}
+                <span className="truncate text-[11px]">{a.name}</span>
+                <button
+                  onClick={() => setAttachments((prev) => prev.filter((_, j) => j !== i))}
+                  className="grid h-5 w-5 shrink-0 place-items-center rounded-md bg-background/60"
+                  aria-label={`Remove ${a.name}`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         <div className="flex items-end gap-2 rounded-2xl border border-white/10 bg-card p-2">
+          <input
+            ref={fileRef}
+            type="file"
+            accept={ACCEPT}
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              pickFiles(e.target.files);
+              e.target.value = "";
+            }}
+          />
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-secondary text-foreground transition hover:bg-secondary/80"
+            aria-label="Attach file"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
           <textarea
             ref={inputRef}
             value={input}
@@ -255,7 +359,7 @@ function LoungePage() {
           />
           <button
             onClick={send}
-            disabled={!input.trim() || typing}
+            disabled={(!input.trim() && attachments.length === 0) || typing}
             className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[image:var(--gradient-primary)] text-primary-foreground shadow-[var(--shadow-glow)] transition disabled:opacity-40"
             aria-label="Send"
           >
@@ -263,6 +367,7 @@ function LoungePage() {
           </button>
         </div>
       </div>
+
 
       {/* History Drawer */}
       {drawer && (
