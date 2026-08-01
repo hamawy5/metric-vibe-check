@@ -254,7 +254,31 @@ function LoungePage() {
                   </ReactMarkdown>
                 </div>
               ) : (
-                m.text
+                <div className="space-y-2">
+                  {m.attachments && m.attachments.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {m.attachments.map((a, ai) =>
+                        a.preview ? (
+                          <img
+                            key={ai}
+                            src={a.preview}
+                            alt={a.name}
+                            className="h-20 w-20 rounded-xl object-cover ring-1 ring-white/30"
+                          />
+                        ) : (
+                          <span
+                            key={ai}
+                            className="flex max-w-[180px] items-center gap-1.5 rounded-lg bg-black/20 px-2 py-1 text-[11px]"
+                          >
+                            <FileText className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">{a.name}</span>
+                          </span>
+                        ),
+                      )}
+                    </div>
+                  )}
+                  {m.text && <p className="whitespace-pre-wrap">{m.text}</p>}
+                </div>
               )}
             </div>
           </div>
