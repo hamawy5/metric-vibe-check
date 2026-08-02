@@ -309,21 +309,22 @@ function LoungePage() {
                       )}
                     </div>
                   )}
-                  {m.text && <p className="whitespace-pre-wrap">{m.text}</p>}
-                  {m.text && (
-                    <button
-                      onClick={() => editMessage(i)}
-                      className="ml-auto flex items-center gap-1 rounded-lg bg-black/20 px-2 py-1 text-[11px] font-semibold text-primary-foreground transition active:scale-95"
-                      aria-label="Edit message"
-                    >
-                      <Pencil className="h-3 w-3" /> Edit
-                    </button>
-                  )}
+                  {m.text && <p className="whitespace-pre-wrap break-words">{m.text}</p>}
                 </div>
-
               )}
             </div>
+            {m.role === "user" && m.text && (
+              <button
+                onClick={() => editMessage(i)}
+                className="mr-1 mt-1.5 grid h-7 w-7 place-items-center rounded-full text-muted-foreground transition hover:bg-secondary hover:text-foreground active:scale-95"
+                aria-label="Edit message"
+                title="Edit message"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
+
         ))}
 
         {typing && (
