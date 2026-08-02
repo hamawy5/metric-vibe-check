@@ -62,31 +62,52 @@ Deno.serve(async (req) => {
       return { role: m.role === "assistant" ? "model" : "user", parts };
     });
 
-    const res = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": apiKey,
-        },
-        body: JSON.stringify({
-          contents,
-          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
-        }),
-      },
-    );
+    const payload = JSON.stringify({
+      contents,
+      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
+    });
 
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      console.error(`Gemini request failed [${res.status}]: ${text}`);
+    const MODELS = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-2.0-flash"];
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    let res: Response | undefined;
+    let lastStatus = 503;
+    let lastText = "";
+
+    outer: for (const model of MODELS) {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const attemptRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+            body: payload,
+          },
+        );
+
+        if (attemptRes.ok) {
+          res = attemptRes;
+          break outer;
+        }
+
+        lastStatus = attemptRes.status;
+        lastText = await attemptRes.text().catch(() => "");
+        console.error(`Gemini ${model} failed [${lastStatus}] attempt ${attempt + 1}: ${lastText}`);
+
+        // Retry only on transient overload / rate limit / server errors
+        if (![429, 500, 502, 503, 504].includes(lastStatus)) break outer;
+        if (attempt < 2) await sleep(600 * 2 ** attempt);
+      }
+    }
+
+    if (!res) {
       const message =
-        res.status === 429
-          ? "The tutor is busy right now — please retry in a moment."
-          : `Gemini request failed (${res.status}): ${text.slice(0, 200)}`;
+        lastStatus === 429 || lastStatus === 503
+          ? "The tutor is very busy right now. Please try again in a few seconds."
+          : `Gemini request failed (${lastStatus}): ${lastText.slice(0, 200)}`;
       return new Response(JSON.stringify({ error: message }), {
-        status: res.status,
+        status: lastStatus === 503 ? 503 : lastStatus,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
