@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Menu, Plus, Send, Sparkles, MessageSquare, X, Share2, Link2, Check, FileText } from "lucide-react";
+import { ArrowLeft, Menu, Plus, Send, Sparkles, MessageSquare, X, Share2, Link2, Check, FileText, Pencil } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { StreamGate } from "@/components/StreamGate";
 import { supabase } from "@/integrations/supabase/client";
+import { ChatChart, ChatSvg, parseChartSpec } from "@/components/ChatChart";
+
 
 
 export const Route = createFileRoute("/lounge")({
@@ -150,6 +152,15 @@ function LoungePage() {
 
 
 
+  const editMessage = (index: number) => {
+    const target = messages[index];
+    if (!target || typing) return;
+    setMessages(messages.slice(0, index));
+    setInput(target.text);
+    setAttachments(target.attachments ?? []);
+    requestAnimationFrame(() => inputRef.current?.focus());
+  };
+
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -217,12 +228,13 @@ function LoungePage() {
               className={cn(
                 "text-[15px] leading-7",
                 m.role === "user"
-                  ? "max-w-[85%] rounded-3xl rounded-br-lg bg-[image:var(--gradient-primary)] px-4 py-3 text-primary-foreground shadow-[var(--shadow-glow)]"
-                  : "max-w-[92%] rounded-3xl rounded-bl-lg border border-border/60 bg-card px-4 py-3.5 text-foreground shadow-sm",
+                  ? "group relative max-w-[85%] rounded-3xl rounded-br-lg bg-[image:var(--gradient-primary)] px-4 py-3 text-primary-foreground shadow-[var(--shadow-glow)]"
+                  : "w-full py-1 text-foreground",
               )}
             >
               {m.role === "ai" ? (
                 <div className="max-w-none space-y-3 [&_h1]:mb-2 [&_h1]:mt-4 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-base [&_h2]:font-bold [&_h3]:mb-1.5 [&_h3]:mt-3.5 [&_h3]:text-sm [&_h3]:font-bold [&_h3]:uppercase [&_h3]:tracking-wide [&_h3]:text-muted-foreground [&_a]:text-primary [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-primary [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground [&_code]:rounded [&_code]:bg-secondary [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-[13px] [&_hr]:my-4 [&_hr]:border-border [&_li]:my-1 [&_li>p]:my-0 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5 [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-secondary [&_pre]:p-3 [&_pre_code]:bg-transparent [&_strong]:font-bold [&_strong]:text-foreground [&_ul]:my-2 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5 [&_:first-child]:mt-0 [&_:last-child]:mb-0">
+
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm, remarkMath]}
                     rehypePlugins={[rehypeKatex]}
@@ -248,7 +260,23 @@ function LoungePage() {
                       td: ({ children }) => (
                         <td className="border-b border-border/60 p-3 align-top">{children}</td>
                       ),
+                      pre: ({ children }) => {
+                        const child = Array.isArray(children) ? children[0] : children;
+                        const props = (child as { props?: { className?: string; children?: unknown } })
+                          ?.props;
+                        const lang = /language-(\w+)/.exec(props?.className ?? "")?.[1];
+                        const raw = String(props?.children ?? "");
+                        if (lang === "chart" || lang === "chartjson") {
+                          const spec = parseChartSpec(raw);
+                          if (spec) return <ChatChart spec={spec} />;
+                        }
+                        if (lang === "svg" || raw.trim().startsWith("<svg")) {
+                          return <ChatSvg svg={raw} />;
+                        }
+                        return <pre>{children}</pre>;
+                      },
                     }}
+
                   >
                     {m.text}
                   </ReactMarkdown>
@@ -278,7 +306,17 @@ function LoungePage() {
                     </div>
                   )}
                   {m.text && <p className="whitespace-pre-wrap">{m.text}</p>}
+                  {m.text && (
+                    <button
+                      onClick={() => editMessage(i)}
+                      className="ml-auto flex items-center gap-1 rounded-lg bg-black/20 px-2 py-1 text-[11px] font-semibold text-primary-foreground transition active:scale-95"
+                      aria-label="Edit message"
+                    >
+                      <Pencil className="h-3 w-3" /> Edit
+                    </button>
+                  )}
                 </div>
+
               )}
             </div>
           </div>

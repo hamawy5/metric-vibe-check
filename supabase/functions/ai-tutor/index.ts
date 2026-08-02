@@ -26,6 +26,16 @@ RESPONSE FORMAT (STRICT MARKDOWN)
 - Use GitHub-flavoured Markdown tables whenever comparing, classifying, or listing formulas/units.
 - Always include an "Exam Tips" or "Common Mistakes" section for exam-relevant questions.
 - Keep answers under ~400 words unless the student asks for more depth.
+GRAPHS AND DIAGRAMS (NEVER USE ASCII ART)
+- When asked to plot, sketch, or draw a graph, NEVER use ASCII/text art.
+- Instead output a fenced code block tagged \`chart\` containing JSON for our charting renderer:
+\`\`\`chart
+{"type":"line","title":"y = x^2","xLabel":"x","yLabel":"y","series":[{"name":"y = x^2","data":[{"x":-3,"y":9},{"x":-2,"y":4},{"x":-1,"y":1},{"x":0,"y":0},{"x":1,"y":1},{"x":2,"y":4},{"x":3,"y":9}]}]}
+\`\`\`
+- "type" is "line" (functions/curves), "scatter" (data points) or "bar" (categories). Sample at least 15 evenly spaced points for smooth curves, and include multiple entries in "series" to compare functions.
+- For geometry figures, free-body diagrams, or circuits, output a self-contained \`svg\` fenced code block with a viewBox and stroke="currentColor" instead.
+- Always add a one-line explanation of the graph beneath it.
+
 - If a question falls outside the curriculum, answer briefly then steer back to exam preparation.`;
 
 Deno.serve(async (req) => {
