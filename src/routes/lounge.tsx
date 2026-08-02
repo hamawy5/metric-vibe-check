@@ -249,7 +249,23 @@ function LoungePage() {
                       td: ({ children }) => (
                         <td className="border-b border-border/60 p-3 align-top">{children}</td>
                       ),
+                      pre: ({ children }) => {
+                        const child = Array.isArray(children) ? children[0] : children;
+                        const props = (child as { props?: { className?: string; children?: unknown } })
+                          ?.props;
+                        const lang = /language-(\w+)/.exec(props?.className ?? "")?.[1];
+                        const raw = String(props?.children ?? "");
+                        if (lang === "chart" || lang === "chartjson") {
+                          const spec = parseChartSpec(raw);
+                          if (spec) return <ChatChart spec={spec} />;
+                        }
+                        if (lang === "svg" || raw.trim().startsWith("<svg")) {
+                          return <ChatSvg svg={raw} />;
+                        }
+                        return <pre>{children}</pre>;
+                      },
                     }}
+
                   >
                     {m.text}
                   </ReactMarkdown>
