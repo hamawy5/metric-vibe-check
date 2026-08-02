@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { StreamGate } from "@/components/StreamGate";
 import { supabase } from "@/integrations/supabase/client";
+import { ChatChart, ChatSvg, parseChartSpec } from "@/components/ChatChart";
+
 
 
 export const Route = createFileRoute("/lounge")({
