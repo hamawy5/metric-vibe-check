@@ -241,8 +241,8 @@ function LoungePage() {
                     rehypePlugins={[rehypeKatex]}
                     components={{
                       table: ({ children }) => (
-                        <div className="my-3 max-w-full overflow-x-auto rounded-xl border border-border">
-                          <table className="w-full border-collapse text-left text-[13px]">
+                        <div className="chat-scroll -mx-2 my-3 max-w-full overflow-x-auto px-2 py-1">
+                          <table className="w-max min-w-full border-collapse overflow-hidden rounded-xl border border-border text-left text-[13px]">
                             {children}
                           </table>
                         </div>
@@ -251,7 +251,7 @@ function LoungePage() {
                         <thead className="bg-secondary/70">{children}</thead>
                       ),
                       th: ({ children }) => (
-                        <th className="border-b border-border p-3 font-bold text-foreground">
+                        <th className="whitespace-nowrap border-b border-border px-4 py-3 font-bold text-foreground">
                           {children}
                         </th>
                       ),
@@ -259,8 +259,11 @@ function LoungePage() {
                         <tbody className="[&>tr:nth-child(even)]:bg-secondary/30">{children}</tbody>
                       ),
                       td: ({ children }) => (
-                        <td className="border-b border-border/60 p-3 align-top">{children}</td>
+                        <td className="whitespace-nowrap border-b border-border/60 px-4 py-3 align-top">
+                          {children}
+                        </td>
                       ),
+
                       pre: ({ children }) => {
                         const child = Array.isArray(children) ? children[0] : children;
                         const props = (child as { props?: { className?: string; children?: unknown } })
