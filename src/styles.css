@@ -203,3 +203,20 @@ html:not(.dark) .bg-card {
 }
 
 
+
+/* Slim custom scrollbars for wide chat tables */
+.chat-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+  overscroll-behavior-x: contain;
+}
+.chat-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.chat-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.chat-scroll::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.35);
+  border-radius: 999px;
+}

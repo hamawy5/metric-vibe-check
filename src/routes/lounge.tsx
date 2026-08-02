@@ -175,7 +175,7 @@ function LoungePage() {
   };
 
   return (
-    <div className="flex h-[100dvh] flex-col">
+    <div className="flex h-[100dvh] w-full max-w-full flex-col overflow-x-hidden">
       {/* Header */}
       <header className="flex items-center justify-between gap-2 border-b border-white/5 bg-background/80 px-3 py-3 backdrop-blur-xl">
         <Link
@@ -210,13 +210,13 @@ function LoungePage() {
       </header>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 space-y-6 overflow-y-auto px-4 py-6">
+      <div ref={scrollRef} className="w-full max-w-full flex-1 space-y-6 overflow-y-auto overflow-x-hidden px-4 py-6">
         {messages.map((m, i) => (
           <div
             key={i}
             className={cn(
-              "flex animate-fade-in",
-              m.role === "user" ? "justify-end" : "justify-start",
+              "flex w-full max-w-full animate-fade-in",
+              m.role === "user" ? "flex-col items-end" : "justify-start",
             )}
           >
             {m.role === "ai" && (
@@ -226,12 +226,13 @@ function LoungePage() {
             )}
             <div
               className={cn(
-                "text-[15px] leading-7",
+                "min-w-0 text-[15px] leading-7",
                 m.role === "user"
-                  ? "group relative max-w-[85%] rounded-3xl rounded-br-lg bg-[image:var(--gradient-primary)] px-4 py-3 text-primary-foreground shadow-[var(--shadow-glow)]"
-                  : "w-full py-1 text-foreground",
+                  ? "max-w-[85%] rounded-3xl rounded-br-lg bg-[image:var(--gradient-primary)] px-4 py-3 text-primary-foreground shadow-[var(--shadow-glow)]"
+                  : "w-full max-w-full overflow-x-hidden py-1 text-foreground",
               )}
             >
+
               {m.role === "ai" ? (
                 <div className="max-w-none space-y-3 [&_h1]:mb-2 [&_h1]:mt-4 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-base [&_h2]:font-bold [&_h3]:mb-1.5 [&_h3]:mt-3.5 [&_h3]:text-sm [&_h3]:font-bold [&_h3]:uppercase [&_h3]:tracking-wide [&_h3]:text-muted-foreground [&_a]:text-primary [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-primary [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground [&_code]:rounded [&_code]:bg-secondary [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-[13px] [&_hr]:my-4 [&_hr]:border-border [&_li]:my-1 [&_li>p]:my-0 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5 [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-secondary [&_pre]:p-3 [&_pre_code]:bg-transparent [&_strong]:font-bold [&_strong]:text-foreground [&_ul]:my-2 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5 [&_:first-child]:mt-0 [&_:last-child]:mb-0">
 
@@ -240,8 +241,8 @@ function LoungePage() {
                     rehypePlugins={[rehypeKatex]}
                     components={{
                       table: ({ children }) => (
-                        <div className="my-3 max-w-full overflow-x-auto rounded-xl border border-border">
-                          <table className="w-full border-collapse text-left text-[13px]">
+                        <div className="chat-scroll -mx-2 my-3 max-w-full overflow-x-auto px-2 py-1">
+                          <table className="w-max min-w-full border-collapse overflow-hidden rounded-xl border border-border text-left text-[13px]">
                             {children}
                           </table>
                         </div>
@@ -250,7 +251,7 @@ function LoungePage() {
                         <thead className="bg-secondary/70">{children}</thead>
                       ),
                       th: ({ children }) => (
-                        <th className="border-b border-border p-3 font-bold text-foreground">
+                        <th className="whitespace-nowrap border-b border-border px-4 py-3 font-bold text-foreground">
                           {children}
                         </th>
                       ),
@@ -258,8 +259,11 @@ function LoungePage() {
                         <tbody className="[&>tr:nth-child(even)]:bg-secondary/30">{children}</tbody>
                       ),
                       td: ({ children }) => (
-                        <td className="border-b border-border/60 p-3 align-top">{children}</td>
+                        <td className="whitespace-nowrap border-b border-border/60 px-4 py-3 align-top">
+                          {children}
+                        </td>
                       ),
+
                       pre: ({ children }) => {
                         const child = Array.isArray(children) ? children[0] : children;
                         const props = (child as { props?: { className?: string; children?: unknown } })
@@ -305,21 +309,22 @@ function LoungePage() {
                       )}
                     </div>
                   )}
-                  {m.text && <p className="whitespace-pre-wrap">{m.text}</p>}
-                  {m.text && (
-                    <button
-                      onClick={() => editMessage(i)}
-                      className="ml-auto flex items-center gap-1 rounded-lg bg-black/20 px-2 py-1 text-[11px] font-semibold text-primary-foreground transition active:scale-95"
-                      aria-label="Edit message"
-                    >
-                      <Pencil className="h-3 w-3" /> Edit
-                    </button>
-                  )}
+                  {m.text && <p className="whitespace-pre-wrap break-words">{m.text}</p>}
                 </div>
-
               )}
             </div>
+            {m.role === "user" && m.text && (
+              <button
+                onClick={() => editMessage(i)}
+                className="mr-1 mt-1.5 grid h-7 w-7 place-items-center rounded-full text-muted-foreground transition hover:bg-secondary hover:text-foreground active:scale-95"
+                aria-label="Edit message"
+                title="Edit message"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
+
         ))}
 
         {typing && (
