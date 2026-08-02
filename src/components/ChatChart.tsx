@@ -12,6 +12,7 @@ import {
   XAxis,
   YAxis,
   Legend,
+  ReferenceLine,
 } from "recharts";
 import { openHtmlLightbox } from "@/components/ImageLightbox";
 
@@ -62,32 +63,42 @@ export function ChatChart({ spec }: { spec: ChartSpec }) {
 
   const axes = (
     <>
-      <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-border" />
+      <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" strokeOpacity={0.35} />
       <XAxis
         dataKey="x"
         type={typeof xs[0] === "number" ? "number" : "category"}
-        stroke="currentColor"
-        className="text-muted-foreground"
-        tick={{ fontSize: 11 }}
+        stroke="#94a3b8"
+        tick={{ fontSize: 11, fill: "#94a3b8" }}
+        tickLine
+        axisLine={{ stroke: "#94a3b8" }}
+        allowDecimals
         label={
           spec.xLabel ? { value: spec.xLabel, position: "insideBottom", offset: -4, fontSize: 11 } : undefined
         }
       />
       <YAxis
-        stroke="currentColor"
-        className="text-muted-foreground"
-        tick={{ fontSize: 11 }}
+        stroke="#94a3b8"
+        tick={{ fontSize: 11, fill: "#94a3b8" }}
+        tickLine
+        axisLine={{ stroke: "#94a3b8" }}
+        allowDecimals
         label={spec.yLabel ? { value: spec.yLabel, angle: -90, position: "insideLeft", fontSize: 11 } : undefined}
       />
+      <ReferenceLine x={0} stroke="#64748b" strokeWidth={1.5} />
+      <ReferenceLine y={0} stroke="#64748b" strokeWidth={1.5} />
       <Tooltip
+        cursor={{ stroke: "#94a3b8", strokeDasharray: "3 3" }}
+        labelFormatter={(l) => `x = ${l}`}
+        formatter={(value: number | string, name: string) => [`y = ${value}`, name]}
         contentStyle={{
           background: "hsl(var(--card))",
           border: "1px solid hsl(var(--border))",
           borderRadius: 12,
           fontSize: 12,
+          color: "hsl(var(--foreground))",
         }}
       />
-      {keys.length > 1 && <Legend wrapperStyle={{ fontSize: 11 }} />}
+      <Legend wrapperStyle={{ fontSize: 11 }} />
     </>
   );
 
@@ -105,7 +116,7 @@ export function ChatChart({ spec }: { spec: ChartSpec }) {
         className="h-64 w-full cursor-zoom-in rounded-xl border border-border/60 bg-card p-2"
       >
         <ResponsiveContainer width="100%" height="100%">
-          <Chart data={rows} margin={{ top: 8, right: 12, bottom: spec.xLabel ? 18 : 4, left: 0 }}>
+          <Chart data={rows} margin={{ top: 8, right: 14, bottom: spec.xLabel ? 22 : 8, left: 4 }}>
             {axes}
             {keys.map((k, i) =>
               type === "bar" ? (
