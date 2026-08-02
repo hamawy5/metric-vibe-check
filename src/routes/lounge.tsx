@@ -175,7 +175,7 @@ function LoungePage() {
   };
 
   return (
-    <div className="flex h-[100dvh] flex-col">
+    <div className="flex h-[100dvh] w-full max-w-full flex-col overflow-x-hidden">
       {/* Header */}
       <header className="flex items-center justify-between gap-2 border-b border-white/5 bg-background/80 px-3 py-3 backdrop-blur-xl">
         <Link
