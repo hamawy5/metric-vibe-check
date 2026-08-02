@@ -210,13 +210,13 @@ function LoungePage() {
       </header>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 space-y-6 overflow-y-auto px-4 py-6">
+      <div ref={scrollRef} className="w-full max-w-full flex-1 space-y-6 overflow-y-auto overflow-x-hidden px-4 py-6">
         {messages.map((m, i) => (
           <div
             key={i}
             className={cn(
-              "flex animate-fade-in",
-              m.role === "user" ? "justify-end" : "justify-start",
+              "flex w-full max-w-full animate-fade-in",
+              m.role === "user" ? "flex-col items-end" : "justify-start",
             )}
           >
             {m.role === "ai" && (
@@ -226,12 +226,13 @@ function LoungePage() {
             )}
             <div
               className={cn(
-                "text-[15px] leading-7",
+                "min-w-0 text-[15px] leading-7",
                 m.role === "user"
-                  ? "group relative max-w-[85%] rounded-3xl rounded-br-lg bg-[image:var(--gradient-primary)] px-4 py-3 text-primary-foreground shadow-[var(--shadow-glow)]"
-                  : "w-full py-1 text-foreground",
+                  ? "max-w-[85%] rounded-3xl rounded-br-lg bg-[image:var(--gradient-primary)] px-4 py-3 text-primary-foreground shadow-[var(--shadow-glow)]"
+                  : "w-full max-w-full overflow-x-hidden py-1 text-foreground",
               )}
             >
+
               {m.role === "ai" ? (
                 <div className="max-w-none space-y-3 [&_h1]:mb-2 [&_h1]:mt-4 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-base [&_h2]:font-bold [&_h3]:mb-1.5 [&_h3]:mt-3.5 [&_h3]:text-sm [&_h3]:font-bold [&_h3]:uppercase [&_h3]:tracking-wide [&_h3]:text-muted-foreground [&_a]:text-primary [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-primary [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground [&_code]:rounded [&_code]:bg-secondary [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-[13px] [&_hr]:my-4 [&_hr]:border-border [&_li]:my-1 [&_li>p]:my-0 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5 [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-secondary [&_pre]:p-3 [&_pre_code]:bg-transparent [&_strong]:font-bold [&_strong]:text-foreground [&_ul]:my-2 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5 [&_:first-child]:mt-0 [&_:last-child]:mb-0">
 
