@@ -166,7 +166,7 @@ export function LightboxHost() {
           }}
           className="max-h-full max-w-full"
           onClick={() => {
-            if (scale === 1) setScale(2);
+            if (!("node" in state) && scale === 1) setScale(2);
           }}
         >
           {"src" in state ? (
@@ -176,6 +176,8 @@ export function LightboxHost() {
               className="max-h-[80vh] max-w-[92vw] select-none object-contain"
               draggable={false}
             />
+          ) : "node" in state ? (
+            <div className="max-h-[85vh] max-w-[96vw]">{state.node}</div>
           ) : (
             <div
               className="max-h-[80vh] max-w-[92vw] overflow-auto rounded-lg bg-white p-4 [&_svg]:h-auto [&_svg]:max-w-none"
