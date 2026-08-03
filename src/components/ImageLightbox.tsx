@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 
-type LightboxState = { src: string; alt?: string } | { html: string } | null;
+type LightboxState = { src: string; alt?: string } | { html: string } | { node: ReactNode } | null;
 
 const listeners = new Set<(s: LightboxState) => void>();
 let current: LightboxState = null;
@@ -15,6 +15,9 @@ export function openImageLightbox(src: string, alt?: string) {
 }
 export function openHtmlLightbox(html: string) {
   setLightbox({ html });
+}
+export function openNodeLightbox(node: ReactNode) {
+  setLightbox({ node });
 }
 
 export function LightboxHost() {
