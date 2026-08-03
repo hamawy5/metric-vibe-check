@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Menu, Plus, Send, Sparkles, MessageSquare, X, Share2, Link2, Check, FileText, Pencil } from "lucide-react";
+import { ArrowLeft, Menu, Plus, Send, Sparkles, MessageSquare, X, Share2, Link2, Check, FileText, Pencil, Image as ImageIcon, Camera, Files } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -55,7 +55,8 @@ const HISTORY_GROUPS = [
 type Attachment = { name: string; mimeType: string; data: string; preview?: string };
 type Msg = { role: "user" | "ai"; text: string; attachments?: Attachment[] };
 
-const ACCEPT = "image/png,image/jpeg,image/webp,application/pdf,text/plain";
+const IMG_ACCEPT = "image/png,image/jpeg,image/webp";
+const DOC_ACCEPT = "application/pdf,text/plain";
 
 function readAsDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
@@ -73,6 +74,9 @@ function LoungePage() {
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetTab, setSheetTab] = useState<"media" | "docs" | "camera">("media");
   const [messages, setMessages] = useState<Msg[]>([
     { role: "ai", text: "Hi! I'm your **MatricPulse tutor**. Ask me anything from your Ethiopian curriculum — Math, Physics, Biology, English, or Aptitude. What should we tackle today?" },
   ]);
@@ -111,7 +115,9 @@ function LoungePage() {
     const q = input.trim();
     if ((!q && attachments.length === 0) || typing) return;
     const userMsg: Msg = { role: "user", text: q, attachments };
-    const history = [...messages, userMsg];
+    const base = editingIndex !== null ? messages.slice(0, editingIndex) : messages;
+    const history = [...base, userMsg];
+    setEditingIndex(null);
     setMessages(history);
     setInput("");
     setAttachments([]);
@@ -155,7 +161,7 @@ function LoungePage() {
   const editMessage = (index: number) => {
     const target = messages[index];
     if (!target || typing) return;
-    setMessages(messages.slice(0, index));
+    setEditingIndex(index);
     setInput(target.text);
     setAttachments(target.attachments ?? []);
     requestAnimationFrame(() => inputRef.current?.focus());
@@ -210,17 +216,17 @@ function LoungePage() {
       </header>
 
       {/* Messages */}
-      <div ref={scrollRef} className="w-full max-w-full flex-1 space-y-6 overflow-y-auto overflow-x-hidden px-4 py-6">
+      <div ref={scrollRef} className="w-full max-w-full flex-1 space-y-6 overflow-y-auto overflow-x-hidden px-0 py-6">
         {messages.map((m, i) => (
           <div
             key={i}
             className={cn(
               "flex w-full max-w-full animate-fade-in",
-              m.role === "user" ? "flex-col items-end" : "justify-start",
+              m.role === "user" ? "flex-col items-end pl-8 pr-3" : "justify-start pl-1.5 pr-2",
             )}
           >
             {m.role === "ai" && (
-              <div className="mr-2.5 mt-1 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[image:var(--gradient-primary)]">
+              <div className="mr-1.5 mt-1 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[image:var(--gradient-primary)]">
                 <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
               </div>
             )}
@@ -328,7 +334,7 @@ function LoungePage() {
         ))}
 
         {typing && (
-          <div className="flex animate-fade-in justify-start">
+          <div className="flex animate-fade-in justify-start pl-1.5">
             <div className="mr-2 mt-1 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[image:var(--gradient-primary)]">
               <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
             </div>
@@ -343,6 +349,23 @@ function LoungePage() {
 
       {/* Composer */}
       <div className="border-t border-white/5 bg-background/80 px-3 py-3 backdrop-blur-xl">
+        {editingIndex !== null && (
+          <div className="mb-2 flex items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-[12px]">
+            <Pencil className="h-3.5 w-3.5 shrink-0 text-primary" />
+            <span className="min-w-0 flex-1 truncate">Editing your message — send to update the answer.</span>
+            <button
+              onClick={() => {
+                setEditingIndex(null);
+                setInput("");
+                setAttachments([]);
+              }}
+              className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-background/60"
+              aria-label="Cancel edit"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        )}
         {attachments.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">
             {attachments.map((a, i) => (
@@ -371,7 +394,8 @@ function LoungePage() {
           <input
             ref={fileRef}
             type="file"
-            accept={ACCEPT}
+            accept={sheetTab === "docs" ? DOC_ACCEPT : sheetTab === "camera" ? "image/*" : IMG_ACCEPT}
+            {...(sheetTab === "camera" ? { capture: "environment" as const } : {})}
             multiple
             className="hidden"
             onChange={(e) => {
@@ -380,7 +404,7 @@ function LoungePage() {
             }}
           />
           <button
-            onClick={() => fileRef.current?.click()}
+            onClick={() => setSheetOpen(true)}
             className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-secondary text-foreground transition hover:bg-secondary/80"
             aria-label="Attach file"
           >
@@ -411,6 +435,119 @@ function LoungePage() {
         </div>
       </div>
 
+
+      {/* Attachment sheet */}
+      {sheetOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 animate-fade-in bg-black/60 backdrop-blur-sm"
+            onClick={() => setSheetOpen(false)}
+          />
+          <div
+            className="fixed inset-x-0 bottom-0 z-50 flex h-[50vh] flex-col rounded-t-3xl border-t border-white/10 bg-card p-4 shadow-2xl"
+            style={{ animation: "sheetUp 0.25s ease-out" }}
+          >
+            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-muted-foreground/40" />
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-bold">Attach to your question</h2>
+              <button
+                onClick={() => setSheetOpen(false)}
+                className="grid h-8 w-8 place-items-center rounded-lg bg-secondary"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="mt-3 flex gap-2 overflow-x-auto">
+              {([
+                { id: "media", label: "Gallery/Media", icon: ImageIcon },
+                { id: "docs", label: "Documents", icon: Files },
+                { id: "camera", label: "Camera", icon: Camera },
+              ] as const).map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setSheetTab(t.id)}
+                  className={cn(
+                    "flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold transition",
+                    sheetTab === t.id
+                      ? "bg-[image:var(--gradient-primary)] text-primary-foreground"
+                      : "bg-secondary text-muted-foreground",
+                  )}
+                >
+                  <t.icon className="h-3.5 w-3.5" /> {t.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-4 flex-1 overflow-y-auto">
+              <button
+                onClick={() => fileRef.current?.click()}
+                className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-primary/40 bg-secondary/40 p-4 text-left transition active:scale-[0.99]"
+              >
+                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[image:var(--gradient-primary)]">
+                  {sheetTab === "docs" ? (
+                    <Files className="h-5 w-5 text-primary-foreground" />
+                  ) : sheetTab === "camera" ? (
+                    <Camera className="h-5 w-5 text-primary-foreground" />
+                  ) : (
+                    <ImageIcon className="h-5 w-5 text-primary-foreground" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold">
+                    {sheetTab === "docs"
+                      ? "Choose a document"
+                      : sheetTab === "camera"
+                        ? "Take a photo"
+                        : "Choose photos"}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {sheetTab === "docs" ? "PDF or TXT, up to 15MB" : "PNG, JPG or WEBP, up to 5 files"}
+                  </p>
+                </div>
+              </button>
+
+              {attachments.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Selected
+                  </p>
+                  {attachments.map((a, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-3 rounded-xl border border-border/60 bg-secondary/60 p-2"
+                    >
+                      {a.preview ? (
+                        <img src={a.preview} alt={a.name} className="h-10 w-10 rounded-lg object-cover" />
+                      ) : (
+                        <div className="grid h-10 w-10 place-items-center rounded-lg bg-background">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      )}
+                      <span className="min-w-0 flex-1 truncate text-xs">{a.name}</span>
+                      <button
+                        onClick={() => setAttachments((prev) => prev.filter((_, j) => j !== i))}
+                        className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-background/70"
+                        aria-label={`Remove ${a.name}`}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => setSheetOpen(false)}
+              className="mt-3 w-full rounded-xl bg-[image:var(--gradient-primary)] py-3 text-sm font-bold text-primary-foreground shadow-[var(--shadow-glow)]"
+            >
+              {attachments.length > 0 ? `Attach ${attachments.length} file(s)` : "Done"}
+            </button>
+          </div>
+          <style>{`@keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }`}</style>
+        </>
+      )}
 
       {/* History Drawer */}
       {drawer && (
