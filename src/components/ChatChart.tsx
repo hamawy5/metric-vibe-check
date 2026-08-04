@@ -79,25 +79,8 @@ export function MathText({ children, className }: { children: string; className?
   return <span className={className} dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
-/* ---------------- Math plane (SVG) ---------------- */
 
-function niceStep(range: number, target: number) {
-  const raw = range / Math.max(1, target);
-  const mag = Math.pow(10, Math.floor(Math.log10(raw || 1)));
-  const norm = raw / mag;
-  const mult = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10;
-  return mult * mag;
-}
 
-function ticksFor(min: number, max: number, target: number) {
-  const step = niceStep(max - min, target);
-  const out: number[] = [];
-  const start = Math.ceil(min / step) * step;
-  for (let v = start; v <= max + step * 1e-6; v += step) {
-    out.push(Math.abs(v) < step * 1e-6 ? 0 : Math.round(v * 1e6) / 1e6);
-  }
-  return { ticks: out, step };
-}
 
 /* ---------------- Numeric plane (live Recharts) ---------------- */
 
