@@ -110,8 +110,18 @@ function MathPlane({ spec, large = false }: { spec: ChartSpec; large?: boolean }
   const all = pts.flat();
   let xmin = Math.min(...all.map((p) => p.x));
   let xmax = Math.max(...all.map((p) => p.x));
-  let ymin = Math.min(...all.map((p) => p.y));
-  let ymax = Math.max(...all.map((p) => p.y));
+  // Robust y-domain: ignore blow-up values from asymptotes (e.g. 1/x)
+  const ys = all.map((p) => p.y).sort((a, b) => a - b);
+  const q = (f: number) => ys[Math.min(ys.length - 1, Math.max(0, Math.round(f * (ys.length - 1))))];
+  let ymin = q(0.04);
+  let ymax = q(0.96);
+  const spread = Math.abs(xmax - xmin) || 1;
+  if (!Number.isFinite(ymin) || !Number.isFinite(ymax) || ymin === ymax) {
+    ymin = Math.min(...ys);
+    ymax = Math.max(...ys);
+  }
+  ymin = Math.max(ymin, -spread * 6);
+  ymax = Math.min(ymax, spread * 6);
   if (xmin === xmax) ((xmin -= 1), (xmax += 1));
   if (ymin === ymax) ((ymin -= 1), (ymax += 1));
   // pad and always include the origin so the crosshair is visible
