@@ -109,6 +109,8 @@ Deno.serve(async (req) => {
         lastText = await attemptRes.text().catch(() => "");
         console.error(`Gemini ${model} failed [${lastStatus}] attempt ${attempt + 1}: ${lastText}`);
 
+        // Model missing/unavailable → skip to the next model in the list
+        if (lastStatus === 404 || lastStatus === 400) break;
         // Retry only on transient overload / rate limit / server errors
         if (![429, 500, 502, 503, 504].includes(lastStatus)) break outer;
         if (attempt < 2) await sleep(600 * 2 ** attempt);
