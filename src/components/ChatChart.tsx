@@ -110,8 +110,18 @@ function MathPlane({ spec, large = false }: { spec: ChartSpec; large?: boolean }
   const all = pts.flat();
   let xmin = Math.min(...all.map((p) => p.x));
   let xmax = Math.max(...all.map((p) => p.x));
-  let ymin = Math.min(...all.map((p) => p.y));
-  let ymax = Math.max(...all.map((p) => p.y));
+  // Robust y-domain: ignore blow-up values from asymptotes (e.g. 1/x)
+  const ys = all.map((p) => p.y).sort((a, b) => a - b);
+  const q = (f: number) => ys[Math.min(ys.length - 1, Math.max(0, Math.round(f * (ys.length - 1))))];
+  let ymin = q(0.04);
+  let ymax = q(0.96);
+  const spread = Math.abs(xmax - xmin) || 1;
+  if (!Number.isFinite(ymin) || !Number.isFinite(ymax) || ymin === ymax) {
+    ymin = Math.min(...ys);
+    ymax = Math.max(...ys);
+  }
+  ymin = Math.max(ymin, -spread * 6);
+  ymax = Math.min(ymax, spread * 6);
   if (xmin === xmax) ((xmin -= 1), (xmax += 1));
   if (ymin === ymax) ((ymin -= 1), (ymax += 1));
   // pad and always include the origin so the crosshair is visible
@@ -137,6 +147,9 @@ function MathPlane({ spec, large = false }: { spec: ChartSpec; large?: boolean }
         <marker id="mp-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
           <path d="M0,0 L10,5 L0,10 z" fill="#9CA3AF" />
         </marker>
+        <clipPath id="mp-clip">
+          <rect x={PAD - 10} y={PAD - 12} width={W - 2 * PAD + 22} height={H - 2 * PAD + 24} />
+        </clipPath>
       </defs>
 
       {/* grid */}
@@ -200,8 +213,31 @@ function MathPlane({ spec, large = false }: { spec: ChartSpec; large?: boolean }
             </g>
           );
         }
-        const d = data.map((p, j) => `${j === 0 ? "M" : "L"}${sx(p.x)},${sy(p.y)}`).join(" ");
-        return <path key={i} d={d} fill="none" stroke={color} strokeWidth={large ? 2.4 : 2} strokeLinecap="round" />;
+        // Break the path across asymptotes / out-of-range jumps (e.g. f(x)=1/x)
+        const span = ymax - ymin;
+        let d = "";
+        let open = false;
+        data.forEach((p, j) => {
+          const inRange = p.y >= ymin - span && p.y <= ymax + span;
+          const prev = data[j - 1];
+          const jump = prev ? Math.abs(p.y - prev.y) > span * 0.9 : false;
+          if (!inRange) {
+            open = false;
+            return;
+          }
+          if (!open || jump) {
+            d += `M${sx(p.x)},${sy(p.y)}`;
+            open = true;
+          } else {
+            d += ` L${sx(p.x)},${sy(p.y)}`;
+          }
+        });
+        if (!d) return null;
+        return (
+          <g key={i} clipPath="url(#mp-clip)">
+            <path d={d} fill="none" stroke={color} strokeWidth={large ? 2.4 : 2} strokeLinecap="round" />
+          </g>
+        );
       })}
     </svg>
   );

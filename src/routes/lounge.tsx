@@ -276,7 +276,8 @@ function LoungePage() {
                           ?.props;
                         const lang = /language-(\w+)/.exec(props?.className ?? "")?.[1];
                         const raw = String(props?.children ?? "");
-                        if (lang === "chart" || lang === "chartjson") {
+                        // Any fenced block whose body is a valid chart spec renders as a chart
+                        if (lang !== "svg" && raw.trim().startsWith("{")) {
                           const spec = parseChartSpec(raw);
                           if (spec) return <ChatChart spec={spec} />;
                         }
