@@ -147,6 +147,9 @@ function MathPlane({ spec, large = false }: { spec: ChartSpec; large?: boolean }
         <marker id="mp-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
           <path d="M0,0 L10,5 L0,10 z" fill="#9CA3AF" />
         </marker>
+        <clipPath id="mp-clip">
+          <rect x={PAD - 10} y={PAD - 12} width={W - 2 * PAD + 22} height={H - 2 * PAD + 24} />
+        </clipPath>
       </defs>
 
       {/* grid */}
