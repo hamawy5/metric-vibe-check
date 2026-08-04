@@ -149,26 +149,35 @@ export function LightboxHost() {
         </button>
       </div>
       <div
-        className="flex flex-1 items-center justify-center overflow-hidden p-4 touch-none"
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
+        className={`flex flex-1 items-center justify-center overflow-hidden p-4 ${"node" in state ? "" : "touch-none"}`}
+        {...("node" in state
+          ? {}
+          : {
+              onPointerDown,
+              onPointerMove,
+              onPointerUp,
+              onPointerCancel: onPointerUp,
+            })}
         onClick={(e) => {
           if (e.target === e.currentTarget) setLightbox(null);
         }}
       >
         <div
-          style={{
-            transform: `translate(${tx}px, ${ty}px) scale(${scale})`,
-            transition: panning.current ? "none" : "transform 0.15s ease",
-            cursor: scale > 1 ? "grab" : "zoom-in",
-          }}
+          style={
+            "node" in state
+              ? undefined
+              : {
+                  transform: `translate(${tx}px, ${ty}px) scale(${scale})`,
+                  transition: panning.current ? "none" : "transform 0.15s ease",
+                  cursor: scale > 1 ? "grab" : "zoom-in",
+                }
+          }
           className="max-h-full max-w-full"
           onClick={() => {
             if (!("node" in state) && scale === 1) setScale(2);
           }}
         >
+
           {"src" in state ? (
             <img
               src={state.src}
