@@ -3,7 +3,12 @@ import {
   CartesianGrid,
   Bar,
   BarChart,
+  Line,
+  LineChart,
+  ReferenceLine,
   ResponsiveContainer,
+  Scatter,
+  ScatterChart,
   Tooltip,
   XAxis,
   YAxis,
@@ -74,172 +79,141 @@ export function MathText({ children, className }: { children: string; className?
   return <span className={className} dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
-/* ---------------- Math plane (SVG) ---------------- */
 
-function niceStep(range: number, target: number) {
-  const raw = range / Math.max(1, target);
-  const mag = Math.pow(10, Math.floor(Math.log10(raw || 1)));
-  const norm = raw / mag;
-  const mult = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10;
-  return mult * mag;
-}
 
-function ticksFor(min: number, max: number, target: number) {
-  const step = niceStep(max - min, target);
-  const out: number[] = [];
-  const start = Math.ceil(min / step) * step;
-  for (let v = start; v <= max + step * 1e-6; v += step) {
-    out.push(Math.abs(v) < step * 1e-6 ? 0 : Math.round(v * 1e6) / 1e6);
-  }
-  return { ticks: out, step };
-}
 
-const W = 480;
-const H = 340;
-const PAD = 34;
+/* ---------------- Numeric plane (live Recharts) ---------------- */
+
+const tooltipStyle = {
+  background: "#111827",
+  border: "1px solid #374151",
+  borderRadius: 12,
+  fontSize: 12,
+  color: "#F9FAFB",
+} as const;
 
 function MathPlane({ spec, large = false }: { spec: ChartSpec; large?: boolean }) {
   const series = (spec.series ?? []).filter((s) => Array.isArray(s.data) && s.data.length);
-  const pts = series.map((s) =>
-    s.data
-      .map((p) => ({ x: Number(p.x), y: Number(p.y) }))
-      .filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y))
-      .sort((a, b) => a.x - b.x),
+  const keys = series.map((s, i) => s.name || `y${i + 1}`);
+  const isScatter = (spec.type ?? "line") === "scatter";
+
+  const { rows, yDomain, xDomain } = useMemo(() => {
+    const clean = series.map((s) =>
+      s.data
+        .map((p) => ({ x: Number(p.x), y: Number(p.y) }))
+        .filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y))
+        .sort((a, b) => a.x - b.x),
+    );
+    const all = clean.flat();
+    const xsAll = all.map((p) => p.x);
+    let xmin = Math.min(...xsAll);
+    let xmax = Math.max(...xsAll);
+    const ys = all.map((p) => p.y).sort((a, b) => a - b);
+    const q = (f: number) =>
+      ys[Math.min(ys.length - 1, Math.max(0, Math.round(f * (ys.length - 1))))];
+    let ymin = q(0.04);
+    let ymax = q(0.96);
+    const spread = Math.abs(xmax - xmin) || 1;
+    if (!Number.isFinite(ymin) || !Number.isFinite(ymax) || ymin === ymax) {
+      ymin = Math.min(...ys);
+      ymax = Math.max(...ys);
+    }
+    ymin = Math.max(ymin, -spread * 6);
+    ymax = Math.min(ymax, spread * 6);
+    if (xmin === xmax) ((xmin -= 1), (xmax += 1));
+    if (ymin === ymax) ((ymin -= 1), (ymax += 1));
+    const padY = (ymax - ymin) * 0.12;
+    ymin = Math.min(0, ymin - padY);
+    ymax = Math.max(0, ymax + padY);
+
+    // union of x values → one row per x, null for out-of-range (breaks the line)
+    const xs = Array.from(new Set(all.map((p) => p.x))).sort((a, b) => a - b);
+    const maps = clean.map((d) => new Map(d.map((p) => [p.x, p.y])));
+    const rows = xs.map((x) => {
+      const row: Record<string, number | null> = { x };
+      maps.forEach((m, i) => {
+        const v = m.get(x);
+        row[keys[i]] = v === undefined || v < ymin || v > ymax ? null : v;
+      });
+      return row;
+    });
+    return {
+      rows,
+      xDomain: [xmin, xmax] as [number, number],
+      yDomain: [ymin, ymax] as [number, number],
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spec]);
+
+  const tickSize = large ? 12 : 11;
+  const tickStyle = { fontSize: tickSize, fill: "#9CA3AF" };
+  const margin = { top: 12, right: large ? 26 : 14, bottom: 6, left: large ? 8 : 0 };
+  const axes = (
+    <>
+      <CartesianGrid stroke="#2D3748" strokeDasharray="3 3" />
+      <XAxis
+        type="number"
+        dataKey="x"
+        domain={xDomain}
+        stroke="#4B5563"
+        tickMargin={6}
+        tickSize={4}
+        tick={tickStyle}
+        tickFormatter={fmtNum}
+      />
+      <YAxis
+        type="number"
+        domain={yDomain}
+        stroke="#4B5563"
+        tickMargin={6}
+        tickSize={4}
+        width={large ? 46 : 38}
+        tick={tickStyle}
+        tickFormatter={fmtNum}
+      />
+      <ReferenceLine x={0} stroke="#9CA3AF" strokeWidth={1.4} />
+      <ReferenceLine y={0} stroke="#9CA3AF" strokeWidth={1.4} />
+      <Tooltip
+        contentStyle={tooltipStyle}
+        labelFormatter={(l: number | string) => `x = ${fmtNum(l)}`}
+        formatter={(value: number | string, name: string) => [fmtNum(value), name]}
+      />
+    </>
   );
 
-  const all = pts.flat();
-  let xmin = Math.min(...all.map((p) => p.x));
-  let xmax = Math.max(...all.map((p) => p.x));
-  // Robust y-domain: ignore blow-up values from asymptotes (e.g. 1/x)
-  const ys = all.map((p) => p.y).sort((a, b) => a - b);
-  const q = (f: number) => ys[Math.min(ys.length - 1, Math.max(0, Math.round(f * (ys.length - 1))))];
-  let ymin = q(0.04);
-  let ymax = q(0.96);
-  const spread = Math.abs(xmax - xmin) || 1;
-  if (!Number.isFinite(ymin) || !Number.isFinite(ymax) || ymin === ymax) {
-    ymin = Math.min(...ys);
-    ymax = Math.max(...ys);
+  if (isScatter) {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <ScatterChart data={rows} margin={margin}>
+          {axes}
+          {keys.map((k, i) => (
+            <Scatter key={k} dataKey={k} name={k} fill={COLORS[i % COLORS.length]} />
+          ))}
+        </ScatterChart>
+      </ResponsiveContainer>
+    );
   }
-  ymin = Math.max(ymin, -spread * 6);
-  ymax = Math.min(ymax, spread * 6);
-  if (xmin === xmax) ((xmin -= 1), (xmax += 1));
-  if (ymin === ymax) ((ymin -= 1), (ymax += 1));
-  // pad and always include the origin so the crosshair is visible
-  const padY = (ymax - ymin) * 0.12;
-  ymin = Math.min(0, ymin - padY);
-  ymax = Math.max(0, ymax + padY);
-  const padX = (xmax - xmin) * 0.06;
-  xmin = Math.min(0, xmin - padX);
-  xmax = Math.max(0, xmax + padX);
-
-  const sx = (x: number) => PAD + ((x - xmin) / (xmax - xmin)) * (W - 2 * PAD);
-  const sy = (y: number) => H - PAD - ((y - ymin) / (ymax - ymin)) * (H - 2 * PAD);
-
-  const xt = ticksFor(xmin, xmax, large ? 10 : 7);
-  const yt = ticksFor(ymin, ymax, large ? 8 : 6);
-  const ax = sy(0); // y-pixel of the x-axis
-  const ay = sx(0); // x-pixel of the y-axis
-  const fs = large ? 12 : 10.5;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="h-full w-full" preserveAspectRatio="xMidYMid meet">
-      <defs>
-        <marker id="mp-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-          <path d="M0,0 L10,5 L0,10 z" fill="#9CA3AF" />
-        </marker>
-        <clipPath id="mp-clip">
-          <rect x={PAD - 10} y={PAD - 12} width={W - 2 * PAD + 22} height={H - 2 * PAD + 24} />
-        </clipPath>
-      </defs>
-
-      {/* grid */}
-      {xt.ticks.map((t) => (
-        <line key={`gx${t}`} x1={sx(t)} y1={PAD - 8} x2={sx(t)} y2={H - PAD + 8} stroke="#374151" strokeWidth={1} />
-      ))}
-      {yt.ticks.map((t) => (
-        <line key={`gy${t}`} x1={PAD - 8} y1={sy(t)} x2={W - PAD + 8} y2={sy(t)} stroke="#374151" strokeWidth={1} />
-      ))}
-
-      {/* axes through the origin, with arrowheads */}
-      <line x1={PAD - 12} y1={ax} x2={W - PAD + 14} y2={ax} stroke="#9CA3AF" strokeWidth={1.6} markerEnd="url(#mp-arrow)" />
-      <line x1={ay} y1={H - PAD + 12} x2={ay} y2={PAD - 14} stroke="#9CA3AF" strokeWidth={1.6} markerEnd="url(#mp-arrow)" />
-
-      {/* ticks + numbers written on the axes */}
-      {xt.ticks.map((t) => (
-        <g key={`tx${t}`}>
-          <line x1={sx(t)} y1={ax - 4} x2={sx(t)} y2={ax + 4} stroke="#9CA3AF" strokeWidth={1.4} />
-          {t !== 0 && (
-            <text x={sx(t)} y={ax + fs + 5} textAnchor="middle" fontSize={fs} fill="#9CA3AF">
-              {fmtNum(t)}
-            </text>
-          )}
-        </g>
-      ))}
-      {yt.ticks.map((t) => (
-        <g key={`ty${t}`}>
-          <line x1={ay - 4} y1={sy(t)} x2={ay + 4} y2={sy(t)} stroke="#9CA3AF" strokeWidth={1.4} />
-          {t !== 0 && (
-            <text x={ay - 7} y={sy(t) + fs * 0.35} textAnchor="end" fontSize={fs} fill="#9CA3AF">
-              {fmtNum(t)}
-            </text>
-          )}
-        </g>
-      ))}
-      <text x={ay - 7} y={ax + fs + 3} textAnchor="end" fontSize={fs} fill="#9CA3AF">
-        0
-      </text>
-
-      {/* axis names */}
-      {spec.xLabel && (
-        <text x={W - PAD + 6} y={ax - 8} textAnchor="end" fontSize={fs} fill="#9CA3AF" fontStyle="italic">
-          {spec.xLabel}
-        </text>
-      )}
-      {spec.yLabel && (
-        <text x={ay + 8} y={PAD - 6} fontSize={fs} fill="#9CA3AF" fontStyle="italic">
-          {spec.yLabel}
-        </text>
-      )}
-
-      {/* curves / points */}
-      {pts.map((data, i) => {
-        const color = COLORS[i % COLORS.length];
-        if ((spec.type ?? "line") === "scatter") {
-          return (
-            <g key={i}>
-              {data.map((p, j) => (
-                <circle key={j} cx={sx(p.x)} cy={sy(p.y)} r={large ? 4 : 3} fill={color} />
-              ))}
-            </g>
-          );
-        }
-        // Break the path across asymptotes / out-of-range jumps (e.g. f(x)=1/x)
-        const span = ymax - ymin;
-        let d = "";
-        let open = false;
-        data.forEach((p, j) => {
-          const inRange = p.y >= ymin - span && p.y <= ymax + span;
-          const prev = data[j - 1];
-          const jump = prev ? Math.abs(p.y - prev.y) > span * 0.9 : false;
-          if (!inRange) {
-            open = false;
-            return;
-          }
-          if (!open || jump) {
-            d += `M${sx(p.x)},${sy(p.y)}`;
-            open = true;
-          } else {
-            d += ` L${sx(p.x)},${sy(p.y)}`;
-          }
-        });
-        if (!d) return null;
-        return (
-          <g key={i} clipPath="url(#mp-clip)">
-            <path d={d} fill="none" stroke={color} strokeWidth={large ? 2.4 : 2} strokeLinecap="round" />
-          </g>
-        );
-      })}
-    </svg>
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart data={rows} margin={margin}>
+        {axes}
+        {keys.map((k, i) => (
+          <Line
+            key={k}
+            type="monotone"
+            dataKey={k}
+            name={k}
+            stroke={COLORS[i % COLORS.length]}
+            strokeWidth={large ? 2.4 : 2}
+            dot={false}
+            activeDot={{ r: large ? 5 : 4 }}
+            connectNulls={false}
+            isAnimationActive={false}
+          />
+        ))}
+      </LineChart>
+    </ResponsiveContainer>
   );
 }
 
