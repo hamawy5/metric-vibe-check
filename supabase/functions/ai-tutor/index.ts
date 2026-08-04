@@ -118,15 +118,62 @@ Deno.serve(async (req) => {
     }
 
     if (!res) {
+      // Gemini exhausted/unavailable → fall back to Lovable AI Gateway
+      const lovableKey = Deno.env.get("LOVABLE_API_KEY");
+      if (lovableKey) {
+        const gwMessages = [
+          { role: "system", content: SYSTEM_PROMPT },
+          ...messages.map((m) => ({
+            role: m.role,
+            content: [
+              { type: "text", text: String(m.content ?? "").slice(0, 8000) || "(empty)" },
+              ...(m.attachments ?? [])
+                .filter((a) => a?.data && a?.mimeType?.startsWith("image/"))
+                .map((a) => ({
+                  type: "image_url",
+                  image_url: {
+                    url: a.data.startsWith("data:")
+                      ? a.data
+                      : `data:${a.mimeType};base64,${a.data}`,
+                  },
+                })),
+            ],
+          })),
+        ];
+
+        const gwRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${lovableKey}`,
+          },
+          body: JSON.stringify({ model: "google/gemini-3.5-flash", messages: gwMessages }),
+        });
+
+        if (gwRes.ok) {
+          const gwJson = (await gwRes.json()) as {
+            choices?: Array<{ message?: { content?: string } }>;
+          };
+          const content = gwJson.choices?.[0]?.message?.content?.trim() ?? "";
+          return new Response(JSON.stringify({ content }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        lastStatus = gwRes.status;
+        lastText = await gwRes.text().catch(() => "");
+        console.error(`Lovable AI fallback failed [${lastStatus}]: ${lastText}`);
+      }
+
       const message =
         lastStatus === 429 || lastStatus === 503
           ? "The tutor is very busy right now. Please try again in a few seconds."
-          : `Gemini request failed (${lastStatus}): ${lastText.slice(0, 200)}`;
+          : `AI request failed (${lastStatus}): ${lastText.slice(0, 200)}`;
       return new Response(JSON.stringify({ error: message }), {
         status: lastStatus === 503 ? 503 : lastStatus,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
     const json = (await res.json()) as {
       candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
