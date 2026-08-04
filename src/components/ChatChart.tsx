@@ -210,8 +210,31 @@ function MathPlane({ spec, large = false }: { spec: ChartSpec; large?: boolean }
             </g>
           );
         }
-        const d = data.map((p, j) => `${j === 0 ? "M" : "L"}${sx(p.x)},${sy(p.y)}`).join(" ");
-        return <path key={i} d={d} fill="none" stroke={color} strokeWidth={large ? 2.4 : 2} strokeLinecap="round" />;
+        // Break the path across asymptotes / out-of-range jumps (e.g. f(x)=1/x)
+        const span = ymax - ymin;
+        let d = "";
+        let open = false;
+        data.forEach((p, j) => {
+          const inRange = p.y >= ymin - span && p.y <= ymax + span;
+          const prev = data[j - 1];
+          const jump = prev ? Math.abs(p.y - prev.y) > span * 0.9 : false;
+          if (!inRange) {
+            open = false;
+            return;
+          }
+          if (!open || jump) {
+            d += `M${sx(p.x)},${sy(p.y)}`;
+            open = true;
+          } else {
+            d += ` L${sx(p.x)},${sy(p.y)}`;
+          }
+        });
+        if (!d) return null;
+        return (
+          <g key={i} clipPath="url(#mp-clip)">
+            <path d={d} fill="none" stroke={color} strokeWidth={large ? 2.4 : 2} strokeLinecap="round" />
+          </g>
+        );
       })}
     </svg>
   );
