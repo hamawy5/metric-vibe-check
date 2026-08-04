@@ -78,7 +78,11 @@ Deno.serve(async (req) => {
       generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
     });
 
-    const MODELS = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-2.0-flash"];
+    const MODELS = [
+      "gemini-flash-latest",
+      "gemini-2.5-flash-lite",
+      "gemini-pro-latest",
+    ];
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
     let res: Response | undefined;
