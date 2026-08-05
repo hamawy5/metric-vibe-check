@@ -223,8 +223,8 @@ function MathPlane({ spec, large = false }: { spec: ChartSpec; large?: boolean }
       <ResponsiveContainer width="100%" height="100%">
         <ScatterChart data={rows} margin={margin}>
           {axes}
-          {keys.map((k, i) => (
-            <Scatter key={k} dataKey={k} name={k} fill={COLORS[i % COLORS.length]} />
+          {lineKeys.map(({ key, seriesIndex, label }) => (
+            <Scatter key={key} dataKey={key} name={label} fill={COLORS[seriesIndex % COLORS.length]} />
           ))}
         </ScatterChart>
       </ResponsiveContainer>
