@@ -94,6 +94,114 @@ const tooltipStyle = {
   color: "#F9FAFB",
 } as const;
 
+/** Calculator-style axes: crosshair through the origin, arrowheads, numbers on the axes. */
+function CartesianAxes(props: any) {
+  const { xAxisMap, yAxisMap, offset, fontSize = 11 } = props;
+  const xAxis: any = Object.values(xAxisMap ?? {})[0];
+  const yAxis: any = Object.values(yAxisMap ?? {})[0];
+  if (!xAxis?.scale || !yAxis?.scale || !offset) return null;
+
+  const sx = xAxis.scale;
+  const sy = yAxis.scale;
+  const [x0, x1] = sx.range ? sx.range() : [offset.left, offset.left + offset.width];
+  const [yTop, yBot] = sy.range ? sy.range() : [offset.top, offset.top + offset.height];
+  const left = Math.min(x0, x1);
+  const right = Math.max(x0, x1);
+  const top = Math.min(yTop, yBot);
+  const bottom = Math.max(yTop, yBot);
+
+  const clampX = (v: number) => Math.min(right, Math.max(left, v));
+  const clampY = (v: number) => Math.min(bottom, Math.max(top, v));
+  const originX = clampX(sx(0));
+  const originY = clampY(sy(0));
+
+  const xTicks: number[] = (sx.ticks ? sx.ticks(7) : []).filter((t: number) => t !== 0);
+  const yTicks: number[] = (sy.ticks ? sy.ticks(7) : []).filter((t: number) => t !== 0);
+
+  const axisColor = "#9CA3AF";
+  const labelColor = "#D1D5DB";
+  const t = 4; // tick half-length
+
+  return (
+    <g pointerEvents="none">
+      <defs>
+        <marker id="mp-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 z" fill={axisColor} />
+        </marker>
+      </defs>
+
+      {/* axes through origin, with arrowheads */}
+      <line
+        x1={left}
+        y1={originY}
+        x2={right}
+        y2={originY}
+        stroke={axisColor}
+        strokeWidth={1.5}
+        markerEnd="url(#mp-arrow)"
+      />
+      <line
+        x1={originX}
+        y1={bottom}
+        x2={originX}
+        y2={top}
+        stroke={axisColor}
+        strokeWidth={1.5}
+        markerEnd="url(#mp-arrow)"
+      />
+
+      {/* x ticks + numbers below the x axis */}
+      {xTicks.map((v) => {
+        const px = sx(v);
+        if (px < left || px > right) return null;
+        return (
+          <g key={`x${v}`}>
+            <line x1={px} y1={originY - t} x2={px} y2={originY + t} stroke={axisColor} />
+            <text
+              x={px}
+              y={Math.min(bottom - 2, originY + t + fontSize + 2)}
+              textAnchor="middle"
+              fontSize={fontSize}
+              fill={labelColor}
+            >
+              {fmtNum(v)}
+            </text>
+          </g>
+        );
+      })}
+
+      {/* y ticks + numbers left of the y axis */}
+      {yTicks.map((v) => {
+        const py = sy(v);
+        if (py < top || py > bottom) return null;
+        return (
+          <g key={`y${v}`}>
+            <line x1={originX - t} y1={py} x2={originX + t} y2={py} stroke={axisColor} />
+            <text
+              x={Math.max(left + 2, originX - t - 4)}
+              y={py + fontSize * 0.35}
+              textAnchor="end"
+              fontSize={fontSize}
+              fill={labelColor}
+            >
+              {fmtNum(v)}
+            </text>
+          </g>
+        );
+      })}
+
+      {/* axis names */}
+      <text x={right - 4} y={originY - 8} textAnchor="end" fontSize={fontSize} fontStyle="italic" fill={labelColor}>
+        x
+      </text>
+      <text x={originX + 8} y={top + fontSize} fontSize={fontSize} fontStyle="italic" fill={labelColor}>
+        y
+      </text>
+    </g>
+  );
+}
+
+
 function MathPlane({ spec, large = false }: { spec: ChartSpec; large?: boolean }) {
   const series = (spec.series ?? []).filter((s) => Array.isArray(s.data) && s.data.length);
   const keys = series.map((s, i) => s.name || `y${i + 1}`);
