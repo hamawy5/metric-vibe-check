@@ -252,10 +252,11 @@ function BarBody({ spec, large = false }: { spec: ChartSpec; large?: boolean }) 
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={rows} margin={{ top: 10, right: large ? 24 : 14, bottom: 10, left: large ? 10 : 4 }}>
+      <BarChart data={rows} margin={{ top: 12, right: large ? 24 : 14, bottom: large ? 24 : 20, left: large ? 10 : 4 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-        <XAxis dataKey="x" stroke="#9CA3AF" tick={{ fontSize: tickSize, fill: "#9CA3AF" }} tickFormatter={fmtNum} />
-        <YAxis stroke="#9CA3AF" tick={{ fontSize: tickSize, fill: "#9CA3AF" }} tickFormatter={fmtNum} />
+        <XAxis dataKey="x" stroke="#9CA3AF" height={large ? 34 : 28} tickMargin={8} tick={{ fontSize: tickSize, fill: "#9CA3AF" }} tickFormatter={fmtNum} />
+        <YAxis stroke="#9CA3AF" width={large ? 52 : 44} tickMargin={8} tick={{ fontSize: tickSize, fill: "#9CA3AF" }} tickFormatter={fmtNum} />
+
         <Tooltip
           formatter={(value: number | string, name: string) => [fmtNum(value), name]}
           contentStyle={{
