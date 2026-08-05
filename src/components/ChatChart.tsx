@@ -146,48 +146,37 @@ function MathPlane({ spec, large = false }: { spec: ChartSpec; large?: boolean }
   }, [spec]);
 
   const tickSize = large ? 12 : 11;
-  const tickStyle = { fontSize: tickSize, fill: "#9CA3AF" };
   const margin = {
     top: 14,
-    right: large ? 28 : 16,
-    bottom: large ? 24 : 20,
-    left: large ? 12 : 4,
+    right: large ? 22 : 14,
+    bottom: large ? 16 : 12,
+    left: large ? 16 : 12,
   };
   const axes = (
     <>
-      <CartesianGrid stroke="#374151" strokeDasharray="3 3" />
+      <CartesianGrid stroke="#3b4252" strokeOpacity={0.55} />
       <XAxis
         type="number"
         dataKey="x"
         domain={xDomain}
-        stroke="#9CA3AF"
-        axisLine={{ stroke: "#9CA3AF" }}
-        tickLine={{ stroke: "#9CA3AF" }}
-        tickMargin={8}
-        tickSize={5}
         tickCount={large ? 9 : 7}
-        minTickGap={12}
-        height={large ? 34 : 28}
-        tick={tickStyle}
-        tickFormatter={fmtNum}
+        height={1}
+        axisLine={false}
+        tickLine={false}
+        tick={false}
         allowDecimals
       />
       <YAxis
         type="number"
         domain={yDomain}
-        stroke="#9CA3AF"
-        axisLine={{ stroke: "#9CA3AF" }}
-        tickLine={{ stroke: "#9CA3AF" }}
-        tickMargin={8}
-        tickSize={5}
         tickCount={large ? 9 : 7}
-        width={large ? 52 : 44}
-        tick={tickStyle}
-        tickFormatter={fmtNum}
+        width={1}
+        axisLine={false}
+        tickLine={false}
+        tick={false}
         allowDecimals
       />
-      <ReferenceLine x={0} stroke="#6B7280" strokeWidth={2} />
-      <ReferenceLine y={0} stroke="#6B7280" strokeWidth={2} />
+      <Customized component={(p: any) => <CartesianAxes {...p} fontSize={tickSize} />} />
       <Tooltip
         contentStyle={tooltipStyle}
         labelFormatter={(l: number | string) => `x = ${fmtNum(l)}`}
@@ -195,6 +184,8 @@ function MathPlane({ spec, large = false }: { spec: ChartSpec; large?: boolean }
       />
     </>
   );
+
+
 
 
   if (isScatter) {
