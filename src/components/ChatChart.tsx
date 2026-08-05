@@ -6,7 +6,6 @@ import {
   Customized,
   Line,
   LineChart,
-  ReferenceLine,
   ResponsiveContainer,
   Scatter,
   ScatterChart,
@@ -428,7 +427,7 @@ export function ChatChart({ spec }: { spec: ChartSpec }) {
             </div>,
           )
         }
-        className="h-64 w-full cursor-zoom-in rounded-xl border border-border/60 bg-card p-2"
+        className="h-64 w-full cursor-zoom-in rounded-xl border border-border/60 bg-[#23272e] p-2"
       >
         <ChartBody spec={spec} />
       </div>
