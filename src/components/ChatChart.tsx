@@ -3,6 +3,7 @@ import {
   CartesianGrid,
   Bar,
   BarChart,
+  Customized,
   Line,
   LineChart,
   ReferenceLine,
@@ -13,6 +14,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+
 import katex from "katex";
 import { openNodeLightbox } from "@/components/ImageLightbox";
 
