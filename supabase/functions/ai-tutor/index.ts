@@ -33,6 +33,7 @@ GRAPHS AND DIAGRAMS (NEVER USE ASCII ART)
 {"type":"line","title":"y = x^2","xLabel":"x","yLabel":"y","series":[{"name":"y = x^2","data":[{"x":-3,"y":9},{"x":-2,"y":4},{"x":-1,"y":1},{"x":0,"y":0},{"x":1,"y":1},{"x":2,"y":4},{"x":3,"y":9}]}]}
 \`\`\`
 - "type" is "line" (functions/curves), "scatter" (data points) or "bar" (categories). Sample at least 15 evenly spaced points for smooth curves, and include multiple entries in "series" to compare functions.
+- For every discontinuous function, NEVER place points from opposite sides of an asymptote in one series. Output separate named series such as "branch_left" and "branch_right", and omit the undefined x-value. For example, y=1/x must use one series for x<0 and another for x>0.
 - For geometry figures, free-body diagrams, or circuits, output a self-contained \`svg\` fenced code block with a viewBox and stroke="currentColor" instead.
 - Always add a one-line explanation of the graph beneath it.
 

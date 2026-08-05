@@ -3,9 +3,9 @@ import {
   CartesianGrid,
   Bar,
   BarChart,
-  Customized,
   Line,
   LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Scatter,
   ScatterChart,
@@ -93,120 +93,12 @@ const tooltipStyle = {
   color: "#F9FAFB",
 } as const;
 
-/** Calculator-style axes: crosshair through the origin, arrowheads, numbers on the axes. */
-function CartesianAxes(props: any) {
-  const { xAxisMap, yAxisMap, offset, fontSize = 11 } = props;
-  const xAxis: any = Object.values(xAxisMap ?? {})[0];
-  const yAxis: any = Object.values(yAxisMap ?? {})[0];
-  if (!xAxis?.scale || !yAxis?.scale || !offset) return null;
-
-  const sx = xAxis.scale;
-  const sy = yAxis.scale;
-  const [x0, x1] = sx.range ? sx.range() : [offset.left, offset.left + offset.width];
-  const [yTop, yBot] = sy.range ? sy.range() : [offset.top, offset.top + offset.height];
-  const left = Math.min(x0, x1);
-  const right = Math.max(x0, x1);
-  const top = Math.min(yTop, yBot);
-  const bottom = Math.max(yTop, yBot);
-
-  const clampX = (v: number) => Math.min(right, Math.max(left, v));
-  const clampY = (v: number) => Math.min(bottom, Math.max(top, v));
-  const originX = clampX(sx(0));
-  const originY = clampY(sy(0));
-
-  const xTicks: number[] = (sx.ticks ? sx.ticks(7) : []).filter((t: number) => t !== 0);
-  const yTicks: number[] = (sy.ticks ? sy.ticks(7) : []).filter((t: number) => t !== 0);
-
-  const axisColor = "#9CA3AF";
-  const labelColor = "#D1D5DB";
-  const t = 4; // tick half-length
-
-  return (
-    <g pointerEvents="none">
-      <defs>
-        <marker id="mp-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-          <path d="M0,0 L6,3 L0,6 z" fill={axisColor} />
-        </marker>
-      </defs>
-
-      {/* axes through origin, with arrowheads */}
-      <line
-        x1={left}
-        y1={originY}
-        x2={right}
-        y2={originY}
-        stroke={axisColor}
-        strokeWidth={1.5}
-        markerEnd="url(#mp-arrow)"
-      />
-      <line
-        x1={originX}
-        y1={bottom}
-        x2={originX}
-        y2={top}
-        stroke={axisColor}
-        strokeWidth={1.5}
-        markerEnd="url(#mp-arrow)"
-      />
-
-      {/* x ticks + numbers below the x axis */}
-      {xTicks.map((v) => {
-        const px = sx(v);
-        if (px < left || px > right) return null;
-        return (
-          <g key={`x${v}`}>
-            <line x1={px} y1={originY - t} x2={px} y2={originY + t} stroke={axisColor} />
-            <text
-              x={px}
-              y={Math.min(bottom - 2, originY + t + fontSize + 2)}
-              textAnchor="middle"
-              fontSize={fontSize}
-              fill={labelColor}
-            >
-              {fmtNum(v)}
-            </text>
-          </g>
-        );
-      })}
-
-      {/* y ticks + numbers left of the y axis */}
-      {yTicks.map((v) => {
-        const py = sy(v);
-        if (py < top || py > bottom) return null;
-        return (
-          <g key={`y${v}`}>
-            <line x1={originX - t} y1={py} x2={originX + t} y2={py} stroke={axisColor} />
-            <text
-              x={Math.max(left + 2, originX - t - 4)}
-              y={py + fontSize * 0.35}
-              textAnchor="end"
-              fontSize={fontSize}
-              fill={labelColor}
-            >
-              {fmtNum(v)}
-            </text>
-          </g>
-        );
-      })}
-
-      {/* axis names */}
-      <text x={right - 4} y={originY - 8} textAnchor="end" fontSize={fontSize} fontStyle="italic" fill={labelColor}>
-        x
-      </text>
-      <text x={originX + 8} y={top + fontSize} fontSize={fontSize} fontStyle="italic" fill={labelColor}>
-        y
-      </text>
-    </g>
-  );
-}
-
-
 function MathPlane({ spec, large = false }: { spec: ChartSpec; large?: boolean }) {
   const series = (spec.series ?? []).filter((s) => Array.isArray(s.data) && s.data.length);
   const keys = series.map((s, i) => s.name || `y${i + 1}`);
   const isScatter = (spec.type ?? "line") === "scatter";
 
-  const { rows, yDomain, xDomain } = useMemo(() => {
+  const { rows, yDomain, xDomain, lineKeys } = useMemo(() => {
     const clean = series.map((s) =>
       s.data
         .map((p) => ({ x: Number(p.x), y: Number(p.y) }))
@@ -235,19 +127,48 @@ function MathPlane({ spec, large = false }: { spec: ChartSpec; large?: boolean }
     ymin = Math.min(0, ymin - padY);
     ymax = Math.max(0, ymax + padY);
 
-    // union of x values → one row per x, null for out-of-range (breaks the line)
+    // Split sharp, opposite-sign jumps into separate branch keys. This prevents
+    // rational functions sampled on either side of an asymptote from connecting.
+    const lineKeys: Array<{ key: string; seriesIndex: number; label: string }> = [];
+    const segmented = clean.map((points, seriesIndex) => {
+      const finite = points.filter((p) => p.y >= ymin && p.y <= ymax);
+      const steps = finite.slice(1).map((p, i) => Math.abs(p.y - finite[i].y)).sort((a, b) => a - b);
+      const medianStep = steps[Math.floor(steps.length / 2)] || 1;
+      const magnitudes = finite.map((p) => Math.abs(p.y)).sort((a, b) => a - b);
+      const medianMagnitude = magnitudes[Math.floor(magnitudes.length / 2)] || 1;
+      let branch = 0;
+      const result = new Map<number, { key: string; y: number }>();
+      finite.forEach((point, pointIndex) => {
+        const previous = finite[pointIndex - 1];
+        if (
+          previous &&
+          Math.sign(previous.y) !== Math.sign(point.y) &&
+          Math.abs(point.y - previous.y) > medianStep * 4 &&
+          Math.max(Math.abs(previous.y), Math.abs(point.y)) > medianMagnitude * 2
+        ) {
+          branch += 1;
+        }
+        const key = `${keys[seriesIndex]}__branch_${branch}`;
+        if (!lineKeys.some((entry) => entry.key === key)) {
+          lineKeys.push({ key, seriesIndex, label: keys[seriesIndex] });
+        }
+        result.set(point.x, { key, y: point.y });
+      });
+      return result;
+    });
     const xs = Array.from(new Set(all.map((p) => p.x))).sort((a, b) => a - b);
-    const maps = clean.map((d) => new Map(d.map((p) => [p.x, p.y])));
     const rows = xs.map((x) => {
       const row: Record<string, number | null> = { x };
-      maps.forEach((m, i) => {
-        const v = m.get(x);
-        row[keys[i]] = v === undefined || v < ymin || v > ymax ? null : v;
+      lineKeys.forEach(({ key }) => { row[key] = null; });
+      segmented.forEach((map) => {
+        const value = map.get(x);
+        if (value) row[value.key] = value.y;
       });
       return row;
     });
     return {
       rows,
+      lineKeys,
       xDomain: [xmin, xmax] as [number, number],
       yDomain: [ymin, ymax] as [number, number],
     };
@@ -255,37 +176,37 @@ function MathPlane({ spec, large = false }: { spec: ChartSpec; large?: boolean }
   }, [spec]);
 
   const tickSize = large ? 12 : 11;
-  const margin = {
-    top: 14,
-    right: large ? 22 : 14,
-    bottom: large ? 16 : 12,
-    left: large ? 16 : 12,
-  };
+  const margin = { top: 25, right: 30, left: 30, bottom: 25 };
   const axes = (
     <>
-      <CartesianGrid stroke="#3b4252" strokeOpacity={0.55} />
+      <CartesianGrid stroke="#2D3748" strokeDasharray="2 2" vertical horizontal />
       <XAxis
         type="number"
         dataKey="x"
         domain={xDomain}
         tickCount={large ? 9 : 7}
-        height={1}
-        axisLine={false}
-        tickLine={false}
-        tick={false}
+        stroke="#6B7280"
+        axisLine={{ stroke: "#6B7280" }}
+        tickLine={{ stroke: "#6B7280" }}
+        tick={{ fill: "#E5E7EB", fontSize: tickSize }}
+        tickFormatter={fmtNum}
+        label={{ value: spec.xLabel || "x", position: "insideBottomRight", fill: "#E5E7EB", offset: -10 }}
         allowDecimals
       />
       <YAxis
         type="number"
         domain={yDomain}
         tickCount={large ? 9 : 7}
-        width={1}
-        axisLine={false}
-        tickLine={false}
-        tick={false}
+        stroke="#6B7280"
+        axisLine={{ stroke: "#6B7280" }}
+        tickLine={{ stroke: "#6B7280" }}
+        tick={{ fill: "#E5E7EB", fontSize: tickSize }}
+        tickFormatter={fmtNum}
+        label={{ value: spec.yLabel || "y", position: "insideTopLeft", fill: "#E5E7EB", offset: -8 }}
         allowDecimals
       />
-      <Customized component={(p: any) => <CartesianAxes {...p} fontSize={tickSize} />} />
+      <ReferenceLine x={0} stroke="#FFFFFF" strokeWidth={1.5} ifOverflow="extendDomain" />
+      <ReferenceLine y={0} stroke="#FFFFFF" strokeWidth={1.5} ifOverflow="extendDomain" />
       <Tooltip
         contentStyle={tooltipStyle}
         labelFormatter={(l: number | string) => `x = ${fmtNum(l)}`}
@@ -302,8 +223,8 @@ function MathPlane({ spec, large = false }: { spec: ChartSpec; large?: boolean }
       <ResponsiveContainer width="100%" height="100%">
         <ScatterChart data={rows} margin={margin}>
           {axes}
-          {keys.map((k, i) => (
-            <Scatter key={k} dataKey={k} name={k} fill={COLORS[i % COLORS.length]} />
+          {lineKeys.map(({ key, seriesIndex, label }) => (
+            <Scatter key={key} dataKey={key} name={label} fill={COLORS[seriesIndex % COLORS.length]} />
           ))}
         </ScatterChart>
       </ResponsiveContainer>
@@ -314,18 +235,19 @@ function MathPlane({ spec, large = false }: { spec: ChartSpec; large?: boolean }
     <ResponsiveContainer width="100%" height="100%">
       <LineChart data={rows} margin={margin}>
         {axes}
-        {keys.map((k, i) => (
+        {lineKeys.map(({ key, seriesIndex, label }, i) => (
           <Line
-            key={k}
+            key={key}
             type="monotone"
-            dataKey={k}
-            name={k}
-            stroke={COLORS[i % COLORS.length]}
+            dataKey={key}
+            name={label}
+            stroke={COLORS[seriesIndex % COLORS.length]}
             strokeWidth={large ? 2.4 : 2}
             dot={false}
             activeDot={{ r: large ? 5 : 4 }}
             connectNulls={false}
             isAnimationActive={false}
+            legendType={i === 0 ? "line" : "none"}
           />
         ))}
       </LineChart>
