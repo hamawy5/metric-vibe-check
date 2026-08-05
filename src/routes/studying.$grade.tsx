@@ -7,8 +7,9 @@ export const Route = createFileRoute("/studying/$grade")({
       { name: "description", content: `Subjects for Grade ${params.grade}.` },
     ],
   }),
-  beforeLoad: ({ params }) => {
+  loader: ({ params }) => {
     if (!["9", "10", "11", "12"].includes(params.grade)) throw notFound();
   },
+
   component: () => <Outlet />,
 });
