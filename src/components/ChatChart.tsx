@@ -147,32 +147,47 @@ function MathPlane({ spec, large = false }: { spec: ChartSpec; large?: boolean }
 
   const tickSize = large ? 12 : 11;
   const tickStyle = { fontSize: tickSize, fill: "#9CA3AF" };
-  const margin = { top: 12, right: large ? 26 : 14, bottom: 6, left: large ? 8 : 0 };
+  const margin = {
+    top: 14,
+    right: large ? 28 : 16,
+    bottom: large ? 24 : 20,
+    left: large ? 12 : 4,
+  };
   const axes = (
     <>
-      <CartesianGrid stroke="#2D3748" strokeDasharray="3 3" />
+      <CartesianGrid stroke="#374151" strokeDasharray="3 3" />
       <XAxis
         type="number"
         dataKey="x"
         domain={xDomain}
-        stroke="#4B5563"
-        tickMargin={6}
-        tickSize={4}
+        stroke="#9CA3AF"
+        axisLine={{ stroke: "#9CA3AF" }}
+        tickLine={{ stroke: "#9CA3AF" }}
+        tickMargin={8}
+        tickSize={5}
+        tickCount={large ? 9 : 7}
+        minTickGap={12}
+        height={large ? 34 : 28}
         tick={tickStyle}
         tickFormatter={fmtNum}
+        allowDecimals
       />
       <YAxis
         type="number"
         domain={yDomain}
-        stroke="#4B5563"
-        tickMargin={6}
-        tickSize={4}
-        width={large ? 46 : 38}
+        stroke="#9CA3AF"
+        axisLine={{ stroke: "#9CA3AF" }}
+        tickLine={{ stroke: "#9CA3AF" }}
+        tickMargin={8}
+        tickSize={5}
+        tickCount={large ? 9 : 7}
+        width={large ? 52 : 44}
         tick={tickStyle}
         tickFormatter={fmtNum}
+        allowDecimals
       />
-      <ReferenceLine x={0} stroke="#9CA3AF" strokeWidth={1.4} />
-      <ReferenceLine y={0} stroke="#9CA3AF" strokeWidth={1.4} />
+      <ReferenceLine x={0} stroke="#6B7280" strokeWidth={2} />
+      <ReferenceLine y={0} stroke="#6B7280" strokeWidth={2} />
       <Tooltip
         contentStyle={tooltipStyle}
         labelFormatter={(l: number | string) => `x = ${fmtNum(l)}`}
@@ -180,6 +195,7 @@ function MathPlane({ spec, large = false }: { spec: ChartSpec; large?: boolean }
       />
     </>
   );
+
 
   if (isScatter) {
     return (
