@@ -277,6 +277,17 @@ function LoungePage() {
                           ?.props;
                         const lang = /language-(\w+)/.exec(props?.className ?? "")?.[1];
                         const raw = String(props?.children ?? "");
+                        // Function plots: JSON with `functions`, or a `graph`/`plot` block of equations
+                        if (lang !== "svg") {
+                          const mg = parseMathGraphSpec(raw);
+                          if (
+                            mg &&
+                            (raw.trim().startsWith("{") ||
+                              ["graph", "plot", "mathgraph", "function", "math"].includes(lang ?? ""))
+                          ) {
+                            return <MathGraph spec={mg} />;
+                          }
+                        }
                         // Any fenced block whose body is a valid chart spec renders as a chart
                         if (lang !== "svg" && raw.trim().startsWith("{")) {
                           const spec = parseChartSpec(raw);
