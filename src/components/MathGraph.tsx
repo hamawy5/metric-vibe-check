@@ -182,6 +182,15 @@ function round(v: number) {
   return String(Math.round(v * 100) / 100);
 }
 
+/** Titles are often prose ("Growth vs Decay") — only run KaTeX when it looks like math. */
+function Caption({ text, className }: { text: string; className?: string }) {
+  return /[=^_$\\]|\d\/\d/.test(text) ? (
+    <MathText className={className}>{text}</MathText>
+  ) : (
+    <span className={className}>{text}</span>
+  );
+}
+
 function Legend({ spec, large = false }: { spec: MathGraphSpec; large?: boolean }) {
   return (
     <div
@@ -190,9 +199,10 @@ function Legend({ spec, large = false }: { spec: MathGraphSpec; large?: boolean 
       {spec.functions.map((f, i) => (
         <span key={i} className="inline-flex items-center gap-1.5">
           <span className="h-2 w-4 rounded-full" style={{ background: f.color }} />
-          <MathText className={large ? "text-white/85" : "text-foreground/85"}>
-            {f.label || f.fn}
-          </MathText>
+          <Caption
+            className={large ? "text-white/85" : "text-foreground/85"}
+            text={f.label || f.fn}
+          />
         </span>
       ))}
     </div>
@@ -205,7 +215,7 @@ export function MathGraph({ spec }: { spec: MathGraphSpec }) {
     <figure className="my-4">
       {spec.title && (
         <figcaption className="mb-1.5 text-center text-[13px] font-semibold text-muted-foreground">
-          <MathText>{spec.title}</MathText>
+          <Caption text={spec.title} />
         </figcaption>
       )}
       <div className="w-full overflow-hidden rounded-xl border border-border/60 bg-[#0b1120] p-1">
@@ -222,7 +232,7 @@ export function MathGraph({ spec }: { spec: MathGraphSpec }) {
               <div className="w-[92vw] max-w-3xl rounded-xl bg-[#0b1120] p-3">
                 {spec.title && (
                   <p className="mb-1 text-center text-sm font-semibold text-white/80">
-                    <MathText>{spec.title}</MathText>
+                    <Caption text={spec.title} />
                   </p>
                 )}
                 <Plot spec={spec} height={Math.round(window.innerHeight * 0.6)} />
