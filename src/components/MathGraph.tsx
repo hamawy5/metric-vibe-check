@@ -171,9 +171,9 @@ function highlightOrigin(el: HTMLElement | null) {
     const isZero = (tick.querySelector("text")?.textContent ?? "").trim() === "0";
     const line = tick.querySelector("line");
     if (!line) return;
-    line.setAttribute("stroke", isZero ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.14)");
-    line.setAttribute("stroke-width", isZero ? "1.4" : "1");
-    line.setAttribute("opacity", "1");
+    line.style.stroke = isZero ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.14)";
+    line.style.strokeWidth = isZero ? "1.4" : "1";
+    line.style.opacity = "1";
   });
 }
 
