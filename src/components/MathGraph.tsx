@@ -89,6 +89,7 @@ function Plot({ spec, height }: { spec: MathGraphSpec; height: number }) {
   useEffect(() => {
     let disposed = false;
     let ro: ResizeObserver | undefined;
+    let cleanupEvents: (() => void) | undefined;
 
     (async () => {
       const host = hostRef.current;
@@ -147,6 +148,7 @@ function Plot({ spec, height }: { spec: MathGraphSpec; height: number }) {
 
     return () => {
       disposed = true;
+      cleanupEvents?.();
       ro?.disconnect();
       if (hostRef.current) hostRef.current.innerHTML = "";
     };
@@ -160,6 +162,19 @@ function Plot({ spec, height }: { spec: MathGraphSpec; height: number }) {
     );
   }
   return <div ref={hostRef} className="math-plot w-full touch-none select-none" style={{ height }} />;
+}
+
+/** Brighten the tick line at x = 0 and y = 0 so the axes read as a Cartesian crosshair. */
+function highlightOrigin(el: HTMLElement | null) {
+  if (!el) return;
+  el.querySelectorAll<SVGGElement>(".x.axis .tick, .y.axis .tick").forEach((tick) => {
+    const isZero = (tick.querySelector("text")?.textContent ?? "").trim() === "0";
+    const line = tick.querySelector("line");
+    if (!line) return;
+    line.setAttribute("stroke", isZero ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.14)");
+    line.setAttribute("stroke-width", isZero ? "1.4" : "1");
+    line.setAttribute("opacity", "1");
+  });
 }
 
 function round(v: number) {
