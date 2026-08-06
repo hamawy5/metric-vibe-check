@@ -113,6 +113,10 @@ function Plot({ spec, height }: { spec: MathGraphSpec; height: number }) {
               xAxis: { domain: spec.xRange ?? [-6, 6], label: spec.xLabel ?? "x" },
               yAxis: { domain: spec.yRange ?? [-6, 6], label: spec.yLabel ?? "y" },
               tip: { xLine: true, yLine: true, renderer: (x: number, y: number) => `(${round(x)}, ${round(y)})` },
+              annotations: [
+                { x: 0, text: "" },
+                { y: 0, text: "" },
+              ],
               data: spec.functions.map((f) => ({
                 fn: f.fn,
                 color: f.color,
