@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { StreamGate } from "@/components/StreamGate";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatChart, ChatSvg, parseChartSpec } from "@/components/ChatChart";
+import { MathGraph, parseMathGraphSpec } from "@/components/MathGraph";
 
 
 
