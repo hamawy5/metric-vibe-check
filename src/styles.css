@@ -222,6 +222,9 @@ html:not(.dark) .bg-card {
 }
 
 /* function-plot (MathGraph) — dark calculator-style plane */
+.math-plot {
+  color: #e5e7eb;
+}
 .math-plot svg {
   display: block;
   width: 100%;
@@ -229,34 +232,41 @@ html:not(.dark) .bg-card {
   background: #0b1120;
   touch-action: none;
 }
-.math-plot .x.axis path.domain,
-.math-plot .y.axis path.domain {
-  stroke: #ffffff;
-  stroke-width: 1.4;
+.math-plot svg path.domain {
+  stroke: rgba(255, 255, 255, 0.85) !important;
+  opacity: 1 !important;
+  stroke-width: 1.2;
 }
-.math-plot .tick line {
-  stroke: rgba(255, 255, 255, 0.16);
-  stroke-width: 1;
+.math-plot svg .tick line {
+  stroke: rgba(255, 255, 255, 0.14) !important;
+  opacity: 1 !important;
 }
-.math-plot .tick text {
-  fill: #e5e7eb;
+.math-plot svg .tick text {
+  fill: #e5e7eb !important;
+  opacity: 1 !important;
   font-size: 11px;
 }
-.math-plot .axis-label,
-.math-plot text.title {
-  fill: #e5e7eb;
+.math-plot svg .origin path,
+.math-plot svg .zero line {
+  stroke: rgba(255, 255, 255, 0.9) !important;
+  opacity: 1 !important;
+}
+.math-plot svg .axis-label,
+.math-plot svg text.title,
+.math-plot svg .top-right-legend {
+  fill: #e5e7eb !important;
   font-size: 11px;
 }
-.math-plot .top-right-legend text {
-  display: none;
-}
-.math-plot .graph .tip text,
-.math-plot .tip text {
-  fill: #f9fafb;
+.math-plot svg .tip text {
+  fill: #f9fafb !important;
   font-size: 11px;
 }
-.math-plot .tip-x-line,
-.math-plot .tip-y-line {
-  stroke: rgba(255, 255, 255, 0.5);
+.math-plot svg .tip-x-line,
+.math-plot svg .tip-y-line {
+  stroke: rgba(255, 255, 255, 0.5) !important;
   stroke-dasharray: 3 3;
+}
+.math-plot svg .graph path {
+  stroke-width: 2;
+  fill: none;
 }
