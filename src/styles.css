@@ -220,3 +220,43 @@ html:not(.dark) .bg-card {
   background: hsl(var(--muted-foreground) / 0.35);
   border-radius: 999px;
 }
+
+/* function-plot (MathGraph) — dark calculator-style plane */
+.math-plot svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+  background: #0b1120;
+  touch-action: none;
+}
+.math-plot .x.axis path.domain,
+.math-plot .y.axis path.domain {
+  stroke: #ffffff;
+  stroke-width: 1.4;
+}
+.math-plot .tick line {
+  stroke: rgba(255, 255, 255, 0.16);
+  stroke-width: 1;
+}
+.math-plot .tick text {
+  fill: #e5e7eb;
+  font-size: 11px;
+}
+.math-plot .axis-label,
+.math-plot text.title {
+  fill: #e5e7eb;
+  font-size: 11px;
+}
+.math-plot .top-right-legend text {
+  display: none;
+}
+.math-plot .graph .tip text,
+.math-plot .tip text {
+  fill: #f9fafb;
+  font-size: 11px;
+}
+.math-plot .tip-x-line,
+.math-plot .tip-y-line {
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-dasharray: 3 3;
+}
