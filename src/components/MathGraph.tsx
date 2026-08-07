@@ -201,8 +201,16 @@ function centerAxes(el: HTMLElement | null, instance: unknown, spec: MathGraphSp
   const ox = clamp(meta.xScale(0), 0, w);
   const oy = clamp(meta.yScale(0), 0, h);
 
-  xAxis.setAttribute("transform", `translate(0,${oy})`);
-  yAxis.setAttribute("transform", `translate(${ox},0)`);
+  // Keep the axis groups where they are so grid lines still span the whole
+  // canvas, and move only the numeric labels onto the centered axes.
+  el.querySelectorAll<SVGGElement>("g.x.axis .tick").forEach((tick) => {
+    const text = tick.querySelector("text");
+    if (text) text.setAttribute("transform", `translate(0,${oy - h})`);
+  });
+  el.querySelectorAll<SVGGElement>("g.y.axis .tick").forEach((tick) => {
+    const text = tick.querySelector("text");
+    if (text) text.setAttribute("transform", `translate(${ox},0)`);
+  });
 
   // The border "domain" strokes would double the axis lines — hide them.
   el.querySelectorAll<SVGPathElement>("g.x.axis path.domain, g.y.axis path.domain").forEach((p) => {
@@ -219,8 +227,9 @@ function centerAxes(el: HTMLElement | null, instance: unknown, spec: MathGraphSp
       line.style.opacity = "1";
     }
     const text = tick.querySelector("text");
-    if (text) text.style.opacity = isZero ? "0.75" : "1";
+    if (text) text.style.opacity = isZero ? "0.7" : "1";
   });
+
 
   const parent = xAxis.parentNode as SVGGElement | null;
   if (!parent) return;
