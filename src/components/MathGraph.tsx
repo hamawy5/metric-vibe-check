@@ -99,13 +99,15 @@ function Plot({ spec, height }: { spec: MathGraphSpec; height: number }) {
         if (disposed) return;
         const functionPlot = (mod as unknown as { default: (o: unknown) => unknown }).default ?? mod;
 
+        let instance: unknown = null;
+
         const render = () => {
           const el = hostRef.current;
           if (!el) return;
           el.innerHTML = "";
           const width = el.clientWidth || 320;
           try {
-            (functionPlot as (o: unknown) => unknown)({
+            instance = (functionPlot as (o: unknown) => unknown)({
               target: el,
               width,
               height,
@@ -122,15 +124,15 @@ function Plot({ spec, height }: { spec: MathGraphSpec; height: number }) {
                 skipTip: false,
               })),
             });
-            highlightOrigin(el);
+            centerAxes(el, instance, spec);
           } catch (e) {
             setError(e instanceof Error ? e.message : "Could not plot this function.");
           }
         };
 
         render();
-        // Zoom/pan redraws ticks — keep the origin crosshair bright afterwards.
-        const refresh = () => requestAnimationFrame(() => highlightOrigin(hostRef.current));
+        // Zoom/pan redraws the axes — re-center them on every interaction frame.
+        const refresh = () => requestAnimationFrame(() => centerAxes(hostRef.current, instance, spec));
         host.addEventListener("wheel", refresh, { passive: true });
         host.addEventListener("pointerup", refresh);
         host.addEventListener("pointermove", refresh);
@@ -164,18 +166,110 @@ function Plot({ spec, height }: { spec: MathGraphSpec; height: number }) {
   return <div ref={hostRef} className="math-plot w-full touch-none select-none" style={{ height }} />;
 }
 
-/** Brighten the tick line at x = 0 and y = 0 so the axes read as a Cartesian crosshair. */
-function highlightOrigin(el: HTMLElement | null) {
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+type PlotMeta = {
+  meta?: {
+    xScale?: (v: number) => number;
+    yScale?: (v: number) => number;
+    width?: number;
+    height?: number;
+  };
+};
+
+function clamp(v: number, lo: number, hi: number) {
+  if (!Number.isFinite(v)) return (lo + hi) / 2;
+  return Math.max(lo, Math.min(hi, v));
+}
+
+/**
+ * function-plot draws its axes on the left/bottom borders. Move them so they
+ * cross at (0, 0) and stretch across the full plot area, then paint white
+ * crosshair lines with "x"/"y" labels at the positive ends.
+ */
+function centerAxes(el: HTMLElement | null, instance: unknown, spec: MathGraphSpec) {
   if (!el) return;
+  const meta = (instance as PlotMeta | null)?.meta;
+  const svg = el.querySelector("svg");
+  const xAxis = el.querySelector<SVGGElement>("g.x.axis");
+  const yAxis = el.querySelector<SVGGElement>("g.y.axis");
+  if (!svg || !xAxis || !yAxis || !meta?.xScale || !meta?.yScale) return;
+
+  const w = Number(meta.width) || 0;
+  const h = Number(meta.height) || 0;
+  if (!w || !h) return;
+  const ox = clamp(meta.xScale(0), 0, w);
+  const oy = clamp(meta.yScale(0), 0, h);
+
+  xAxis.setAttribute("transform", `translate(0,${oy})`);
+  yAxis.setAttribute("transform", `translate(${ox},0)`);
+
+  // The border "domain" strokes would double the axis lines — hide them.
+  el.querySelectorAll<SVGPathElement>("g.x.axis path.domain, g.y.axis path.domain").forEach((p) => {
+    p.style.stroke = "none";
+  });
+
+  // Grid lines stay dim; tick labels stay readable against the dark canvas.
   el.querySelectorAll<SVGGElement>(".x.axis .tick, .y.axis .tick").forEach((tick) => {
     const isZero = (tick.querySelector("text")?.textContent ?? "").trim() === "0";
     const line = tick.querySelector("line");
-    if (!line) return;
-    line.style.stroke = isZero ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.14)";
-    line.style.strokeWidth = isZero ? "1.4" : "1";
-    line.style.opacity = "1";
+    if (line) {
+      line.style.stroke = "rgba(255,255,255,0.14)";
+      line.style.strokeWidth = "1";
+      line.style.opacity = "1";
+    }
+    const text = tick.querySelector("text");
+    if (text) text.style.opacity = isZero ? "0.75" : "1";
   });
+
+  const parent = xAxis.parentNode as SVGGElement | null;
+  if (!parent) return;
+  parent.querySelector(".centered-axes")?.remove();
+
+  const g = document.createElementNS(SVG_NS, "g");
+  g.setAttribute("class", "centered-axes");
+  g.setAttribute("pointer-events", "none");
+
+  const line = (x1: number, y1: number, x2: number, y2: number) => {
+    const l = document.createElementNS(SVG_NS, "line");
+    l.setAttribute("x1", String(x1));
+    l.setAttribute("y1", String(y1));
+    l.setAttribute("x2", String(x2));
+    l.setAttribute("y2", String(y2));
+    l.setAttribute("stroke", "rgba(255,255,255,0.92)");
+    l.setAttribute("stroke-width", "1.5");
+    g.appendChild(l);
+  };
+
+  line(0, oy, w, oy); // x-axis, full width
+  line(ox, 0, ox, h); // y-axis, full height
+
+  // Arrowheads at the positive ends.
+  const arrow = (points: string) => {
+    const p = document.createElementNS(SVG_NS, "path");
+    p.setAttribute("d", points);
+    p.setAttribute("fill", "rgba(255,255,255,0.92)");
+    g.appendChild(p);
+  };
+  arrow(`M${w},${oy} L${w - 7},${oy - 4} L${w - 7},${oy + 4} Z`);
+  arrow(`M${ox},0 L${ox - 4},7 L${ox + 4},7 Z`);
+
+  const label = (text: string, x: number, y: number) => {
+    const t = document.createElementNS(SVG_NS, "text");
+    t.setAttribute("x", String(x));
+    t.setAttribute("y", String(y));
+    t.setAttribute("fill", "#e5e7eb");
+    t.setAttribute("font-size", "12");
+    t.setAttribute("font-style", "italic");
+    t.textContent = text;
+    g.appendChild(t);
+  };
+  label(spec.xLabel ?? "x", w - 14, oy - 8);
+  label(spec.yLabel ?? "y", ox + 8, 14);
+
+  parent.appendChild(g);
 }
+
 
 function round(v: number) {
   if (!Number.isFinite(v)) return "–";
