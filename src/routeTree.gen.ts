@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudyingRouteImport } from './routes/studying'
-import { Route as PlottestRouteImport } from './routes/plottest'
 import { Route as LoungeRouteImport } from './routes/lounge'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as ExamRouteImport } from './routes/exam'
@@ -26,11 +25,6 @@ import { Route as StudyingGradeSubjectReadingUnitSubRouteImport } from './routes
 const StudyingRoute = StudyingRouteImport.update({
   id: '/studying',
   path: '/studying',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PlottestRoute = PlottestRouteImport.update({
-  id: '/plottest',
-  path: '/plottest',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoungeRoute = LoungeRouteImport.update({
@@ -97,7 +91,6 @@ export interface FileRoutesByFullPath {
   '/exam': typeof ExamRoute
   '/leaderboard': typeof LeaderboardRoute
   '/lounge': typeof LoungeRoute
-  '/plottest': typeof PlottestRoute
   '/studying': typeof StudyingRouteWithChildren
   '/studying/$grade': typeof StudyingGradeRouteWithChildren
   '/studying/': typeof StudyingIndexRoute
@@ -112,7 +105,6 @@ export interface FileRoutesByTo {
   '/exam': typeof ExamRoute
   '/leaderboard': typeof LeaderboardRoute
   '/lounge': typeof LoungeRoute
-  '/plottest': typeof PlottestRoute
   '/studying': typeof StudyingIndexRoute
   '/studying/$grade': typeof StudyingGradeIndexRoute
   '/studying/$grade/$subject': typeof StudyingGradeSubjectIndexRoute
@@ -125,7 +117,6 @@ export interface FileRoutesById {
   '/exam': typeof ExamRoute
   '/leaderboard': typeof LeaderboardRoute
   '/lounge': typeof LoungeRoute
-  '/plottest': typeof PlottestRoute
   '/studying': typeof StudyingRouteWithChildren
   '/studying/$grade': typeof StudyingGradeRouteWithChildren
   '/studying/': typeof StudyingIndexRoute
@@ -142,7 +133,6 @@ export interface FileRouteTypes {
     | '/exam'
     | '/leaderboard'
     | '/lounge'
-    | '/plottest'
     | '/studying'
     | '/studying/$grade'
     | '/studying/'
@@ -157,7 +147,6 @@ export interface FileRouteTypes {
     | '/exam'
     | '/leaderboard'
     | '/lounge'
-    | '/plottest'
     | '/studying'
     | '/studying/$grade'
     | '/studying/$grade/$subject'
@@ -169,7 +158,6 @@ export interface FileRouteTypes {
     | '/exam'
     | '/leaderboard'
     | '/lounge'
-    | '/plottest'
     | '/studying'
     | '/studying/$grade'
     | '/studying/'
@@ -185,7 +173,6 @@ export interface RootRouteChildren {
   ExamRoute: typeof ExamRoute
   LeaderboardRoute: typeof LeaderboardRoute
   LoungeRoute: typeof LoungeRoute
-  PlottestRoute: typeof PlottestRoute
   StudyingRoute: typeof StudyingRouteWithChildren
 }
 
@@ -196,13 +183,6 @@ declare module '@tanstack/react-router' {
       path: '/studying'
       fullPath: '/studying'
       preLoaderRoute: typeof StudyingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/plottest': {
-      id: '/plottest'
-      path: '/plottest'
-      fullPath: '/plottest'
-      preLoaderRoute: typeof PlottestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lounge': {
@@ -334,7 +314,6 @@ const rootRouteChildren: RootRouteChildren = {
   ExamRoute: ExamRoute,
   LeaderboardRoute: LeaderboardRoute,
   LoungeRoute: LoungeRoute,
-  PlottestRoute: PlottestRoute,
   StudyingRoute: StudyingRouteWithChildren,
 }
 export const routeTree = rootRouteImport
