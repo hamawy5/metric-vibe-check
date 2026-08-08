@@ -1,6 +1,82 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 
+export type PlotFn = { fn: string; color?: string; label?: string };
+export type MathGraphSpec = {
+  title?: string;
+  functions: PlotFn[];
+  xRange?: [number, number];
+  yRange?: [number, number];
+  xLabel?: string;
+  yLabel?: string;
+};
+
+const PALETTE = ["#22d3ee", "#a78bfa", "#fbbf24", "#f87171", "#4ade80"];
+
+/** Normalize loose AI math into an expression function-plot can evaluate. */
+export function normalizeExpression(input: string): string {
+  let s = input.trim();
+  s = s.replace(/\\left|\\right/g, "");
+  s = s.replace(/\\cdot|\\times/g, "*");
+  s = s.replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, "($1)/($2)");
+  s = s.replace(/\\sqrt\{([^{}]+)\}/g, "sqrt($1)");
+  s = s.replace(/\\(sin|cos|tan|log|ln|exp|abs|sqrt)/g, "$1");
+  s = s.replace(/\{|\}/g, "");
+  s = s.replace(/\$/g, "");
+  s = s.replace(/^\s*(?:[fgh]\s*\(\s*x\s*\)|y)\s*=\s*/i, "");
+  s = s.replace(/π/g, "PI").replace(/\bpi\b/gi, "PI");
+  s = s.replace(/(\d)\s*([a-zA-Z(])/g, "$1*$2"); // 2x -> 2*x
+  s = s.replace(/\)\s*\(/g, ")*(");
+  s = s.replace(/\bln\s*\(/g, "log(");
+  s = s.replace(/\be\^/g, "exp1^");
+  s = s.replace(/exp1/g, "E");
+  return s.trim();
+}
+
+const EQ_LINE = /^\s*(?:([A-Za-z][\w\s()]*?)\s*:\s*)?(?:[fgh]\s*\(\s*x\s*\)|y)\s*=\s*(.+?)\s*$/i;
+
+/** Accepts either a JSON spec with `functions`, or plain lines of `y = ...`. */
+export function parseMathGraphSpec(raw: string): MathGraphSpec | null {
+  const text = raw.trim();
+  if (text.startsWith("{")) {
+    try {
+      const j = JSON.parse(text) as Partial<MathGraphSpec> & { fn?: string };
+      const fns = Array.isArray(j.functions)
+        ? j.functions
+        : j.fn
+          ? [{ fn: j.fn }]
+          : [];
+      const functions = fns
+        .filter((f) => f && typeof f.fn === "string" && f.fn.trim())
+        .map((f, i) => ({
+          fn: normalizeExpression(f.fn),
+          color: f.color || PALETTE[i % PALETTE.length],
+          label: f.label || f.fn,
+        }));
+      if (!functions.length) return null;
+      return { ...j, functions } as MathGraphSpec;
+    } catch {
+      return null;
+    }
+  }
+
+  const lines = text.split("\n").filter((l) => l.trim());
+  if (!lines.length || lines.length > 6) return null;
+  const functions: PlotFn[] = [];
+  for (const line of lines) {
+    const m = EQ_LINE.exec(line.replace(/\s*\((?:growth|decay)[^)]*\)\s*$/i, (x) => x));
+    if (!m) return null;
+    const expr = normalizeExpression(m[2].replace(/\(([^()]*[a-zA-Z]{3,}[^()]*)\)\s*$/, ""));
+    if (!expr) return null;
+    functions.push({
+      fn: expr,
+      color: PALETTE[functions.length % PALETTE.length],
+      label: line.trim(),
+    });
+  }
+  return functions.length ? { functions } : null;
+}
+
 interface GraphFunction {
   fn: string;
   color: string;
