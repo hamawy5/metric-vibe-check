@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { StreamGate } from "@/components/StreamGate";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatChart, ChatSvg, parseChartSpec } from "@/components/ChatChart";
-import { MathGraph, parseMathGraphSpec } from "@/components/MathGraph";
+import MathGraph, { parseMathGraphSpec } from "@/components/MathGraph";
 
 
 
@@ -187,7 +187,7 @@ function LoungePage() {
       <header className="flex items-center justify-between gap-2 border-b border-white/5 bg-background/80 px-3 py-3 backdrop-blur-xl">
         <Link
           to="/"
-          className="flex items-center gap-1.5 rounded-xl bg-[image:var(--gradient-primary)] px-3 py-2 text-xs font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition active:scale-95"
+          className="flex items-center gap-1.5 rounded-xl bg-[image:var(--gradient-primary)] px-3 py-2 text-xs font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition active:scal[...]
           aria-label="Back to Home"
         >
           <ArrowLeft className="h-4 w-4" /> Home
@@ -241,7 +241,7 @@ function LoungePage() {
             >
 
               {m.role === "ai" ? (
-                <div className="max-w-none space-y-3 [&_h1]:mb-2 [&_h1]:mt-4 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-base [&_h2]:font-bold [&_h3]:mb-1.5 [&_h3]:mt-3.5 [&_h3]:text-sm [&_h3]:font-bold [&_h3]:uppercase [&_h3]:tracking-wide [&_h3]:text-muted-foreground [&_a]:text-primary [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-primary [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground [&_code]:rounded [&_code]:bg-secondary [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-[13px] [&_hr]:my-4 [&_hr]:border-border [&_li]:my-1 [&_li>p]:my-0 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5 [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-secondary [&_pre]:p-3 [&_pre_code]:bg-transparent [&_strong]:font-bold [&_strong]:text-foreground [&_ul]:my-2 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5 [&_:first-child]:mt-0 [&_:last-child]:mb-0">
+                <div className="max-w-none space-y-3 [&_h1]:mb-2 [&_h1]:mt-4 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-base [&_h2]:font-bold [&_h3]:mb-1.5 [&_h3]:mt-3.5 [...]
 
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm, remarkMath]}
@@ -263,7 +263,7 @@ function LoungePage() {
                         </th>
                       ),
                       tbody: ({ children }) => (
-                        <tbody className="[&>tr:nth-child(even)]:bg-secondary/30">{children}</tbody>
+                        <tbody className="[&_>tr:nth-child(even)]:bg-secondary/30">{children}</tbody>
                       ),
                       td: ({ children }) => (
                         <td className="whitespace-nowrap border-b border-border/60 px-4 py-3 align-top">
@@ -285,7 +285,13 @@ function LoungePage() {
                             (raw.trim().startsWith("{") ||
                               ["graph", "plot", "mathgraph", "function", "math"].includes(lang ?? ""))
                           ) {
-                            return <MathGraph spec={mg} />;
+                            return (
+                              <MathGraph
+                                title={mg.title}
+                                functions={mg.functions.map((f) => ({ fn: f.fn, color: f.color ?? "#22d3ee", label: f.label ?? f.fn }))}
+                                xRange={mg.xRange}
+                              />
+                            );
                           }
                         }
                         // Any fenced block whose body is a valid chart spec renders as a chart
@@ -569,7 +575,7 @@ function LoungePage() {
             className="fixed inset-0 z-40 animate-fade-in bg-black/60 backdrop-blur-sm"
             onClick={() => setDrawer(false)}
           />
-          <aside className="fixed inset-y-0 left-0 z-50 flex w-[82%] max-w-xs animate-[slide-in-right_0.3s_ease-out] flex-col border-r border-white/10 bg-card p-4 shadow-2xl [animation-name:slide-in-left] [transform:translateX(0)]"
+          <aside className="fixed inset-y-0 left-0 z-50 flex w-[82%] max-w-xs animate-[slide-in-right_0.3s_ease-out] flex-col border-r border-white/10 bg-card p-4 shadow-2xl [animation-name:slide[...]
             style={{ animation: "slideInLeft 0.3s ease-out" }}
           >
             <div className="flex items-center justify-between">
