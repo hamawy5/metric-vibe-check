@@ -1,21 +1,24 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
+/**
+ * Exports required by the app (do not remove)
+ */
 export type PlotFn = { fn: string; color?: string; label?: string };
 export type MathGraphSpec = {
   title?: string;
   functions: PlotFn[];
   xRange?: [number, number];
   yRange?: [number, number];
-  xLabel?: string;
-  yLabel?: string;
 };
 
 const PALETTE = ["#22d3ee", "#a78bfa", "#fbbf24", "#f87171", "#4ade80"];
 
-/** Normalize loose AI math into an expression function-plot can evaluate. */
+/* ---------------- helpers used by parse/normalize ---------------- */
+
+/** Normalize loose AI math into an expression the component can evaluate. */
 export function normalizeExpression(input: string): string {
-  let s = input.trim();
+  let s = String(input ?? "").trim();
   s = s.replace(/\\left|\\right/g, "");
   s = s.replace(/\\cdot|\\times/g, "*");
   s = s.replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, "($1)/($2)");
@@ -33,19 +36,18 @@ export function normalizeExpression(input: string): string {
   return s.trim();
 }
 
+/* Allow simple equations like "y = x^2" or labeled "parabola: y = x^2" */
 const EQ_LINE = /^\s*(?:([A-Za-z][\w\s()]*?)\s*:\s*)?(?:[fgh]\s*\(\s*x\s*\)|y)\s*=\s*(.+?)\s*$/i;
 
 /** Accepts either a JSON spec with `functions`, or plain lines of `y = ...`. */
 export function parseMathGraphSpec(raw: string): MathGraphSpec | null {
-  const text = raw.trim();
+  const text = String(raw ?? "").trim();
+  if (!text) return null;
+
   if (text.startsWith("{")) {
     try {
       const j = JSON.parse(text) as Partial<MathGraphSpec> & { fn?: string };
-      const fns = Array.isArray(j.functions)
-        ? j.functions
-        : j.fn
-          ? [{ fn: j.fn }]
-          : [];
+      const fns = Array.isArray(j.functions) ? j.functions : j.fn ? [{ fn: j.fn }] : [];
       const functions = fns
         .filter((f) => f && typeof f.fn === "string" && f.fn.trim())
         .map((f, i) => ({
@@ -60,13 +62,16 @@ export function parseMathGraphSpec(raw: string): MathGraphSpec | null {
     }
   }
 
-  const lines = text.split("\n").filter((l) => l.trim());
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
   if (!lines.length || lines.length > 6) return null;
   const functions: PlotFn[] = [];
   for (const line of lines) {
-    const m = EQ_LINE.exec(line.replace(/\s*\((?:growth|decay)[^)]*\)\s*$/i, (x) => x));
+    // strip trailing "(Growth)" style notes before matching
+    const cleaned = line.replace(/\s*\((?:growth|decay)[^)]*\)\s*$/i, (x) => x);
+    const m = EQ_LINE.exec(cleaned);
     if (!m) return null;
-    const expr = normalizeExpression(m[2].replace(/\(([^()]*[a-zA-Z]{3,}[^()]*)\)\s*$/, ""));
+    const rawExpr = m[2] ?? "";
+    const expr = normalizeExpression(rawExpr.replace(/\(([^()]*[a-zA-Z]{3,}[^()]*)\)\s*$/, ""));
     if (!expr) return null;
     functions.push({
       fn: expr,
@@ -77,10 +82,13 @@ export function parseMathGraphSpec(raw: string): MathGraphSpec | null {
   return functions.length ? { functions } : null;
 }
 
+/* ---------------- canvas MathGraph implementation (default export) ---------------- */
+
 interface GraphFunction {
   fn: string;
   color: string;
-  label: string;
+  label?: string;
+  call?: (x: number) => number;
 }
 
 interface MathGraphProps {
@@ -90,234 +98,314 @@ interface MathGraphProps {
   title?: string;
 }
 
+/** Compile a sanitized-ish expression into a function(x) -> y.
+ * This uses new Function; inputs should be normalized/validated first.
+ */
 function compileFn(expr: string): (x: number) => number {
-  const clean = expr
+  const clean = String(expr)
     .replace(/\^/g, "**")
+    .replace(/\bpi\b/gi, "Math.PI")
+    .replace(/\be\b/g, "Math.E")
     .replace(/\bsin\b/g, "Math.sin")
     .replace(/\bcos\b/g, "Math.cos")
     .replace(/\btan\b/g, "Math.tan")
-    .replace(/\blog\b/g, "Math.log")
     .replace(/\bln\b/g, "Math.log")
+    .replace(/\blog\b/g, "Math.log")
     .replace(/\bsqrt\b/g, "Math.sqrt")
     .replace(/\babs\b/g, "Math.abs")
     .replace(/\bexp\b/g, "Math.exp")
-    .replace(/\bpi\b/gi, "Math.PI")
-    .replace(/\be\b/g, "Math.E");
-  return new Function("x", `return (${clean});`) as (x: number) => number;
+    // disallow some characters that are unlikely in math expressions
+    .replace(/[^-+*\/%^()0-9.xPIEMathsincotaelgbtrq]/g, (m) => m); // keep letters for Math.* replacements
+  // safer to wrap in try/catch when evaluating
+  // eslint-disable-next-line no-new-func
+  return new Function("x", `with (Math) { try { return (${clean}); } catch(e) { return NaN; } }`) as (
+    x: number
+  ) => number;
 }
 
-export default function MathGraph({
-  functions,
-  xRange: initX = [-4, 4],
-  className,
-  title,
-}: MathGraphProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+/** Nice numeric tick step for a target pixel spacing */
+function computeTickStep(scale: number, targetPx = 80) {
+  // scale: pixels per world unit
+  if (!Number.isFinite(scale) || scale <= 0) return 1;
+  const raw = targetPx / scale; // desired world-units per tick
+  const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+  const candidates = [1 * pow, 2 * pow, 5 * pow, 10 * pow];
+  let best = candidates[0];
+  let bestDiff = Math.abs(candidates[0] - raw);
+  for (let i = 1; i < candidates.length; i++) {
+    const d = Math.abs(candidates[i] - raw);
+    if (d < bestDiff) {
+      bestDiff = d;
+      best = candidates[i];
+    }
+  }
+  return best;
+}
 
-  const [scale, setScale] = useState(40);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [size, setSize] = useState({ w: 0, h: 0 });
-  const [hover, setHover] = useState<{ x: number; y: number; screenX: number; screenY: number } | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStart = useRef({ x: 0, y: 0, ox: 0, oy: 0 });
+export default function MathGraph({ functions: fns, xRange, className, title }: MathGraphProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const resizeObserver = useRef<ResizeObserver | null>(null);
 
-  const compiled = React.useMemo(
+  // compiled functions with fallback colors
+  const compiled = useMemo<GraphFunction[]>(
     () =>
-      functions.map((f) => ({
-        ...f,
+      (fns ?? []).map((f, i) => ({
+        fn: f.fn,
+        color: f.color || PALETTE[i % PALETTE.length],
+        label: f.label,
         call: compileFn(f.fn),
       })),
-    [functions]
+    [fns],
   );
 
+  // size in CSS pixels
+  const [size, setSize] = useState<{ w: number; h: number }>({ w: 640, h: 480 });
+
+  // scale (pixels per world unit) and offset in pixels from centered origin
+  const [scale, setScale] = useState<number>(40);
+  const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  // dragging and hover state
+  const dragging = useRef(false);
+  const dragStart = useRef<{ sx: number; sy: number; ox: number; oy: number } | null>(null);
+  const [hover, setHover] = useState<{ wx: number; wy: number; screenX: number; screenY: number } | null>(null);
+
+  // configure initial view based on optional xRange
+  useEffect(() => {
+    if (!containerRef.current) return;
+    // compute initial scale to fit xRange if provided
+    const rect = containerRef.current.getBoundingClientRect();
+    const w = rect.width || 640;
+    const h = Math.round((w * 3) / 4); // 4:3 aspect if no explicit size yet
+    setSize({ w, h });
+
+    if (xRange && xRange.length === 2 && Number.isFinite(xRange[0]) && Number.isFinite(xRange[1]) && xRange[1] > xRange[0]) {
+      const span = Math.abs(xRange[1] - xRange[0]);
+      const newScale = Math.max(5, Math.min(800, w / span));
+      setScale(newScale);
+      setOffset({ x: 0, y: 0 });
+    } else {
+      // default scale depends on width
+      const guess = Math.max(20, Math.min(120, w / 10));
+      setScale(guess);
+      setOffset({ x: 0, y: 0 });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [xRange]);
+
+  // observe container size changes
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const ro = new ResizeObserver((entries) => {
+    resizeObserver.current?.disconnect();
+    resizeObserver.current = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const cr = entry.contentRect;
         setSize({ w: cr.width, h: cr.height });
       }
     });
-    ro.observe(el);
-    return () => ro.disconnect();
+    resizeObserver.current.observe(el);
+    return () => resizeObserver.current?.disconnect();
   }, []);
 
+  // convert world <-> screen coordinates
+  const worldToScreen = useCallback(
+    (wx: number, wy: number) => {
+      const w = size.w;
+      const h = size.h;
+      const plotCx = w / 2 + offset.x;
+      const plotCy = h / 2 + offset.y;
+      return { x: plotCx + wx * scale, y: plotCy - wy * scale };
+    },
+    [size, scale, offset],
+  );
+
+  const screenToWorld = useCallback(
+    (sx: number, sy: number) => {
+      const w = size.w;
+      const h = size.h;
+      const plotCx = w / 2 + offset.x;
+      const plotCy = h / 2 + offset.y;
+      return { x: (sx - plotCx) / scale, y: (plotCy - sy) / scale };
+    },
+    [size, scale, offset],
+  );
+
+  // redraw canvas
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || size.w === 0 || size.h === 0) return;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+    const { w, h } = size;
+    if (!w || !h) return;
 
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = size.w * dpr;
-    canvas.height = size.h * dpr;
-    canvas.style.width = `${size.w}px`;
-    canvas.style.height = `${size.h}px`;
-
-    const ctx = canvas.getContext("2d")!;
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    canvas.style.width = `${w}px`;
+    canvas.style.height = `${h}px`;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const { w, h } = size;
-    const padL = 36;
-    const padB = 28;
-    const padR = 12;
-    const padT = 12;
-    const plotL = padL;
-    const plotR = w - padR;
-    const plotT = padT;
-    const plotB = h - padB;
-    const plotW = plotR - plotL;
-    const plotH = plotB - plotT;
-    const plotCx = plotL + plotW / 2 + offset.x;
-    const plotCy = plotT + plotH / 2 + offset.y;
-
-    const toScreen = (x: number, y: number) => ({
-      x: plotCx + x * scale,
-      y: plotCy - y * scale,
-    });
-    const fromScreen = (sx: number, sy: number) => ({
-      x: (sx - plotCx) / scale,
-      y: (plotCy - sy) / scale,
-    });
-
-    const tl = fromScreen(plotL, plotT);
-    const br = fromScreen(plotR, plotB);
-    const xMin = tl.x;
-    const xMax = br.x;
-    const yMin = br.y;
-    const yMax = tl.y;
-
-    const rawStep = 50 / scale;
-    const step = Math.pow(10, Math.floor(Math.log10(rawStep)));
-    const fineStep = step / 5;
-
+    // background
     ctx.fillStyle = "#0f1117";
     ctx.fillRect(0, 0, w, h);
 
+    // plot metrics
+    const plotL = 0;
+    const plotR = w;
+    const plotT = 0;
+    const plotB = h;
+    const plotCx = w / 2 + offset.x;
+    const plotCy = h / 2 + offset.y;
+
+    // world bounds visible
+    const leftWorld = screenToWorld(plotL, plotCy).x;
+    const rightWorld = screenToWorld(plotR, plotCy).x;
+    const topWorld = screenToWorld(plotCx, plotT).y;
+    const bottomWorld = screenToWorld(plotCx, plotB).y;
+
+    // grid lines (fine and coarse)
+    const coarseStep = computeTickStep(scale, 100);
+    const fineStep = coarseStep / 5;
+
     ctx.lineWidth = 1;
+    // draw fine grid
     ctx.strokeStyle = "rgba(255,255,255,0.04)";
     ctx.beginPath();
-    const startX = Math.floor(xMin / fineStep) * fineStep;
-    for (let x = startX; x <= xMax; x += fineStep) {
-      const { x: sx } = toScreen(x, 0);
-      if (sx >= plotL && sx <= plotR) {
-        ctx.moveTo(sx, plotT);
-        ctx.lineTo(sx, plotB);
-      }
+    for (let x = Math.floor(leftWorld / fineStep) * fineStep; x <= rightWorld; x += fineStep) {
+      const sx = worldToScreen(x, 0).x;
+      ctx.moveTo(sx, plotT);
+      ctx.lineTo(sx, plotB);
     }
-    const startY = Math.floor(yMin / fineStep) * fineStep;
-    for (let y = startY; y <= yMax; y += fineStep) {
-      const { y: sy } = toScreen(0, y);
-      if (sy >= plotT && sy <= plotB) {
-        ctx.moveTo(plotL, sy);
-        ctx.lineTo(plotR, sy);
-      }
+    for (let y = Math.floor(bottomWorld / fineStep) * fineStep; y <= topWorld; y += fineStep) {
+      const sy = worldToScreen(0, y).y;
+      ctx.moveTo(plotL, sy);
+      ctx.lineTo(plotR, sy);
     }
     ctx.stroke();
 
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = "rgba(255,255,255,0.35)";
+    // coarse grid / ticks
+    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    const y0 = toScreen(0, 0).y;
-    if (y0 >= plotT && y0 <= plotB) {
-      ctx.moveTo(plotL, y0);
-      ctx.lineTo(plotR, y0);
-      ctx.moveTo(plotR - 8, y0 - 4);
-      ctx.lineTo(plotR, y0);
-      ctx.lineTo(plotR - 8, y0 + 4);
+    for (let x = Math.floor(leftWorld / coarseStep) * coarseStep; x <= rightWorld; x += coarseStep) {
+      const sx = worldToScreen(x, 0).x;
+      ctx.moveTo(sx, plotT);
+      ctx.lineTo(sx, plotB);
     }
-    const x0 = toScreen(0, 0).x;
-    if (x0 >= plotL && x0 <= plotR) {
-      ctx.moveTo(x0, plotB);
-      ctx.lineTo(x0, plotT);
-      ctx.moveTo(x0 - 4, plotT + 8);
-      ctx.lineTo(x0, plotT);
-      ctx.lineTo(x0 + 4, plotT + 8);
+    for (let y = Math.floor(bottomWorld / coarseStep) * coarseStep; y <= topWorld; y += coarseStep) {
+      const sy = worldToScreen(0, y).y;
+      ctx.moveTo(plotL, sy);
+      ctx.lineTo(plotR, sy);
     }
     ctx.stroke();
 
-    ctx.fillStyle = "rgba(255,255,255,0.5)";
+    // axes (white) centered at world origin
+    ctx.lineWidth = 1.6;
+    ctx.strokeStyle = "#ffffff";
+    ctx.beginPath();
+    // x-axis
+    const y0 = worldToScreen(0, 0).y;
+    ctx.moveTo(plotL, y0);
+    ctx.lineTo(plotR, y0);
+    // arrow
+    ctx.moveTo(plotR - 10, y0 - 6);
+    ctx.lineTo(plotR, y0);
+    ctx.lineTo(plotR - 10, y0 + 6);
+    // y-axis
+    const x0 = worldToScreen(0, 0).x;
+    ctx.moveTo(x0, plotT);
+    ctx.lineTo(x0, plotB);
+    ctx.moveTo(x0 - 6, plotT + 10);
+    ctx.lineTo(x0, plotT);
+    ctx.lineTo(x0 + 6, plotT + 10);
+    ctx.stroke();
+
+    // axis labels
+    ctx.fillStyle = "#e5e7eb";
     ctx.font = "12px ui-sans-serif, system-ui, sans-serif";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "top";
+    if (x0 >= plotL && x0 <= plotR && y0 >= plotT && y0 <= plotB) {
+      ctx.fillText("0", x0 - 4, y0 + 6);
+    }
+
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
     if (y0 >= plotT && y0 <= plotB) {
-      ctx.fillText("x", plotR - 8, y0 + 6);
+      ctx.fillText("x", plotR - 12, y0 + 6);
     }
     ctx.textAlign = "left";
     ctx.textBaseline = "bottom";
     if (x0 >= plotL && x0 <= plotR) {
-      ctx.fillText("y", x0 + 6, plotT + 8);
+      ctx.fillText("y", x0 + 6, plotT + 12);
     }
 
-    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    // tick marks and labels
+    ctx.fillStyle = "rgba(229,231,235,0.9)";
     ctx.font = "11px ui-sans-serif, system-ui, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
-    const tickStep = step;
-    const xStart = Math.floor(xMin / tickStep) * tickStep;
-    for (let x = xStart; x <= xMax; x += tickStep) {
-      if (Math.abs(x) < tickStep * 0.001) continue;
-      const { x: sx } = toScreen(x, 0);
-      if (sx < plotL || sx > plotR) continue;
-      ctx.strokeStyle = "rgba(255,255,255,0.3)";
-      ctx.lineWidth = 1;
+    for (let x = Math.floor(leftWorld / coarseStep) * coarseStep; x <= rightWorld; x += coarseStep) {
+      const sx = worldToScreen(x, 0).x;
+      if (sx < plotL - 1 || sx > plotR + 1) continue;
+      ctx.strokeStyle = "rgba(255,255,255,0.15)";
       ctx.beginPath();
-      ctx.moveTo(sx, y0 - 4);
-      ctx.lineTo(sx, y0 + 4);
+      ctx.moveTo(sx, y0 - 6);
+      ctx.lineTo(sx, y0 + 6);
       ctx.stroke();
-      ctx.fillText(String(Math.round(x * 100) / 100), sx, y0 + 6);
+      // skip label if it's close to origin label
+      if (Math.abs(x) > coarseStep * 0.0001) {
+        ctx.fillText(String(Math.round(x * 100) / 100), sx, y0 + 8);
+      }
     }
 
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
-    const yStart = Math.floor(yMin / tickStep) * tickStep;
-    for (let y = yStart; y <= yMax; y += tickStep) {
-      if (Math.abs(y) < tickStep * 0.001) continue;
-      const { y: sy } = toScreen(0, y);
-      if (sy < plotT || sy > plotB) continue;
-      ctx.strokeStyle = "rgba(255,255,255,0.3)";
-      ctx.lineWidth = 1;
+    for (let y = Math.floor(bottomWorld / coarseStep) * coarseStep; y <= topWorld; y += coarseStep) {
+      const sy = worldToScreen(0, y).y;
+      if (sy < plotT - 1 || sy > plotB + 1) continue;
+      ctx.strokeStyle = "rgba(255,255,255,0.15)";
       ctx.beginPath();
-      ctx.moveTo(x0 - 4, sy);
-      ctx.lineTo(x0 + 4, sy);
+      ctx.moveTo(x0 - 6, sy);
+      ctx.lineTo(x0 + 6, sy);
       ctx.stroke();
-      ctx.fillText(String(Math.round(y * 100) / 100), x0 - 8, sy);
+      if (Math.abs(y) > coarseStep * 0.0001) {
+        ctx.fillText(String(Math.round(y * 100) / 100), x0 - 8, sy);
+      }
     }
 
-    ctx.fillStyle = "rgba(255,255,255,0.45)";
-    ctx.font = "11px ui-sans-serif, system-ui, sans-serif";
-    ctx.textAlign = "right";
-    ctx.textBaseline = "top";
-    if (x0 >= plotL && x0 <= plotR && y0 >= plotT && y0 <= plotB) {
-      ctx.fillText("0", x0 - 4, y0 + 4);
-    }
-
+    // clip to plot area and draw functions
     ctx.save();
     ctx.beginPath();
-    ctx.rect(plotL, plotT, plotW, plotH);
+    ctx.rect(plotL, plotT, plotR - plotL, plotB - plotT);
     ctx.clip();
 
-    const samples = Math.max(200, Math.floor(plotW));
-    for (const { call, color } of compiled) {
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2.5;
+    const samples = Math.max(200, Math.floor((plotR - plotL) * 1)); // one sample per px baseline
+    for (const fn of compiled) {
+      ctx.strokeStyle = fn.color || "#22d3ee";
+      ctx.lineWidth = 2.4;
       ctx.lineJoin = "round";
       ctx.beginPath();
       let first = true;
       for (let i = 0; i <= samples; i++) {
-        const x = xMin + (xMax - xMin) * (i / samples);
-        let y: number;
+        const t = i / samples;
+        const wx = leftWorld + (rightWorld - leftWorld) * t;
+        let wy = NaN;
         try {
-          y = call(x);
+          wy = (fn.call ?? (() => NaN))(wx);
         } catch {
+          wy = NaN;
+        }
+        if (!Number.isFinite(wy)) {
           first = true;
           continue;
         }
-        if (!Number.isFinite(y)) {
-          first = true;
-          continue;
-        }
-        const { x: sx, y: sy } = toScreen(x, y);
+        const { x: sx, y: sy } = worldToScreen(wx, wy);
+        // skip if way off screen to avoid huge lines
         if (sy < plotT - 200 || sy > plotB + 200) {
           first = true;
           continue;
@@ -332,11 +420,13 @@ export default function MathGraph({
       ctx.stroke();
     }
 
+    // hover crosshair and marker
     if (hover) {
-      const { x: sx, y: sy } = toScreen(hover.x, hover.y);
-      ctx.strokeStyle = "rgba(255,255,255,0.15)";
+      const { x: sx, y: sy } = worldToScreen(hover.wx, hover.wy);
+      // lines
+      ctx.strokeStyle = "rgba(255,255,255,0.18)";
       ctx.lineWidth = 1;
-      ctx.setLineDash([4, 4]);
+      ctx.setLineDash([6, 6]);
       ctx.beginPath();
       ctx.moveTo(sx, plotT);
       ctx.lineTo(sx, plotB);
@@ -353,165 +443,215 @@ export default function MathGraph({
 
     ctx.restore();
 
-    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    // outline
+    ctx.strokeStyle = "rgba(255,255,255,0.06)";
     ctx.lineWidth = 1;
-    ctx.strokeRect(plotL, plotT, plotW, plotH);
-  }, [compiled, scale, offset, size, hover]);
+    ctx.strokeRect(plotL + 0.5, plotT + 0.5, plotR - plotL - 1, plotB - plotT - 1);
+  }, [size, offset, scale, compiled, screenToWorld, worldToScreen, hover]);
 
+  // redraw when dependencies change
   useEffect(() => {
     draw();
   }, [draw]);
 
-  const handleWheel = useCallback(
-    (e: React.WheelEvent) => {
+  // wheel: zoom around cursor
+  const onWheel = useCallback(
+    (e: React.WheelEvent<HTMLCanvasElement>) => {
       e.preventDefault();
       const canvas = canvasRef.current;
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
-      const { w, h } = size;
-      const plotCx = 36 + (w - 36 - 12) / 2 + offset.x;
-      const plotCy = 12 + (h - 12 - 28) / 2 + offset.y;
-      const wx = (mx - plotCx) / scale;
-      const wy = (plotCy - my) / scale;
-
-      const factor = e.deltaY > 0 ? 0.9 : 1.1;
-      const newScale = Math.max(5, Math.min(400, scale * factor));
-      const newPlotCx = mx - wx * newScale;
-      const newPlotCy = my + wy * newScale;
-      const newOffsetX = newPlotCx - (36 + (w - 36 - 12) / 2);
-      const newOffsetY = newPlotCy - (12 + (h - 12 - 28) / 2);
-
+      const sx = e.clientX - rect.left;
+      const sy = e.clientY - rect.top;
+      const before = screenToWorld(sx, sy);
+      const delta = e.deltaY;
+      const factor = delta > 0 ? 0.92 : 1.08;
+      const newScale = Math.max(4, Math.min(1200, scale * factor));
       setScale(newScale);
-      setOffset({ x: newOffsetX, y: newOffsetY });
+      // compute new offset so world point under cursor stays under cursor
+      const w = size.w;
+      const h = size.h;
+      const plotCx = w / 2;
+      const plotCy = h / 2;
+      const newPlotCx = sx - before.x * newScale;
+      const newPlotCy = sy + before.y * newScale;
+      setOffset({ x: newPlotCx - plotCx, y: newPlotCy - plotCy });
     },
-    [scale, offset, size]
+    [scale, size, screenToWorld],
   );
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    setIsDragging(true);
-    dragStart.current = {
-      x: e.clientX,
-      y: e.clientY,
-      ox: offset.x,
-      oy: offset.y,
-    };
-  }, [offset]);
+  // mouse down -> start drag
+  const onMouseDown = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      dragging.current = true;
+      dragStart.current = { sx: e.clientX, sy: e.clientY, ox: offset.x, oy: offset.y };
+    },
+    [offset],
+  );
 
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent) => {
+  // mouse move -> pan or hover
+  const onMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
       const canvas = canvasRef.current;
-      if (!canvas || size.w === 0) return;
+      if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
-      const { w, h } = size;
-      const plotCx = 36 + (w - 36 - 12) / 2 + offset.x;
-      const plotCy = 12 + (h - 12 - 28) / 2 + offset.y;
-      const wx = (mx - plotCx) / scale;
-      const wy = (plotCy - my) / scale;
+      const sx = e.clientX - rect.left;
+      const sy = e.clientY - rect.top;
 
-      if (isDragging) {
-        setOffset({
-          x: dragStart.current.ox + (e.clientX - dragStart.current.x),
-          y: dragStart.current.oy + (e.clientY - dragStart.current.y),
-        });
+      if (dragging.current && dragStart.current) {
+        const dsx = e.clientX - dragStart.current.sx;
+        const dsy = e.clientY - dragStart.current.sy;
+        setOffset({ x: dragStart.current.ox + dsx, y: dragStart.current.oy + dsy });
         setHover(null);
-      } else {
-        let bestY = NaN;
-        let bestDist = Infinity;
-        for (const { call } of compiled) {
-          let y: number;
-          try {
-            y = call(wx);
-          } catch {
-            continue;
-          }
-          if (!Number.isFinite(y)) continue;
-          const sy = plotCy - y * scale;
-          const dist = Math.abs(sy - my);
-          if (dist < bestDist && dist < 30) {
-            bestDist = dist;
-            bestY = y;
-          }
+        return;
+      }
+
+      // not dragging: compute hover nearest function y
+      const world = screenToWorld(sx, sy);
+      let bestY = NaN;
+      let bestDist = Infinity;
+      for (const fn of compiled) {
+        let wy = NaN;
+        try {
+          wy = (fn.call ?? (() => NaN))(world.x);
+        } catch {
+          wy = NaN;
         }
-        if (Number.isFinite(bestY)) {
-          setHover({ x: wx, y: bestY, screenX: mx, screenY: my });
-        } else {
-          setHover(null);
+        if (!Number.isFinite(wy)) continue;
+        const { y: syFn } = worldToScreen(world.x, wy);
+        const dist = Math.abs(syFn - sy);
+        if (dist < bestDist && dist < 40) {
+          bestDist = dist;
+          bestY = wy;
         }
       }
+      if (Number.isFinite(bestY)) {
+        setHover({ wx: world.x, wy: bestY, screenX: sx + (canvas.getBoundingClientRect().left || 0), screenY: sy + (canvas.getBoundingClientRect().top || 0) });
+      } else {
+        setHover(null);
+      }
     },
-    [isDragging, offset, scale, size, compiled]
+    [compiled, screenToWorld, worldToScreen],
   );
 
-  const handleMouseUp = useCallback(() => setIsDragging(false), []);
-  const handleMouseLeave = useCallback(() => {
-    setIsDragging(false);
+  const onMouseUp = useCallback(() => {
+    dragging.current = false;
+    dragStart.current = null;
+  }, []);
+
+  const onMouseLeave = useCallback(() => {
+    dragging.current = false;
+    dragStart.current = null;
     setHover(null);
   }, []);
 
+  // double click to reset view
   const resetView = useCallback(() => {
-    setScale(40);
     setOffset({ x: 0, y: 0 });
+    setScale(40);
+    // if xRange exists, try to fit
+    if (xRange && xRange.length === 2 && Number.isFinite(xRange[0]) && Number.isFinite(xRange[1]) && xRange[1] > xRange[0] && size.w > 0) {
+      const span = Math.abs(xRange[1] - xRange[0]);
+      const newScale = Math.max(5, Math.min(800, size.w / span));
+      setScale(newScale);
+    }
+  }, [xRange, size.w]);
+
+  // attach pointer events to window to ensure we capture drag outside canvas
+  useEffect(() => {
+    const onUp = () => {
+      dragging.current = false;
+      dragStart.current = null;
+    };
+    const onMove = (ev: MouseEvent) => {
+      if (!dragging.current) return;
+      // synthesize move relative to canvas
+      const canvas = canvasRef.current;
+      if (!canvas || !dragStart.current) return;
+      const rect = canvas.getBoundingClientRect();
+      const sx = ev.clientX - rect.left;
+      const sy = ev.clientY - rect.top;
+      // reuse onMouseMove logic by calling handler directly would be awkward; just update offset here
+      const dsx = ev.clientX - (dragStart.current?.sx ?? ev.clientX);
+      const dsy = ev.clientY - (dragStart.current?.sy ?? ev.clientY);
+      setOffset({ x: (dragStart.current?.ox ?? 0) + dsx, y: (dragStart.current?.oy ?? 0) + dsy });
+    };
+    window.addEventListener("mouseup", onUp);
+    window.addEventListener("mousemove", onMove);
+    return () => {
+      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("mousemove", onMove);
+    };
   }, []);
+
+  // keyboard: + / - to zoom, r to reset
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "r") resetView();
+      if (e.key === "+" || e.key === "=") setScale((s) => Math.min(2000, s * 1.12));
+      if (e.key === "-") setScale((s) => Math.max(4, s / 1.12));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [resetView]);
+
+  // legend items prepared
+  const legend = useMemo(() => compiled.map((c) => ({ label: c.label ?? c.fn, color: c.color })), [compiled]);
 
   return (
     <div className={cn("w-full", className)}>
-      {title && (
-        <h3 className="text-center text-sm font-semibold text-white/80 mb-3">
-          {title}
-        </h3>
-      )}
+      {title && <div className="mb-2 text-center text-sm font-semibold text-white/80">{title}</div>}
+
       <div
         ref={containerRef}
         className="relative w-full rounded-2xl overflow-hidden border border-white/5"
-        style={{ aspectRatio: "4/3", background: "#0f1117", cursor: isDragging ? "grabbing" : "crosshair" }}
+        style={{ background: "#0f1117", aspectRatio: "4/3" }}
       >
         <canvas
           ref={canvasRef}
-          className="absolute inset-0 w-full h-full"
-          onWheel={handleWheel}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
+          onWheel={onWheel}
+          onMouseDown={onMouseDown}
+          onMouseMove={onMouseMove}
+          onMouseUp={onMouseUp}
+          onMouseLeave={onMouseLeave}
+          style={{ width: "100%", height: "100%", display: "block", cursor: dragging.current ? "grabbing" : "crosshair" }}
         />
-        {hover && (
-          <div
-            className="absolute pointer-events-none z-10 px-2 py-1 rounded-md text-xs font-mono"
-            style={{
-              left: Math.min(hover.screenX + 12, size.w - 100),
-              top: Math.max(hover.screenY - 32, 4),
-              background: "rgba(0,0,0,0.8)",
-              color: "#fff",
-              border: "1px solid rgba(255,255,255,0.1)",
-            }}
-          >
-            x={hover.x.toFixed(2)}, y={hover.y.toFixed(2)}
-          </div>
-        )}
+
+        {/* Reset button top-right */}
         <button
           onClick={resetView}
-          className="absolute top-2 right-2 px-2 py-1 rounded-md text-[10px] font-medium text-white/50 hover:text-white/80 hover:bg-white/5 transition"
           title="Reset view"
+          className="absolute right-3 top-3 z-10 rounded-md bg-white/6 px-2 py-1 text-xs text-white/80 hover:bg-white/10 transition"
         >
           Reset
         </button>
+
+        {/* Hover tooltip */}
+        {hover && (
+          <div
+            className="absolute z-20 pointer-events-none rounded-md px-2 py-1 text-xs font-mono"
+            style={{
+              left: Math.min(hover.screenX - (canvasRef.current?.getBoundingClientRect().left ?? 0) + 12, (size.w || 400) - 120),
+              top: Math.max(hover.screenY - (canvasRef.current?.getBoundingClientRect().top ?? 0) - 36, 6),
+              background: "rgba(0,0,0,0.75)",
+              color: "#fff",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
+            x={hover.wx.toFixed(3)}, y={hover.wy.toFixed(3)}
+          </div>
+        )}
       </div>
 
-      <div className="flex flex-wrap items-center justify-center gap-4 mt-3">
-        {functions.map((f, i) => (
+      {/* Legend */}
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-4">
+        {legend.map((l, i) => (
           <div key={i} className="flex items-center gap-2">
-            <span
-              className="inline-block w-6 h-1.5 rounded-full"
-              style={{ background: f.color }}
-            />
-            <span className="text-xs text-white/60">{f.label}</span>
+            <span style={{ background: l.color }} className="inline-block w-6 h-1.5 rounded-full" />
+            <span className="text-xs text-white/70">{l.label}</span>
           </div>
         ))}
       </div>
     </div>
   );
-}
+                                                                     }
