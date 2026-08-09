@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, BookMarked, Rocket, ChevronDown, Circle, Inbox } from "lucide-react";
+import { ArrowLeft, Bookmark, Rocket, ChevronDown, Circle, Inbox } from "lucide-react";
 import { subUnitsQuery, getOpenUnit, setOpenUnit } from "@/lib/curriculum";
 
 export const Route = createFileRoute("/studying/$grade/$subject/")({
@@ -97,7 +97,7 @@ function UnitsPage() {
               >
                 <div className="flex items-center gap-3 text-left">
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 text-primary">
-                    <BookMarked className="h-5 w-5" />
+                    <Bookmark className="h-5 w-5" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-bold">
@@ -141,7 +141,7 @@ function UnitsPage() {
                     <Link
                       to="/studying/$grade/$subject/quiz/$unit"
                       params={{ grade, subject, unit: unit.unit_number }}
-                      className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-5 py-4 text-sm font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition active:scale-[0.99]"
+                      className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-5 py-4 text-sm font-bold text-primary-foreground shadow-[var(--shadow-glow)]"
                     >
                       <Rocket className="h-4 w-4" />
                       🚀 Launch Unit {unit.unit_number} Mastery Exam
