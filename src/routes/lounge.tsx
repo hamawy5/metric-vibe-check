@@ -187,7 +187,7 @@ function LoungePage() {
       <header className="flex items-center justify-between gap-2 border-b border-white/5 bg-background/80 px-3 py-3 backdrop-blur-xl">
         <Link
           to="/"
-          className="flex items-center gap-1.5 rounded-xl bg-[image:var(--gradient-primary)] px-3 py-2 text-xs font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition active:scal[...]
+          className="flex items-center gap-1.5 rounded-xl bg-[image:var(--gradient-primary)] px-3 py-2 text-xs font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition active:scale-95"
           aria-label="Back to Home"
         >
           <ArrowLeft className="h-4 w-4" /> Home
@@ -241,7 +241,7 @@ function LoungePage() {
             >
 
               {m.role === "ai" ? (
-                <div className="max-w-none space-y-3 [&_h1]:mb-2 [&_h1]:mt-4 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-base [&_h2]:font-bold [&_h3]:mb-1.5 [&_h3]:mt-3.5 [...]
+                <div className="max-w-none space-y-3 [&_h1]:mb-2 [&_h1]:mt-4 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-base [&_h2]:font-bold [&_h3]:mb-1.5 [&_h3]:mt-3.5 [...]"
 
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm, remarkMath]}
