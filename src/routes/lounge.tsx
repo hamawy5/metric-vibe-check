@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { StreamGate } from "@/components/StreamGate";
 import { supabase } from "@/integrations/supabase/client";
-import { ChatChart, ChatSvg, parseChartSpec } from "@/components/ChatChart";
+import { ChatChart, ChatSvg } from "@/components/ChatChart";
 import MathGraph, { parseMathGraphSpec } from "@/components/MathGraph";
 
 
@@ -296,8 +296,8 @@ function LoungePage() {
                         }
                         // Any fenced block whose body is a valid chart spec renders as a chart
                         if (lang !== "svg" && raw.trim().startsWith("{")) {
-                          const spec = parseChartSpec(raw);
-                          if (spec) return <ChatChart spec={spec} />;
+                          const spec = parseMathGraphSpec(raw);
+                          if (spec) return <MathGraph title={spec.title} functions={spec.functions} xRange={spec.xRange} />;
                         }
                         if (lang === "svg" || raw.trim().startsWith("<svg")) {
                           return <ChatSvg svg={raw} />;
