@@ -241,7 +241,7 @@ function LoungePage() {
             >
 
               {m.role === "ai" ? (
-                <div className="max-w-none space-y-3 [&_h1]:mb-2 [&_h1]:mt-4 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-base [&_h2]:font-bold [&_h3]:mb-1.5 [&_h3]:mt-3.5 [...]"
+                <div className="max-w-none space-y-3 [&_h1]:mb-2 [&_h1]:mt-4 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-base [&_h2]:font-bold [&_h3]:mb-1.5 [&_h3]:mt-3.5 [&_h3]:text-base [&_h3]:font-bold [&_p]:mb-2 [&_a]:font-semibold [&_a]:text-blue-400 [&_a]:underline [&_ul]:mb-2 [&_ul]:ml-4 [&_ul]:list-disc [&_ol]:mb-2 [&_ol]:ml-4 [&_ol]:list-decimal [&_li]:mb-1 [&_code]:rounded [&_code]:bg-slate-800 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-sm [&_code]:font-mono [&_pre]:mb-2 [&_blockquote]:border-l-2 [&_blockquote]:border-slate-500 [&_blockquote]:pl-3 [&_blockquote]:italic [&_blockquote]:text-slate-300 [&_hr]:my-3 [&_hr]:border-slate-700">
 
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm, remarkMath]}
@@ -575,7 +575,7 @@ function LoungePage() {
             className="fixed inset-0 z-40 animate-fade-in bg-black/60 backdrop-blur-sm"
             onClick={() => setDrawer(false)}
           />
-          <aside className="fixed inset-y-0 left-0 z-50 flex w-[82%] max-w-xs animate-[slide-in-right_0.3s_ease-out] flex-col border-r border-white/10 bg-card p-4 shadow-2xl [animation-name:slide[...]
+          <aside className="fixed inset-y-0 left-0 z-50 flex w-[82%] max-w-xs animate-[slide-in-left_0.3s_ease-out] flex-col border-r border-white/10 bg-card p-4 shadow-2xl"
             style={{ animation: "slideInLeft 0.3s ease-out" }}
           >
             <div className="flex items-center justify-between">
