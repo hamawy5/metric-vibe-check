@@ -116,7 +116,7 @@ function ReadingPage() {
       <button
         type="button"
         onClick={() => setSummaryOpen(true)}
-        className="fixed right-4 top-12 z-30 flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/15 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-primary shadow-lg backdrop-blur transition active:scale-95"
+        className="fixed right-4 top-12 z-30 flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/15 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-primary shado[...]"
       >
         <StickyNote className="h-3.5 w-3.5" />
         Summary
@@ -303,7 +303,7 @@ function ReadingPage() {
                 type="button"
                 onClick={() => setQuizOpen(true)}
                 disabled={questions.length === 0}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-5 py-4 text-sm font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-5 py-4 text-sm font-bold text-primary-foreground shadow-[var([...]]"
               >
                 <Sparkles className="h-4 w-4" />
                 {questions.length === 0 ? "Quick Quiz coming soon" : `Quick Quiz (${Math.min(5, questions.length)} Questions)`}
@@ -340,7 +340,7 @@ function ReadingPage() {
                 <button
                   type="button"
                   onClick={() => goToSub(nextSub)}
-                  className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-4 py-3.5 text-left text-primary-foreground shadow-[var(--shadow-glow)] transition active:scale-[0.99]"
+                  className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-4 py-3.5 text-left text-primary-foreground shadow-[var(--shadow-glow)] transition[...]"
                 >
                   <span className="min-w-0 flex-1">
                     <span className="block text-[11px] font-bold uppercase tracking-wider opacity-80">
@@ -358,7 +358,7 @@ function ReadingPage() {
                 <Link
                   to="/studying/$grade/$subject"
                   params={{ grade, subject }}
-                  className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-400 px-5 py-4 text-sm font-bold text-white shadow-lg transition active:scale-[0.99]"
+                  className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-400 px-5 py-4 text-sm font-bold text-white shadow-lg transition active[...]]"
                 >
                   <Flag className="h-4 w-4" />
                   Complete Unit {unit}
@@ -448,7 +448,7 @@ function QuickQuiz({ questions, onClose }: { questions: ParsedQ[]; onClose: () =
           <button
             type="button"
             onClick={reset}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-5 py-3.5 text-sm font-bold text-primary-foreground transition active:scale-[0.99]"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-5 py-3.5 text-sm font-bold text-primary-foreground transition active:s[...]"
           >
             <RotateCcw className="h-4 w-4" />
             Retake Quiz
@@ -489,7 +489,7 @@ function QuickQuiz({ questions, onClose }: { questions: ParsedQ[]; onClose: () =
         />
       </div>
 
-      <p className="mb-4 text-[15px] font-semibold leading-relaxed text-foreground">{q.question}</p>
+      <div className="mb-4 text-[15px] font-semibold leading-relaxed text-foreground"><MarkdownInline text={q.question} /></div>
 
       <div className="space-y-2">
         {q.options.map((o) => {
@@ -512,7 +512,7 @@ function QuickQuiz({ questions, onClose }: { questions: ParsedQ[]; onClose: () =
               <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-background/60 text-[11px] font-bold">
                 {o.letter}
               </span>
-              <span className="flex-1">{o.text}</span>
+              <div className="flex-1"><MarkdownInline text={o.text} /></div>
               {chosen && isAns ? <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" /> : null}
               {chosen && picked && !isAns ? <XCircle className="h-4 w-4 shrink-0 text-red-400" /> : null}
             </button>
