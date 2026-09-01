@@ -31,11 +31,17 @@ function UnitsPage() {
   const { data: units, error } = useQuery(subUnitsQuery(grade, subject));
   const [openUnit, setOpenUnitState] = useState<string>(() => getOpenUnit(grade, subject));
 
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
   const toggleUnit = (key: string) => {
     const next = openUnit === key ? "" : key;
     setOpenUnitState(next);
     setOpenUnit(grade, subject, next);
   };
+
+  const toggleGroup = (code: string) =>
+    setOpenGroups((prev) => ({ ...prev, [code]: !prev[code] }));
+
 
 
   return (
