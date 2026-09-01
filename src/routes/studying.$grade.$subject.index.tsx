@@ -1,8 +1,14 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Bookmark, Rocket, ChevronDown, Circle, Inbox } from "lucide-react";
-import { subUnitsQuery, getOpenUnit, setOpenUnit } from "@/lib/curriculum";
+import { ArrowLeft, Bookmark, Rocket, ChevronDown, Circle, Inbox, FolderClosed } from "lucide-react";
+import {
+  subUnitsQuery,
+  getOpenUnit,
+  setOpenUnit,
+  groupSubUnits,
+  subParam,
+} from "@/lib/curriculum";
 
 export const Route = createFileRoute("/studying/$grade/$subject/")({
   head: ({ params }) => ({
