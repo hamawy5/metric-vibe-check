@@ -8,7 +8,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import { type SubUnit } from "@/integrations/external-questions/client";
-import { subUnitsQuery } from "@/lib/curriculum";
+import { subUnitsQuery, subParam } from "@/lib/curriculum";
 import { MermaidDiagram } from "@/components/MermaidDiagram";
 import { openImageLightbox } from "@/components/ImageLightbox";
 
@@ -98,7 +98,7 @@ function ReadingPage() {
         grade,
         subject,
         unit: String(target.unit_number),
-        sub: target.subunit_code.split(".").pop() ?? target.subunit_code,
+        sub: subParam(String(target.unit_number), target.subunit_code),
       },
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
