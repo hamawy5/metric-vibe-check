@@ -72,9 +72,7 @@ export function groupSubUnits(subunits: SubUnit[]): SubUnitNode[] {
     const node = nodes.get(code)!;
     if (node.kind === "group") {
       node.children.sort((a, b) => compareCodes(a.code, b.code));
-      node.title = node.children[0]?.row.unit_title
-        ? `Section ${node.code}`
-        : `Section ${node.code}`;
+      node.title = `Section ${node.code}`;
     }
     return node;
   });
