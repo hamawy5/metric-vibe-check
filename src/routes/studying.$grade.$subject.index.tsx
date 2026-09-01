@@ -1,8 +1,14 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Bookmark, Rocket, ChevronDown, Circle, Inbox } from "lucide-react";
-import { subUnitsQuery, getOpenUnit, setOpenUnit } from "@/lib/curriculum";
+import { ArrowLeft, Bookmark, Rocket, ChevronDown, Circle, Inbox, FolderClosed } from "lucide-react";
+import {
+  subUnitsQuery,
+  getOpenUnit,
+  setOpenUnit,
+  groupSubUnits,
+  subParam,
+} from "@/lib/curriculum";
 
 export const Route = createFileRoute("/studying/$grade/$subject/")({
   head: ({ params }) => ({
@@ -25,11 +31,17 @@ function UnitsPage() {
   const { data: units, error } = useQuery(subUnitsQuery(grade, subject));
   const [openUnit, setOpenUnitState] = useState<string>(() => getOpenUnit(grade, subject));
 
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
   const toggleUnit = (key: string) => {
     const next = openUnit === key ? "" : key;
     setOpenUnitState(next);
     setOpenUnit(grade, subject, next);
   };
+
+  const toggleGroup = (code: string) =>
+    setOpenGroups((prev) => ({ ...prev, [code]: !prev[code] }));
+
 
 
   return (
@@ -116,28 +128,90 @@ function UnitsPage() {
               {open ? (
                 <div className="border-t border-white/5 pb-3 pt-0">
                   <div className="space-y-2 p-3 pt-2">
-                    {unit.subunits.map((sub) => (
-                      <Link
-                        key={sub.id}
-                        to="/studying/$grade/$subject/reading/$unit/$sub"
-                        params={{
-                          grade,
-                          subject,
-                          unit: unit.unit_number,
-                          sub: sub.subunit_code.split(".").pop() ?? sub.subunit_code,
-                        }}
-                        className="flex items-center gap-3 rounded-xl bg-secondary/50 px-3 py-3 transition hover:bg-secondary active:scale-[0.99]"
-                      >
-                        <Circle className="h-5 w-5 shrink-0 text-muted-foreground" />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium">{sub.title}</p>
-                          <p className="text-[11px] text-muted-foreground">Open reading</p>
+                    {groupSubUnits(unit.subunits).map((node) => {
+                      if (node.kind === "leaf") {
+                        const sub = node.row;
+                        return (
+                          <Link
+                            key={sub.id}
+                            to="/studying/$grade/$subject/reading/$unit/$sub"
+                            params={{
+                              grade,
+                              subject,
+                              unit: unit.unit_number,
+                              sub: subParam(unit.unit_number, sub.subunit_code),
+                            }}
+                            className="flex items-center gap-3 rounded-xl bg-secondary/50 px-3 py-3 transition hover:bg-secondary active:scale-[0.99]"
+                          >
+                            <Circle className="h-5 w-5 shrink-0 text-muted-foreground" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium">{sub.title}</p>
+                              <p className="text-[11px] text-muted-foreground">Open reading</p>
+                            </div>
+                            <span className="rounded-full bg-background/60 px-2 py-1 text-[10px] font-semibold text-muted-foreground">
+                              {sub.subunit_code}
+                            </span>
+                          </Link>
+                        );
+                      }
+
+                      const groupOpen = !!openGroups[node.code];
+                      return (
+                        <div
+                          key={node.code}
+                          className="overflow-hidden rounded-xl bg-secondary/50"
+                        >
+                          <button
+                            type="button"
+                            aria-expanded={groupOpen}
+                            onClick={() => toggleGroup(node.code)}
+                            className="flex w-full items-center gap-3 px-3 py-3 text-left transition hover:bg-secondary"
+                          >
+                            <FolderClosed className="h-5 w-5 shrink-0 text-primary" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium">Section {node.code}</p>
+                              <p className="text-[11px] text-muted-foreground">
+                                {node.children.length} sub-topic
+                                {node.children.length === 1 ? "" : "s"}
+                              </p>
+                            </div>
+                            <span className="rounded-full bg-background/60 px-2 py-1 text-[10px] font-semibold text-muted-foreground">
+                              {node.code}
+                            </span>
+                            <ChevronDown
+                              className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${groupOpen ? "rotate-180" : ""}`}
+                            />
+                          </button>
+
+                          {groupOpen ? (
+                            <div className="space-y-2 border-t border-white/5 p-2 pl-5">
+                              {node.children.map(({ code, row }) => (
+                                <Link
+                                  key={row.id}
+                                  to="/studying/$grade/$subject/reading/$unit/$sub"
+                                  params={{
+                                    grade,
+                                    subject,
+                                    unit: unit.unit_number,
+                                    sub: subParam(unit.unit_number, code),
+                                  }}
+                                  className="flex items-center gap-3 rounded-xl bg-background/40 px-3 py-3 transition hover:bg-background/70 active:scale-[0.99]"
+                                >
+                                  <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-medium">{row.title}</p>
+                                    <p className="text-[11px] text-muted-foreground">Open reading</p>
+                                  </div>
+                                  <span className="rounded-full bg-background/60 px-2 py-1 text-[10px] font-semibold text-muted-foreground">
+                                    {code}
+                                  </span>
+                                </Link>
+                              ))}
+                            </div>
+                          ) : null}
                         </div>
-                        <span className="rounded-full bg-background/60 px-2 py-1 text-[10px] font-semibold text-muted-foreground">
-                          {sub.subunit_code}
-                        </span>
-                      </Link>
-                    ))}
+                      );
+                    })}
                     <Link
                       to="/studying/$grade/$subject/quiz/$unit"
                       params={{ grade, subject, unit: unit.unit_number }}

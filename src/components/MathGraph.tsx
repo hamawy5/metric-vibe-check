@@ -86,7 +86,7 @@ export function parseMathGraphSpec(raw: string): MathGraphSpec | null {
 
 interface GraphFunction {
   fn: string;
-  color: string;
+  color?: string;
   label?: string;
   call?: (x: number) => number;
 }
