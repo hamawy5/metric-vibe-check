@@ -12,6 +12,5 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
     spa: { enabled: true, prerender: { enabled: true } },
-    target: 'static',
   },
 });
