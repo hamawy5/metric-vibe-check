@@ -615,7 +615,14 @@ function QuickQuiz({
           <button
             type="button"
             disabled={!chosen}
-            onClick={() => setDone(true)}
+            onClick={() => {
+              const correct = Object.entries(answers).reduce(
+                (acc, [i, a]) => acc + (questions[Number(i)]?.answer === a ? 1 : 0),
+                0,
+              );
+              onFinish?.(total > 0 ? (correct / total) * 100 : 0);
+              setDone(true);
+            }}
             className="flex-1 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-400 px-4 py-3 text-sm font-bold text-white transition active:scale-[0.99] disabled:opacity-40"
           >
             Finish
