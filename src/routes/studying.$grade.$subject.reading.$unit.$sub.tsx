@@ -461,7 +461,15 @@ function ReadingPage() {
   );
 }
 
-function QuickQuiz({ questions, onClose }: { questions: ParsedQ[]; onClose: () => void }) {
+function QuickQuiz({
+  questions,
+  onClose,
+  onFinish,
+}: {
+  questions: ParsedQ[];
+  onClose: () => void;
+  onFinish?: (scorePercent: number) => void;
+}) {
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [expOpen, setExpOpen] = useState<Record<number, boolean>>({});
