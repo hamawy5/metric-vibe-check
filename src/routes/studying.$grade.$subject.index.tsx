@@ -9,6 +9,8 @@ import {
   groupSubUnits,
   subParam,
 } from "@/lib/curriculum";
+import { useStream } from "@/lib/stream";
+import { updateLastPosition } from "@/lib/progress";
 
 export const Route = createFileRoute("/studying/$grade/$subject/")({
   head: ({ params }) => ({
