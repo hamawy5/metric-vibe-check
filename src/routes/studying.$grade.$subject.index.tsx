@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Bookmark, Rocket, ChevronDown, Circle, Inbox, FolderClosed } from "lucide-react";
@@ -9,6 +9,8 @@ import {
   groupSubUnits,
   subParam,
 } from "@/lib/curriculum";
+import { useStream } from "@/lib/stream";
+import { updateLastPosition } from "@/lib/progress";
 
 export const Route = createFileRoute("/studying/$grade/$subject/")({
   head: ({ params }) => ({
@@ -41,6 +43,11 @@ function UnitsPage() {
 
   const toggleGroup = (code: string) =>
     setOpenGroups((prev) => ({ ...prev, [code]: !prev[code] }));
+
+  const stream = useStream() ?? "";
+  useEffect(() => {
+    updateLastPosition(stream, { grade, subject, unit: openUnit || "" });
+  }, [stream, grade, subject, openUnit]);
 
 
 

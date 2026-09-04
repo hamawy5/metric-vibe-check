@@ -11,6 +11,14 @@ import { type SubUnit } from "@/integrations/external-questions/client";
 import { subUnitsQuery, subParam } from "@/lib/curriculum";
 import { MermaidDiagram } from "@/components/MermaidDiagram";
 import { openImageLightbox } from "@/components/ImageLightbox";
+import { useStream } from "@/lib/stream";
+import {
+  getProgress,
+  getSubunitStatus,
+  markQuizComplete,
+  markReadingComplete,
+  updateLastPosition,
+} from "@/lib/progress";
 
 export const Route = createFileRoute("/studying/$grade/$subject/reading/$unit/$sub")({
   head: ({ params }) => ({
@@ -80,9 +88,25 @@ function ReadingPage() {
   const loading = isPending;
   const error = queryError ? ((queryError as Error).message ?? "Failed to load reading") : null;
 
+  const stream = useStream() ?? "";
+  const progressId = `${grade}:${subject}:${subunitCode}`;
+  const [readingDone, setReadingDone] = useState(false);
+
   useEffect(() => {
     setQuizOpen(false);
-  }, [subunitCode]);
+    setReadingDone(getSubunitStatus(getProgress(stream), progressId) !== "none");
+  }, [subunitCode, stream, progressId]);
+
+  // Track where the student is, so Home's "Continue" card stays accurate.
+  useEffect(() => {
+    updateLastPosition(stream, { grade, subject, unit: String(unit) });
+  }, [stream, grade, subject, unit]);
+
+  const completeReading = () => {
+    markReadingComplete(stream, progressId);
+    setReadingDone(true);
+  };
+
 
 
   const currentIdx = siblings.findIndex((s) => s.subunit_code === subunitCode);
@@ -295,9 +319,26 @@ function ReadingPage() {
           </article>
         ) : null}
 
+        {/* Mark reading finished */}
+        {data && !loading ? (
+          <button
+            type="button"
+            onClick={completeReading}
+            disabled={readingDone}
+            className={`mt-8 flex w-full items-center justify-center gap-2 rounded-2xl border px-5 py-3.5 text-sm font-bold transition active:scale-[0.99] ${
+              readingDone
+                ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-500"
+                : "border-primary/40 bg-primary/10 text-primary hover:bg-primary/15"
+            }`}
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            {readingDone ? "Reading completed" : "I finished this reading"}
+          </button>
+        ) : null}
+
         {/* Inline Quick Quiz launcher / player */}
         {data && !loading ? (
-          <div className="mt-8">
+          <div className="mt-4">
             {!quizOpen ? (
               <button
                 type="button"
@@ -309,7 +350,11 @@ function ReadingPage() {
                 {questions.length === 0 ? "Quick Quiz coming soon" : `Quick Quiz (${Math.min(5, questions.length)} Questions)`}
               </button>
             ) : (
-              <QuickQuiz questions={questions.slice(0, 5)} onClose={() => setQuizOpen(false)} />
+              <QuickQuiz
+                questions={questions.slice(0, 5)}
+                onClose={() => setQuizOpen(false)}
+                onFinish={(pct) => markQuizComplete(stream, progressId, pct)}
+              />
             )}
           </div>
         ) : null}
@@ -416,7 +461,15 @@ function ReadingPage() {
   );
 }
 
-function QuickQuiz({ questions, onClose }: { questions: ParsedQ[]; onClose: () => void }) {
+function QuickQuiz({
+  questions,
+  onClose,
+  onFinish,
+}: {
+  questions: ParsedQ[];
+  onClose: () => void;
+  onFinish?: (scorePercent: number) => void;
+}) {
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [expOpen, setExpOpen] = useState<Record<number, boolean>>({});
@@ -562,7 +615,14 @@ function QuickQuiz({ questions, onClose }: { questions: ParsedQ[]; onClose: () =
           <button
             type="button"
             disabled={!chosen}
-            onClick={() => setDone(true)}
+            onClick={() => {
+              const correct = Object.entries(answers).reduce(
+                (acc, [i, a]) => acc + (questions[Number(i)]?.answer === a ? 1 : 0),
+                0,
+              );
+              onFinish?.(total > 0 ? (correct / total) * 100 : 0);
+              setDone(true);
+            }}
             className="flex-1 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-400 px-4 py-3 text-sm font-bold text-white transition active:scale-[0.99] disabled:opacity-40"
           >
             Finish

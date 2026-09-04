@@ -8,10 +8,19 @@ import {
   BookOpen,
   Trophy,
   LogIn,
+  ClipboardCheck,
 } from "lucide-react";
 import { StreamSelectorModal } from "@/components/StreamSelectorModal";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { clearStream, useStream } from "@/lib/stream";
+import { useProgress } from "@/lib/useProgress";
+import {
+  getSubunitStatus,
+  getWeakTopics,
+  getWeekBarStatus,
+  WEEK_DAY_LABELS,
+  type DayStatus,
+} from "@/lib/progress";
 
 export const Route = createFileRoute("/")({
   head: () => ({
