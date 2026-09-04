@@ -350,7 +350,11 @@ function ReadingPage() {
                 {questions.length === 0 ? "Quick Quiz coming soon" : `Quick Quiz (${Math.min(5, questions.length)} Questions)`}
               </button>
             ) : (
-              <QuickQuiz questions={questions.slice(0, 5)} onClose={() => setQuizOpen(false)} />
+              <QuickQuiz
+                questions={questions.slice(0, 5)}
+                onClose={() => setQuizOpen(false)}
+                onFinish={(pct) => markQuizComplete(stream, progressId, pct)}
+              />
             )}
           </div>
         ) : null}
