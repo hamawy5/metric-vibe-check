@@ -88,9 +88,25 @@ function ReadingPage() {
   const loading = isPending;
   const error = queryError ? ((queryError as Error).message ?? "Failed to load reading") : null;
 
+  const stream = useStream() ?? "";
+  const progressId = `${grade}:${subject}:${subunitCode}`;
+  const [readingDone, setReadingDone] = useState(false);
+
   useEffect(() => {
     setQuizOpen(false);
-  }, [subunitCode]);
+    setReadingDone(getSubunitStatus(getProgress(stream), progressId) !== "none");
+  }, [subunitCode, stream, progressId]);
+
+  // Track where the student is, so Home's "Continue" card stays accurate.
+  useEffect(() => {
+    updateLastPosition(stream, { grade, subject, unit: String(unit) });
+  }, [stream, grade, subject, unit]);
+
+  const completeReading = () => {
+    markReadingComplete(stream, progressId);
+    setReadingDone(true);
+  };
+
 
 
   const currentIdx = siblings.findIndex((s) => s.subunit_code === subunitCode);
