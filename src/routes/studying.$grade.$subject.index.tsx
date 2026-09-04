@@ -44,6 +44,11 @@ function UnitsPage() {
   const toggleGroup = (code: string) =>
     setOpenGroups((prev) => ({ ...prev, [code]: !prev[code] }));
 
+  const stream = useStream() ?? "";
+  useEffect(() => {
+    updateLastPosition(stream, { grade, subject, unit: openUnit || "" });
+  }, [stream, grade, subject, openUnit]);
+
 
 
   return (
