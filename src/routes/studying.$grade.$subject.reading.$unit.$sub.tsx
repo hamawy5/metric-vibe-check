@@ -11,6 +11,14 @@ import { type SubUnit } from "@/integrations/external-questions/client";
 import { subUnitsQuery, subParam } from "@/lib/curriculum";
 import { MermaidDiagram } from "@/components/MermaidDiagram";
 import { openImageLightbox } from "@/components/ImageLightbox";
+import { useStream } from "@/lib/stream";
+import {
+  getProgress,
+  getSubunitStatus,
+  markQuizComplete,
+  markReadingComplete,
+  updateLastPosition,
+} from "@/lib/progress";
 
 export const Route = createFileRoute("/studying/$grade/$subject/reading/$unit/$sub")({
   head: ({ params }) => ({
