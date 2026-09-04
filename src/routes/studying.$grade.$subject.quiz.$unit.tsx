@@ -25,6 +25,8 @@ import {
   type ExternalQuestion,
 } from "@/integrations/external-questions/client";
 import { deepExplain } from "@/lib/api/deep-explain.functions";
+import { useStream } from "@/lib/stream";
+import { markQuizComplete, updateLastPosition } from "@/lib/progress";
 
 export const Route = createFileRoute("/studying/$grade/$subject/quiz/$unit")({
   head: ({ params }) => ({
