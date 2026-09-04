@@ -112,10 +112,33 @@ function QuizPage() {
   const total = questions.length;
   const progressPct = total > 0 ? ((index + 1) / total) * 100 : 0;
 
+  const stream = useStream() ?? "";
+  const progressId = `${grade}:${subject}:${unit}`;
+  const [recorded, setRecorded] = useState(false);
+
+  useEffect(() => {
+    updateLastPosition(stream, { grade, subject, unit: String(unit) });
+  }, [stream, grade, subject, unit]);
+
+  useEffect(() => {
+    setRecorded(false);
+  }, [progressId]);
+
+  // Record the unit mastery quiz once every question has been answered.
+  useEffect(() => {
+    if (recorded || total === 0) return;
+    const answeredCount = questions.filter((q) => answers[q.id]).length;
+    if (answeredCount < total) return;
+    const correctCount = questions.filter((q) => answers[q.id] === q.correct_answer).length;
+    markQuizComplete(stream, progressId, (correctCount / total) * 100);
+    setRecorded(true);
+  }, [answers, questions, total, recorded, stream, progressId]);
+
   const handleSelect = (opt: string) => {
     if (!question || answers[question.id]) return;
     setAnswers((a) => ({ ...a, [question.id]: opt }));
   };
+
 
   const goPrev = () => {
     if (index === 0) return;
