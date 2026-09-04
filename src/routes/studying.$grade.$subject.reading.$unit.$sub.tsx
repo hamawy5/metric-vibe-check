@@ -319,9 +319,26 @@ function ReadingPage() {
           </article>
         ) : null}
 
+        {/* Mark reading finished */}
+        {data && !loading ? (
+          <button
+            type="button"
+            onClick={completeReading}
+            disabled={readingDone}
+            className={`mt-8 flex w-full items-center justify-center gap-2 rounded-2xl border px-5 py-3.5 text-sm font-bold transition active:scale-[0.99] ${
+              readingDone
+                ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-500"
+                : "border-primary/40 bg-primary/10 text-primary hover:bg-primary/15"
+            }`}
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            {readingDone ? "Reading completed" : "I finished this reading"}
+          </button>
+        ) : null}
+
         {/* Inline Quick Quiz launcher / player */}
         {data && !loading ? (
-          <div className="mt-8">
+          <div className="mt-4">
             {!quizOpen ? (
               <button
                 type="button"
