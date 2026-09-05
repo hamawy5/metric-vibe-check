@@ -109,21 +109,28 @@ function HomePage() {
               Study streak
             </p>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-4xl font-black tracking-tight">7</span>
-              <span className="text-base font-semibold text-muted-foreground">Days</span>
-              <Flame className="h-6 w-6 text-orange-400" />
+              <span className="text-4xl font-black tracking-tight">{currentStreak}</span>
+              <span className="text-base font-semibold text-muted-foreground">
+                {currentStreak === 1 ? "Day" : "Days"}
+              </span>
+              <Flame
+                className={`h-6 w-6 ${currentStreak > 0 ? "text-orange-400" : "text-muted-foreground"}`}
+              />
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              Keep the fire burning — 30 min today.
+              {currentStreak > 0
+                ? "Keep the fire burning — 30 min today."
+                : "Finish a reading or a quiz to start your streak."}
             </p>
           </div>
-          <div className="flex gap-1">
-            {Array.from({ length: 7 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-12 w-2 rounded-full bg-[image:var(--gradient-primary)] shadow-[var(--shadow-glow)]"
-                style={{ opacity: 0.4 + i * 0.085 }}
-              />
+          <div className="flex gap-1.5">
+            {(week.length ? week : Array.from({ length: 7 }, () => null)).map((d, i) => (
+              <div key={i} className="flex flex-col items-center gap-1.5">
+                <div className={`h-12 w-2.5 rounded-full ${barClass(d?.status ?? "future")}`} />
+                <span className="text-[9px] font-semibold text-muted-foreground">
+                  {WEEK_DAY_LABELS[i]}
+                </span>
+              </div>
             ))}
           </div>
         </div>
