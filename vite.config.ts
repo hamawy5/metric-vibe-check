@@ -11,6 +11,8 @@ export default defineConfig({
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
-    prerender: { enabled: true, crawlLinks: true },
+    // Prerender is disabled: the Cloudflare worker build emits index.mjs, which the
+    // prerender preview server cannot load (it expects dist/server/server.js).
+    prerender: { enabled: false },
   },
 });
