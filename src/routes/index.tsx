@@ -44,6 +44,20 @@ function HomePage() {
     setShowStreamModal(true);
   };
 
+  const { progress } = useProgress();
+  const week = progress ? getWeekBarStatus(progress) : [];
+  const currentStreak = progress?.currentStreak ?? 0;
+  const weakTopics = progress ? getWeakTopics(progress) : [];
+  const lastPosition = progress?.lastPosition ?? null;
+  const lastSubunitId =
+    progress && lastPosition
+      ? `${lastPosition.grade}:${lastPosition.subject}:${lastPosition.unit}`
+      : null;
+  const lastStatus =
+    progress && lastSubunitId ? getSubunitStatus(progress, lastSubunitId) : "none";
+  const needsQuiz = lastStatus === "partial";
+
+
   return (
     <div className="px-5 pt-12">
       <ThemeToggle />
@@ -95,21 +109,28 @@ function HomePage() {
               Study streak
             </p>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-4xl font-black tracking-tight">7</span>
-              <span className="text-base font-semibold text-muted-foreground">Days</span>
-              <Flame className="h-6 w-6 text-orange-400" />
+              <span className="text-4xl font-black tracking-tight">{currentStreak}</span>
+              <span className="text-base font-semibold text-muted-foreground">
+                {currentStreak === 1 ? "Day" : "Days"}
+              </span>
+              <Flame
+                className={`h-6 w-6 ${currentStreak > 0 ? "text-orange-400" : "text-muted-foreground"}`}
+              />
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              Keep the fire burning — 30 min today.
+              {currentStreak > 0
+                ? "Keep the fire burning — 30 min today."
+                : "Finish a reading or a quiz to start your streak."}
             </p>
           </div>
-          <div className="flex gap-1">
-            {Array.from({ length: 7 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-12 w-2 rounded-full bg-[image:var(--gradient-primary)] shadow-[var(--shadow-glow)]"
-                style={{ opacity: 0.4 + i * 0.085 }}
-              />
+          <div className="flex gap-1.5">
+            {(week.length ? week : Array.from({ length: 7 }, () => null)).map((d, i) => (
+              <div key={i} className="flex flex-col items-center gap-1.5">
+                <div className={`h-12 w-2.5 rounded-full ${barClass(d?.status ?? "future")}`} />
+                <span className="text-[9px] font-semibold text-muted-foreground">
+                  {WEEK_DAY_LABELS[i]}
+                </span>
+              </div>
             ))}
           </div>
         </div>
@@ -143,8 +164,49 @@ function HomePage() {
       <section className="mt-6">
         <h2 className="mb-3 text-sm font-semibold text-muted-foreground">Continue</h2>
         <div className="grid grid-cols-2 gap-3">
-          <ActionCard icon={BookOpen} label="Resume Grade 12" sub="Functions · Unit 3" />
-          <ActionCard icon={TrendingUp} label="Weak topics" sub="3 to review" />
+          {lastPosition ? (
+            needsQuiz ? (
+              <ActionCard
+                icon={ClipboardCheck}
+                label="Take Quiz"
+                sub={`Grade ${lastPosition.grade} · ${prettyLabel(lastPosition.subject)}${
+                  lastPosition.unit ? ` · Unit ${lastPosition.unit}` : ""
+                }`}
+                to="/studying/$grade/$subject"
+                params={{ grade: lastPosition.grade, subject: lastPosition.subject }}
+              />
+            ) : (
+              <ActionCard
+                icon={BookOpen}
+                label={`Resume Grade ${lastPosition.grade}`}
+                sub={`${prettyLabel(lastPosition.subject)}${
+                  lastPosition.unit ? ` · Unit ${lastPosition.unit}` : ""
+                }`}
+                to="/studying/$grade/$subject"
+                params={{ grade: lastPosition.grade, subject: lastPosition.subject }}
+              />
+            )
+          ) : (
+            <ActionCard
+              icon={BookOpen}
+              label="Start studying"
+              sub="Pick a grade to begin"
+              to="/studying"
+            />
+          )}
+
+          <ActionCard
+            icon={TrendingUp}
+            label="Weak topics"
+            sub={
+              weakTopics.length === 0
+                ? "Nothing to review yet"
+                : `${weakTopics.length} to review · ${weakTopics
+                    .slice(0, 2)
+                    .map((t) => t.id.split(":").slice(1).join(" "))
+                    .join(", ")}`
+            }
+          />
         </div>
       </section>
 
@@ -153,20 +215,53 @@ function HomePage() {
   );
 }
 
+function prettyLabel(slug: string) {
+  return slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : "";
+}
+
+/** Weekly bar visual per day state. */
+function barClass(status: DayStatus) {
+  switch (status) {
+    case "studied":
+      return "bg-[image:var(--gradient-primary)] shadow-[var(--shadow-glow)]";
+    case "missed":
+      return "bg-red-500 shadow-[0_0_10px_hsl(0_84%_60%/0.7)]";
+    case "today-not-studied":
+      return "border-2 border-dashed border-primary/70 bg-primary/10";
+    default:
+      return "bg-secondary";
+  }
+}
+
 function ActionCard({
   icon: Icon,
   label,
   sub,
+  to,
+  params,
 }: {
   icon: typeof Flame;
   label: string;
   sub: string;
+  to?: string;
+  params?: Record<string, string>;
 }) {
-  return (
-    <button className="group rounded-2xl border border-white/5 bg-card p-4 text-left transition hover:border-primary/40">
+  const inner = (
+    <>
       <Icon className="h-5 w-5 text-primary" />
       <p className="mt-3 text-sm font-semibold">{label}</p>
       <p className="text-xs text-muted-foreground">{sub}</p>
-    </button>
+    </>
   );
+  const cls =
+    "group block rounded-2xl border border-white/5 bg-card p-4 text-left transition hover:border-primary/40";
+  if (to) {
+    return (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      <Link to={to as any} params={params as any} className={cls}>
+        {inner}
+      </Link>
+    );
+  }
+  return <button className={cls}>{inner}</button>;
 }
