@@ -70,7 +70,7 @@ export function MermaidDiagram({ code }: { code: string }) {
             const svg = ref.current?.querySelector("svg");
             if (svg) openHtmlLightbox(svg.outerHTML);
           }}
-          className="mermaid-render flex min-w-[500px] cursor-zoom-in justify-center [&_svg]:h-auto [&_svg]:min-w-[500px] [&_svg]:max-w-none"
+          className="mermaid-render flex w-max min-w-full cursor-zoom-in justify-center [&_svg]:h-auto [&_svg]:max-w-none"
         />
       )}
     </div>

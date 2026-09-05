@@ -308,7 +308,7 @@ function ReadingPage() {
                       src={typeof src === "string" ? src : ""}
                       alt={alt ?? ""}
                       onClick={() => src && openImageLightbox(String(src), alt)}
-                      className="mx-auto block min-w-[320px] max-w-full cursor-zoom-in rounded-lg"
+                      className="mx-auto block h-auto w-full max-w-full cursor-zoom-in rounded-lg"
                     />
                   </div>
                 ),

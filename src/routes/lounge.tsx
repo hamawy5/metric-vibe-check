@@ -463,7 +463,7 @@ function LoungePage() {
             onClick={() => setSheetOpen(false)}
           />
           <div
-            className="fixed inset-x-0 bottom-0 z-50 flex h-[50vh] flex-col rounded-t-3xl border-t border-white/10 bg-card p-4 shadow-2xl"
+            className="fixed inset-x-0 bottom-0 z-50 flex h-[50svh] max-h-[80svh] flex-col rounded-t-3xl border-t border-white/10 bg-card p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-2xl"
             style={{ animation: "sheetUp 0.25s ease-out" }}
           >
             <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-muted-foreground/40" />
@@ -575,7 +575,7 @@ function LoungePage() {
             className="fixed inset-0 z-40 animate-fade-in bg-black/60 backdrop-blur-sm"
             onClick={() => setDrawer(false)}
           />
-          <aside className="fixed inset-y-0 left-0 z-50 flex w-[82%] max-w-xs animate-[slide-in-left_0.3s_ease-out] flex-col border-r border-white/10 bg-card p-4 shadow-2xl"
+          <aside className="fixed inset-y-0 left-0 z-50 flex w-[82%] max-w-xs animate-[slide-in-left_0.3s_ease-out] flex-col border-r border-white/10 bg-card p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] shadow-2xl"
             style={{ animation: "slideInLeft 0.3s ease-out" }}
           >
             <div className="flex items-center justify-between">

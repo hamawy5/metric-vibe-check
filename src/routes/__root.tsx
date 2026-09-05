@@ -176,7 +176,14 @@ function RootComponent() {
               "radial-gradient(60% 60% at 30% 0%, oklch(0.72 0.18 295 / 0.35), transparent 70%), radial-gradient(60% 60% at 80% 10%, oklch(0.78 0.15 200 / 0.25), transparent 70%)",
           }}
         />
-        <main className={cn("relative z-10", focusMode ? "pb-0" : "pb-28")}>
+        <main
+          className={cn(
+            "relative z-10 pt-[env(safe-area-inset-top)]",
+            focusMode
+              ? "pb-[env(safe-area-inset-bottom)]"
+              : "pb-[calc(7rem+env(safe-area-inset-bottom))]",
+          )}
+        >
           <Outlet />
         </main>
         <BottomNav />
