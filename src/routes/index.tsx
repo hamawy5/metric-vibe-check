@@ -44,6 +44,20 @@ function HomePage() {
     setShowStreamModal(true);
   };
 
+  const { progress } = useProgress();
+  const week = progress ? getWeekBarStatus(progress) : [];
+  const currentStreak = progress?.currentStreak ?? 0;
+  const weakTopics = progress ? getWeakTopics(progress) : [];
+  const lastPosition = progress?.lastPosition ?? null;
+  const lastSubunitId =
+    progress && lastPosition
+      ? `${lastPosition.grade}:${lastPosition.subject}:${lastPosition.unit}`
+      : null;
+  const lastStatus =
+    progress && lastSubunitId ? getSubunitStatus(progress, lastSubunitId) : "none";
+  const needsQuiz = lastStatus === "partial";
+
+
   return (
     <div className="px-5 pt-12">
       <ThemeToggle />
