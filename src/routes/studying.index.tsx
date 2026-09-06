@@ -22,7 +22,7 @@ const GRADES = [
 function GradesPage() {
   return (
     <div className="px-5 pt-12 pb-8">
-      <header className="sticky top-0 z-20 -mx-5 border-b border-border/40 bg-background/90 px-5 pb-3 pt-3 backdrop-blur-xl">
+      <header>
         <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Curriculum</p>
         <h1 className="mt-1 text-2xl font-bold tracking-tight">Choose your grade</h1>
         <p className="mt-1 text-sm text-muted-foreground">Tap a grade to continue.</p>
