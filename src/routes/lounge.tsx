@@ -182,9 +182,9 @@ function LoungePage() {
   };
 
   return (
-    <div className="flex h-[100dvh] w-full max-w-full flex-col overflow-x-hidden">
+    <div className="flex h-full min-h-0 w-full max-w-full flex-col overflow-x-hidden">
       {/* Header */}
-      <header className="flex items-center justify-between gap-2 border-b border-white/5 bg-background/80 px-3 py-3 backdrop-blur-xl">
+      <header className="flex shrink-0 items-center justify-between gap-2 border-b border-white/5 bg-background/80 px-3 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-3 backdrop-blur-xl">
         <Link
           to="/"
           className="flex items-center gap-1.5 rounded-xl bg-[image:var(--gradient-primary)] px-3 py-2 text-xs font-bold text-primary-foreground shadow-[var(--shadow-glow)] transition active:scale-95"
@@ -217,7 +217,7 @@ function LoungePage() {
       </header>
 
       {/* Messages */}
-      <div ref={scrollRef} className="w-full max-w-full flex-1 space-y-6 overflow-y-auto overflow-x-hidden px-0 py-6">
+      <div ref={scrollRef} className="min-h-0 w-full max-w-full flex-1 space-y-6 overflow-y-auto overflow-x-hidden px-0 py-6">
         {messages.map((m, i) => (
           <div
             key={i}
@@ -367,7 +367,7 @@ function LoungePage() {
       </div>
 
       {/* Composer */}
-      <div className="border-t border-white/5 bg-background/80 px-3 py-3 backdrop-blur-xl">
+      <div className="shrink-0 border-t border-white/5 bg-background/80 px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-xl">
         {editingIndex !== null && (
           <div className="mb-2 flex items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-[12px]">
             <Pencil className="h-3.5 w-3.5 shrink-0 text-primary" />
