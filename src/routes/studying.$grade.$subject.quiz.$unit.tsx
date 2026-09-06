@@ -185,7 +185,7 @@ function QuizPage() {
   };
 
   return (
-    <div className="min-h-dvh bg-background px-5 pt-12 pb-32">
+    <div className="bg-background px-5 pt-12 pb-16">
       <Link
         to="/studying/$grade/$subject"
         params={{ grade, subject }}
