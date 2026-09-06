@@ -181,9 +181,12 @@ function RootComponent() {
         <main
           className={cn(
             "relative z-10 min-h-0 flex-1",
-            focusMode
+            ownsShell
               ? "flex flex-col overflow-hidden"
-              : "overflow-y-auto pt-[env(safe-area-inset-top)] pb-6",
+              : cn(
+                  "overflow-y-auto pt-[env(safe-area-inset-top)]",
+                  focusMode ? "pb-[calc(1.5rem+env(safe-area-inset-bottom))]" : "pb-6",
+                ),
           )}
         >
           <Outlet />
