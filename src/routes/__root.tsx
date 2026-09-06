@@ -164,6 +164,8 @@ function RootComponent() {
     pathname.startsWith("/lounge") ||
     pathname.includes("/quiz/") ||
     pathname.includes("/reading/");
+  // Chat owns its own header/scroll/footer shell; other screens scroll inside <main>.
+  const ownsShell = pathname.startsWith("/lounge");
   return (
     <QueryClientProvider client={queryClient}>
       <div className="relative mx-auto flex h-[100dvh] max-w-md flex-col overflow-hidden bg-background">
