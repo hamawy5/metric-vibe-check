@@ -178,10 +178,10 @@ function RootComponent() {
         />
         <main
           className={cn(
-            "relative z-10 pt-[env(safe-area-inset-top)]",
+            "relative z-10 min-h-0 flex-1",
             focusMode
-              ? "pb-[env(safe-area-inset-bottom)]"
-              : "pb-[calc(7rem+env(safe-area-inset-bottom))]",
+              ? "flex flex-col overflow-hidden"
+              : "overflow-y-auto pt-[env(safe-area-inset-top)] pb-6",
           )}
         >
           <Outlet />
