@@ -121,7 +121,7 @@ function BottomNav() {
     pathname.includes("/reading/");
   if (focusMode) return null;
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/80 bg-white/85 backdrop-blur-md pb-[env(safe-area-inset-bottom)] dark:border-white/5 dark:bg-background/80">
+    <nav className="relative z-40 shrink-0 border-t border-slate-200/80 bg-white/85 backdrop-blur-md pb-[env(safe-area-inset-bottom)] dark:border-white/5 dark:bg-background/80">
       <div className="mx-auto flex max-w-md items-center justify-around px-2 py-2">
         {NAV.map(({ to, label, icon: Icon }) => {
           const active = pathname === to;
@@ -164,9 +164,11 @@ function RootComponent() {
     pathname.startsWith("/lounge") ||
     pathname.includes("/quiz/") ||
     pathname.includes("/reading/");
+  // Chat owns its own header/scroll/footer shell; other screens scroll inside <main>.
+  const ownsShell = pathname.startsWith("/lounge");
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="relative mx-auto min-h-screen max-w-md bg-background">
+      <div className="relative mx-auto flex h-[100dvh] max-w-md flex-col overflow-hidden bg-background">
         {/* Ambient glow */}
         <div
           aria-hidden
@@ -178,10 +180,13 @@ function RootComponent() {
         />
         <main
           className={cn(
-            "relative z-10 pt-[env(safe-area-inset-top)]",
-            focusMode
-              ? "pb-[env(safe-area-inset-bottom)]"
-              : "pb-[calc(7rem+env(safe-area-inset-bottom))]",
+            "relative z-10 min-h-0 flex-1",
+            ownsShell
+              ? "flex flex-col overflow-hidden"
+              : cn(
+                  "overflow-y-auto pt-[env(safe-area-inset-top)]",
+                  focusMode ? "pb-[calc(1.5rem+env(safe-area-inset-bottom))]" : "pb-6",
+                ),
           )}
         >
           <Outlet />

@@ -185,7 +185,7 @@ function QuizPage() {
   };
 
   return (
-    <div className="min-h-dvh bg-background px-5 pt-12 pb-32">
+    <div className="bg-background px-5 pt-12 pb-16">
       <Link
         to="/studying/$grade/$subject"
         params={{ grade, subject }}
@@ -195,7 +195,7 @@ function QuizPage() {
         Close Quiz
       </Link>
 
-      <header className="mt-5">
+      <header className="mt-5 sticky top-0 z-20 -mx-5 border-b border-border/40 bg-background/90 px-5 pb-3 pt-3 backdrop-blur-xl">
         <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
           Grade {grade} · {subjectLabel} · Unit {unit}
         </p>

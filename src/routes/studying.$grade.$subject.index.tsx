@@ -62,7 +62,7 @@ function UnitsPage() {
         ← Back to Subjects
       </Link>
 
-      <header className="mt-4">
+      <header className="mt-4 sticky top-0 z-20 -mx-5 border-b border-border/40 bg-background/90 px-5 pb-3 pt-3 backdrop-blur-xl">
         <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
           Grade {grade} · Curriculum
         </p>
