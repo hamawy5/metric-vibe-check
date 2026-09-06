@@ -166,7 +166,7 @@ function RootComponent() {
     pathname.includes("/reading/");
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="relative mx-auto min-h-screen max-w-md bg-background">
+      <div className="relative mx-auto flex h-[100dvh] max-w-md flex-col overflow-hidden bg-background">
         {/* Ambient glow */}
         <div
           aria-hidden
