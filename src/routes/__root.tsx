@@ -188,6 +188,14 @@ function RootComponent() {
                   focusMode ? "pb-[calc(1.5rem+env(safe-area-inset-bottom))]" : "pb-6",
                 ),
           )}
+          style={
+            pathname === "/exam"
+              ? {
+                  background:
+                    "linear-gradient(165deg, oklch(0.72 0.18 295 / 0.30), oklch(0.78 0.15 200 / 0.24))",
+                }
+              : undefined
+          }
         >
           <Outlet />
         </main>
