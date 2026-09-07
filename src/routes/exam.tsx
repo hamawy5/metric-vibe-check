@@ -18,7 +18,20 @@ export const Route = createFileRoute("/exam")({
 
 function ExamPage() {
   return (
-    <div className="px-5 pt-12">
+    // Full-height wrapper: the ambient gradient layer (absolute inset-0) covers the
+    // entire scrollable content area, so the purple→blue background never cuts off
+    // into a white gap when the Recent attempts list makes the page taller than the
+    // viewport. The gradient uses opaque color stops (no transparent fade) so the
+    // bottom edge stays tinted all the way down.
+    <div className="relative min-h-full px-5 pt-12">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          background:
+            "linear-gradient(165deg, oklch(0.72 0.18 295 / 0.30), oklch(0.78 0.15 200 / 0.24))",
+        }}
+      />
       <header>
         <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Mock test</p>
         <h1 className="mt-1 text-2xl font-bold tracking-tight">Exam Simulator</h1>
