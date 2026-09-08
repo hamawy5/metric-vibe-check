@@ -22,7 +22,7 @@ import {
   type DayStatus,
 } from "@/lib/progress";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "Home — MatricPulse AI" },
@@ -91,15 +91,24 @@ function HomePage() {
         </div>
       </header>
 
-      {/* Dev: simulate fresh login */}
-      <button
-        type="button"
-        onClick={simulateFreshLogin}
-        className="mt-4 inline-flex items-center gap-2 rounded-full border border-dashed border-white/20 bg-card/40 px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition hover:text-foreground"
-      >
-        <LogIn className="h-3.5 w-3.5" />
-        [Simulate Fresh Login]
-      </button>
+      <div className="mt-4 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={simulateFreshLogin}
+          className="inline-flex items-center gap-2 rounded-full border border-dashed border-white/20 bg-card/40 px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition hover:text-foreground"
+        >
+          <LogIn className="h-3.5 w-3.5" />
+          Change stream
+        </button>
+        <button
+          type="button"
+          onClick={handleSignOut}
+          className="inline-flex items-center gap-2 rounded-full border border-slate-200/80 bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition hover:text-foreground dark:border-white/10"
+        >
+          <LogOut className="h-3.5 w-3.5" />
+          Log out
+        </button>
+      </div>
 
       {/* Streak */}
       <section className="mt-6 overflow-hidden rounded-3xl border border-white/5 bg-card p-5 shadow-xl">

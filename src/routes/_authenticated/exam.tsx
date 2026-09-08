@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ClipboardCheck, Clock, Target, Trophy, Play } from "lucide-react";
 import { StreamGate } from "@/components/StreamGate";
 
-export const Route = createFileRoute("/exam")({
+export const Route = createFileRoute("/_authenticated/exam")({
   head: () => ({
     meta: [
       { title: "Exam Simulator — MatricPulse AI" },

@@ -18,7 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useStream, NATURAL_SUBJECTS, SOCIAL_SUBJECTS } from "@/lib/stream";
 
-export const Route = createFileRoute("/studying/$grade/")({
+export const Route = createFileRoute("/_authenticated/studying/$grade/")({
   component: SubjectsPage,
 });
 
