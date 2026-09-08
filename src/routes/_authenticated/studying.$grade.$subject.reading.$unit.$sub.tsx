@@ -20,7 +20,7 @@ import {
   updateLastPosition,
 } from "@/lib/progress";
 
-export const Route = createFileRoute("/studying/$grade/$subject/reading/$unit/$sub")({
+export const Route = createFileRoute("/_authenticated/studying/$grade/$subject/reading/$unit/$sub")({
   head: ({ params }) => ({
     meta: [
       { title: `Unit ${params.unit}.${params.sub} Reading — MatricPulse AI` },

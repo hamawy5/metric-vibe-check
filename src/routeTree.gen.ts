@@ -9,32 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as StudyingIndexRouteImport } from './routes/studying.index'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as StudyingGradeRouteImport } from './routes/studying.$grade'
 import { Route as AuthenticatedStudyingRouteImport } from './routes/_authenticated/studying'
 import { Route as AuthenticatedLoungeRouteImport } from './routes/_authenticated/lounge'
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
 import { Route as AuthenticatedExamRouteImport } from './routes/_authenticated/exam'
-import { Route as StudyingGradeIndexRouteImport } from './routes/studying.$grade.index'
-import { Route as StudyingGradeSubjectRouteImport } from './routes/studying.$grade.$subject'
-import { Route as StudyingGradeSubjectIndexRouteImport } from './routes/studying.$grade.$subject.index'
-import { Route as StudyingGradeSubjectQuizUnitRouteImport } from './routes/studying.$grade.$subject.quiz.$unit'
-import { Route as StudyingGradeSubjectReadingUnitSubRouteImport } from './routes/studying.$grade.$subject.reading.$unit.$sub'
+import { Route as AuthenticatedStudyingIndexRouteImport } from './routes/_authenticated/studying.index'
+import { Route as AuthenticatedStudyingGradeRouteImport } from './routes/_authenticated/studying.$grade'
+import { Route as AuthenticatedStudyingGradeIndexRouteImport } from './routes/_authenticated/studying.$grade.index'
+import { Route as AuthenticatedStudyingGradeSubjectRouteImport } from './routes/_authenticated/studying.$grade.$subject'
+import { Route as AuthenticatedStudyingGradeSubjectIndexRouteImport } from './routes/_authenticated/studying.$grade.$subject.index'
+import { Route as AuthenticatedStudyingGradeSubjectQuizUnitRouteImport } from './routes/_authenticated/studying.$grade.$subject.quiz.$unit'
+import { Route as AuthenticatedStudyingGradeSubjectReadingUnitSubRouteImport } from './routes/_authenticated/studying.$grade.$subject.reading.$unit.$sub'
 
-const StudyingIndexRoute = StudyingIndexRouteImport.update({
-  id: '/studying/',
-  path: '/studying/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/_authenticated/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StudyingGradeRoute = StudyingGradeRouteImport.update({
-  id: '/studying/$grade',
-  path: '/studying/$grade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedStudyingRoute = AuthenticatedStudyingRouteImport.update({
@@ -58,74 +48,88 @@ const AuthenticatedExamRoute = AuthenticatedExamRouteImport.update({
   path: '/exam',
   getParentRoute: () => rootRouteImport,
 } as any)
-const StudyingGradeIndexRoute = StudyingGradeIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => StudyingGradeRoute,
-} as any)
-const StudyingGradeSubjectRoute = StudyingGradeSubjectRouteImport.update({
-  id: '/$subject',
-  path: '/$subject',
-  getParentRoute: () => StudyingGradeRoute,
-} as any)
-const StudyingGradeSubjectIndexRoute =
-  StudyingGradeSubjectIndexRouteImport.update({
+const AuthenticatedStudyingIndexRoute =
+  AuthenticatedStudyingIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => StudyingGradeSubjectRoute,
+    getParentRoute: () => AuthenticatedStudyingRoute,
   } as any)
-const StudyingGradeSubjectQuizUnitRoute =
-  StudyingGradeSubjectQuizUnitRouteImport.update({
+const AuthenticatedStudyingGradeRoute =
+  AuthenticatedStudyingGradeRouteImport.update({
+    id: '/$grade',
+    path: '/$grade',
+    getParentRoute: () => AuthenticatedStudyingRoute,
+  } as any)
+const AuthenticatedStudyingGradeIndexRoute =
+  AuthenticatedStudyingGradeIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedStudyingGradeRoute,
+  } as any)
+const AuthenticatedStudyingGradeSubjectRoute =
+  AuthenticatedStudyingGradeSubjectRouteImport.update({
+    id: '/$subject',
+    path: '/$subject',
+    getParentRoute: () => AuthenticatedStudyingGradeRoute,
+  } as any)
+const AuthenticatedStudyingGradeSubjectIndexRoute =
+  AuthenticatedStudyingGradeSubjectIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedStudyingGradeSubjectRoute,
+  } as any)
+const AuthenticatedStudyingGradeSubjectQuizUnitRoute =
+  AuthenticatedStudyingGradeSubjectQuizUnitRouteImport.update({
     id: '/quiz/$unit',
     path: '/quiz/$unit',
-    getParentRoute: () => StudyingGradeSubjectRoute,
+    getParentRoute: () => AuthenticatedStudyingGradeSubjectRoute,
   } as any)
-const StudyingGradeSubjectReadingUnitSubRoute =
-  StudyingGradeSubjectReadingUnitSubRouteImport.update({
+const AuthenticatedStudyingGradeSubjectReadingUnitSubRoute =
+  AuthenticatedStudyingGradeSubjectReadingUnitSubRouteImport.update({
     id: '/reading/$unit/$sub',
     path: '/reading/$unit/$sub',
-    getParentRoute: () => StudyingGradeSubjectRoute,
+    getParentRoute: () => AuthenticatedStudyingGradeSubjectRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/exam': typeof AuthenticatedExamRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/lounge': typeof AuthenticatedLoungeRoute
-  '/studying': typeof AuthenticatedStudyingRoute
-  '/studying/$grade': typeof StudyingGradeRouteWithChildren
+  '/studying': typeof AuthenticatedStudyingRouteWithChildren
   '/': typeof AuthenticatedIndexRoute
-  '/studying/': typeof StudyingIndexRoute
-  '/studying/$grade/$subject': typeof StudyingGradeSubjectRouteWithChildren
-  '/studying/$grade/': typeof StudyingGradeIndexRoute
-  '/studying/$grade/$subject/': typeof StudyingGradeSubjectIndexRoute
-  '/studying/$grade/$subject/quiz/$unit': typeof StudyingGradeSubjectQuizUnitRoute
-  '/studying/$grade/$subject/reading/$unit/$sub': typeof StudyingGradeSubjectReadingUnitSubRoute
+  '/studying/$grade': typeof AuthenticatedStudyingGradeRouteWithChildren
+  '/studying/': typeof AuthenticatedStudyingIndexRoute
+  '/studying/$grade/$subject': typeof AuthenticatedStudyingGradeSubjectRouteWithChildren
+  '/studying/$grade/': typeof AuthenticatedStudyingGradeIndexRoute
+  '/studying/$grade/$subject/': typeof AuthenticatedStudyingGradeSubjectIndexRoute
+  '/studying/$grade/$subject/quiz/$unit': typeof AuthenticatedStudyingGradeSubjectQuizUnitRoute
+  '/studying/$grade/$subject/reading/$unit/$sub': typeof AuthenticatedStudyingGradeSubjectReadingUnitSubRoute
 }
 export interface FileRoutesByTo {
   '/exam': typeof AuthenticatedExamRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/lounge': typeof AuthenticatedLoungeRoute
-  '/studying': typeof StudyingIndexRoute
   '/': typeof AuthenticatedIndexRoute
-  '/studying/$grade': typeof StudyingGradeIndexRoute
-  '/studying/$grade/$subject': typeof StudyingGradeSubjectIndexRoute
-  '/studying/$grade/$subject/quiz/$unit': typeof StudyingGradeSubjectQuizUnitRoute
-  '/studying/$grade/$subject/reading/$unit/$sub': typeof StudyingGradeSubjectReadingUnitSubRoute
+  '/studying': typeof AuthenticatedStudyingIndexRoute
+  '/studying/$grade': typeof AuthenticatedStudyingGradeIndexRoute
+  '/studying/$grade/$subject': typeof AuthenticatedStudyingGradeSubjectIndexRoute
+  '/studying/$grade/$subject/quiz/$unit': typeof AuthenticatedStudyingGradeSubjectQuizUnitRoute
+  '/studying/$grade/$subject/reading/$unit/$sub': typeof AuthenticatedStudyingGradeSubjectReadingUnitSubRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated/exam': typeof AuthenticatedExamRoute
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/_authenticated/lounge': typeof AuthenticatedLoungeRoute
-  '/_authenticated/studying': typeof AuthenticatedStudyingRoute
-  '/studying/$grade': typeof StudyingGradeRouteWithChildren
+  '/_authenticated/studying': typeof AuthenticatedStudyingRouteWithChildren
   '/_authenticated/': typeof AuthenticatedIndexRoute
-  '/studying/': typeof StudyingIndexRoute
-  '/studying/$grade/$subject': typeof StudyingGradeSubjectRouteWithChildren
-  '/studying/$grade/': typeof StudyingGradeIndexRoute
-  '/studying/$grade/$subject/': typeof StudyingGradeSubjectIndexRoute
-  '/studying/$grade/$subject/quiz/$unit': typeof StudyingGradeSubjectQuizUnitRoute
-  '/studying/$grade/$subject/reading/$unit/$sub': typeof StudyingGradeSubjectReadingUnitSubRoute
+  '/_authenticated/studying/$grade': typeof AuthenticatedStudyingGradeRouteWithChildren
+  '/_authenticated/studying/': typeof AuthenticatedStudyingIndexRoute
+  '/_authenticated/studying/$grade/$subject': typeof AuthenticatedStudyingGradeSubjectRouteWithChildren
+  '/_authenticated/studying/$grade/': typeof AuthenticatedStudyingGradeIndexRoute
+  '/_authenticated/studying/$grade/$subject/': typeof AuthenticatedStudyingGradeSubjectIndexRoute
+  '/_authenticated/studying/$grade/$subject/quiz/$unit': typeof AuthenticatedStudyingGradeSubjectQuizUnitRoute
+  '/_authenticated/studying/$grade/$subject/reading/$unit/$sub': typeof AuthenticatedStudyingGradeSubjectReadingUnitSubRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -134,8 +138,8 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/lounge'
     | '/studying'
-    | '/studying/$grade'
     | '/'
+    | '/studying/$grade'
     | '/studying/'
     | '/studying/$grade/$subject'
     | '/studying/$grade/'
@@ -147,8 +151,8 @@ export interface FileRouteTypes {
     | '/exam'
     | '/leaderboard'
     | '/lounge'
-    | '/studying'
     | '/'
+    | '/studying'
     | '/studying/$grade'
     | '/studying/$grade/$subject'
     | '/studying/$grade/$subject/quiz/$unit'
@@ -159,47 +163,31 @@ export interface FileRouteTypes {
     | '/_authenticated/leaderboard'
     | '/_authenticated/lounge'
     | '/_authenticated/studying'
-    | '/studying/$grade'
     | '/_authenticated/'
-    | '/studying/'
-    | '/studying/$grade/$subject'
-    | '/studying/$grade/'
-    | '/studying/$grade/$subject/'
-    | '/studying/$grade/$subject/quiz/$unit'
-    | '/studying/$grade/$subject/reading/$unit/$sub'
+    | '/_authenticated/studying/$grade'
+    | '/_authenticated/studying/'
+    | '/_authenticated/studying/$grade/$subject'
+    | '/_authenticated/studying/$grade/'
+    | '/_authenticated/studying/$grade/$subject/'
+    | '/_authenticated/studying/$grade/$subject/quiz/$unit'
+    | '/_authenticated/studying/$grade/$subject/reading/$unit/$sub'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthenticatedExamRoute: typeof AuthenticatedExamRoute
   AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
   AuthenticatedLoungeRoute: typeof AuthenticatedLoungeRoute
-  AuthenticatedStudyingRoute: typeof AuthenticatedStudyingRoute
-  StudyingGradeRoute: typeof StudyingGradeRouteWithChildren
+  AuthenticatedStudyingRoute: typeof AuthenticatedStudyingRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
-  StudyingIndexRoute: typeof StudyingIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/studying/': {
-      id: '/studying/'
-      path: '/studying'
-      fullPath: '/studying/'
-      preLoaderRoute: typeof StudyingIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/': {
       id: '/_authenticated/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/studying/$grade': {
-      id: '/studying/$grade'
-      path: '/studying/$grade'
-      fullPath: '/studying/$grade'
-      preLoaderRoute: typeof StudyingGradeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/studying': {
@@ -230,82 +218,117 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedExamRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/studying/$grade/': {
-      id: '/studying/$grade/'
+    '/_authenticated/studying/': {
+      id: '/_authenticated/studying/'
+      path: '/'
+      fullPath: '/studying/'
+      preLoaderRoute: typeof AuthenticatedStudyingIndexRouteImport
+      parentRoute: typeof AuthenticatedStudyingRoute
+    }
+    '/_authenticated/studying/$grade': {
+      id: '/_authenticated/studying/$grade'
+      path: '/$grade'
+      fullPath: '/studying/$grade'
+      preLoaderRoute: typeof AuthenticatedStudyingGradeRouteImport
+      parentRoute: typeof AuthenticatedStudyingRoute
+    }
+    '/_authenticated/studying/$grade/': {
+      id: '/_authenticated/studying/$grade/'
       path: '/'
       fullPath: '/studying/$grade/'
-      preLoaderRoute: typeof StudyingGradeIndexRouteImport
-      parentRoute: typeof StudyingGradeRoute
+      preLoaderRoute: typeof AuthenticatedStudyingGradeIndexRouteImport
+      parentRoute: typeof AuthenticatedStudyingGradeRoute
     }
-    '/studying/$grade/$subject': {
-      id: '/studying/$grade/$subject'
+    '/_authenticated/studying/$grade/$subject': {
+      id: '/_authenticated/studying/$grade/$subject'
       path: '/$subject'
       fullPath: '/studying/$grade/$subject'
-      preLoaderRoute: typeof StudyingGradeSubjectRouteImport
-      parentRoute: typeof StudyingGradeRoute
+      preLoaderRoute: typeof AuthenticatedStudyingGradeSubjectRouteImport
+      parentRoute: typeof AuthenticatedStudyingGradeRoute
     }
-    '/studying/$grade/$subject/': {
-      id: '/studying/$grade/$subject/'
+    '/_authenticated/studying/$grade/$subject/': {
+      id: '/_authenticated/studying/$grade/$subject/'
       path: '/'
       fullPath: '/studying/$grade/$subject/'
-      preLoaderRoute: typeof StudyingGradeSubjectIndexRouteImport
-      parentRoute: typeof StudyingGradeSubjectRoute
+      preLoaderRoute: typeof AuthenticatedStudyingGradeSubjectIndexRouteImport
+      parentRoute: typeof AuthenticatedStudyingGradeSubjectRoute
     }
-    '/studying/$grade/$subject/quiz/$unit': {
-      id: '/studying/$grade/$subject/quiz/$unit'
+    '/_authenticated/studying/$grade/$subject/quiz/$unit': {
+      id: '/_authenticated/studying/$grade/$subject/quiz/$unit'
       path: '/quiz/$unit'
       fullPath: '/studying/$grade/$subject/quiz/$unit'
-      preLoaderRoute: typeof StudyingGradeSubjectQuizUnitRouteImport
-      parentRoute: typeof StudyingGradeSubjectRoute
+      preLoaderRoute: typeof AuthenticatedStudyingGradeSubjectQuizUnitRouteImport
+      parentRoute: typeof AuthenticatedStudyingGradeSubjectRoute
     }
-    '/studying/$grade/$subject/reading/$unit/$sub': {
-      id: '/studying/$grade/$subject/reading/$unit/$sub'
+    '/_authenticated/studying/$grade/$subject/reading/$unit/$sub': {
+      id: '/_authenticated/studying/$grade/$subject/reading/$unit/$sub'
       path: '/reading/$unit/$sub'
       fullPath: '/studying/$grade/$subject/reading/$unit/$sub'
-      preLoaderRoute: typeof StudyingGradeSubjectReadingUnitSubRouteImport
-      parentRoute: typeof StudyingGradeSubjectRoute
+      preLoaderRoute: typeof AuthenticatedStudyingGradeSubjectReadingUnitSubRouteImport
+      parentRoute: typeof AuthenticatedStudyingGradeSubjectRoute
     }
   }
 }
 
-interface StudyingGradeSubjectRouteChildren {
-  StudyingGradeSubjectIndexRoute: typeof StudyingGradeSubjectIndexRoute
-  StudyingGradeSubjectQuizUnitRoute: typeof StudyingGradeSubjectQuizUnitRoute
-  StudyingGradeSubjectReadingUnitSubRoute: typeof StudyingGradeSubjectReadingUnitSubRoute
+interface AuthenticatedStudyingGradeSubjectRouteChildren {
+  AuthenticatedStudyingGradeSubjectIndexRoute: typeof AuthenticatedStudyingGradeSubjectIndexRoute
+  AuthenticatedStudyingGradeSubjectQuizUnitRoute: typeof AuthenticatedStudyingGradeSubjectQuizUnitRoute
+  AuthenticatedStudyingGradeSubjectReadingUnitSubRoute: typeof AuthenticatedStudyingGradeSubjectReadingUnitSubRoute
 }
 
-const StudyingGradeSubjectRouteChildren: StudyingGradeSubjectRouteChildren = {
-  StudyingGradeSubjectIndexRoute: StudyingGradeSubjectIndexRoute,
-  StudyingGradeSubjectQuizUnitRoute: StudyingGradeSubjectQuizUnitRoute,
-  StudyingGradeSubjectReadingUnitSubRoute:
-    StudyingGradeSubjectReadingUnitSubRoute,
+const AuthenticatedStudyingGradeSubjectRouteChildren: AuthenticatedStudyingGradeSubjectRouteChildren =
+  {
+    AuthenticatedStudyingGradeSubjectIndexRoute:
+      AuthenticatedStudyingGradeSubjectIndexRoute,
+    AuthenticatedStudyingGradeSubjectQuizUnitRoute:
+      AuthenticatedStudyingGradeSubjectQuizUnitRoute,
+    AuthenticatedStudyingGradeSubjectReadingUnitSubRoute:
+      AuthenticatedStudyingGradeSubjectReadingUnitSubRoute,
+  }
+
+const AuthenticatedStudyingGradeSubjectRouteWithChildren =
+  AuthenticatedStudyingGradeSubjectRoute._addFileChildren(
+    AuthenticatedStudyingGradeSubjectRouteChildren,
+  )
+
+interface AuthenticatedStudyingGradeRouteChildren {
+  AuthenticatedStudyingGradeSubjectRoute: typeof AuthenticatedStudyingGradeSubjectRouteWithChildren
+  AuthenticatedStudyingGradeIndexRoute: typeof AuthenticatedStudyingGradeIndexRoute
 }
 
-const StudyingGradeSubjectRouteWithChildren =
-  StudyingGradeSubjectRoute._addFileChildren(StudyingGradeSubjectRouteChildren)
+const AuthenticatedStudyingGradeRouteChildren: AuthenticatedStudyingGradeRouteChildren =
+  {
+    AuthenticatedStudyingGradeSubjectRoute:
+      AuthenticatedStudyingGradeSubjectRouteWithChildren,
+    AuthenticatedStudyingGradeIndexRoute: AuthenticatedStudyingGradeIndexRoute,
+  }
 
-interface StudyingGradeRouteChildren {
-  StudyingGradeSubjectRoute: typeof StudyingGradeSubjectRouteWithChildren
-  StudyingGradeIndexRoute: typeof StudyingGradeIndexRoute
+const AuthenticatedStudyingGradeRouteWithChildren =
+  AuthenticatedStudyingGradeRoute._addFileChildren(
+    AuthenticatedStudyingGradeRouteChildren,
+  )
+
+interface AuthenticatedStudyingRouteChildren {
+  AuthenticatedStudyingGradeRoute: typeof AuthenticatedStudyingGradeRouteWithChildren
+  AuthenticatedStudyingIndexRoute: typeof AuthenticatedStudyingIndexRoute
 }
 
-const StudyingGradeRouteChildren: StudyingGradeRouteChildren = {
-  StudyingGradeSubjectRoute: StudyingGradeSubjectRouteWithChildren,
-  StudyingGradeIndexRoute: StudyingGradeIndexRoute,
+const AuthenticatedStudyingRouteChildren: AuthenticatedStudyingRouteChildren = {
+  AuthenticatedStudyingGradeRoute: AuthenticatedStudyingGradeRouteWithChildren,
+  AuthenticatedStudyingIndexRoute: AuthenticatedStudyingIndexRoute,
 }
 
-const StudyingGradeRouteWithChildren = StudyingGradeRoute._addFileChildren(
-  StudyingGradeRouteChildren,
-)
+const AuthenticatedStudyingRouteWithChildren =
+  AuthenticatedStudyingRoute._addFileChildren(
+    AuthenticatedStudyingRouteChildren,
+  )
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedExamRoute: AuthenticatedExamRoute,
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
   AuthenticatedLoungeRoute: AuthenticatedLoungeRoute,
-  AuthenticatedStudyingRoute: AuthenticatedStudyingRoute,
-  StudyingGradeRoute: StudyingGradeRouteWithChildren,
+  AuthenticatedStudyingRoute: AuthenticatedStudyingRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
-  StudyingIndexRoute: StudyingIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

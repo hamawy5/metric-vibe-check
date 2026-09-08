@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { GraduationCap, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/studying/")({
+export const Route = createFileRoute("/_authenticated/studying/")({
   head: () => ({
     meta: [
       { title: "Studying — MatricPulse AI" },

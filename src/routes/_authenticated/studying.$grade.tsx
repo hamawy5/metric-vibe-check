@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, notFound } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/studying/$grade")({
+export const Route = createFileRoute("/_authenticated/studying/$grade")({
   head: ({ params }) => ({
     meta: [
       { title: `Grade ${params.grade} Subjects — MatricPulse AI` },

@@ -28,7 +28,7 @@ import { deepExplain } from "@/lib/api/deep-explain.functions";
 import { useStream } from "@/lib/stream";
 import { markQuizComplete, updateLastPosition } from "@/lib/progress";
 
-export const Route = createFileRoute("/studying/$grade/$subject/quiz/$unit")({
+export const Route = createFileRoute("/_authenticated/studying/$grade/$subject/quiz/$unit")({
   head: ({ params }) => ({
     meta: [{ title: `Unit ${params.unit} Quiz — MatricPulse AI` }],
   }),

@@ -12,7 +12,7 @@ import {
 import { useStream } from "@/lib/stream";
 import { updateLastPosition } from "@/lib/progress";
 
-export const Route = createFileRoute("/studying/$grade/$subject/")({
+export const Route = createFileRoute("/_authenticated/studying/$grade/$subject/")({
   head: ({ params }) => ({
     meta: [
       { title: `Grade ${params.grade} · ${params.subject} — MatricPulse AI` },
