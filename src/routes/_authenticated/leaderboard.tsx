@@ -4,7 +4,7 @@ import { ArrowLeft, ChevronDown, Trophy, Timer, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStream } from "@/lib/stream";
 
-export const Route = createFileRoute("/leaderboard")({
+export const Route = createFileRoute("/_authenticated/leaderboard")({
   head: () => ({
     meta: [
       { title: "National Leaderboard — MatricPulse AI" },

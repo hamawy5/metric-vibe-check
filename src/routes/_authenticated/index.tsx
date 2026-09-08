@@ -22,7 +22,7 @@ import {
   type DayStatus,
 } from "@/lib/progress";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "Home — MatricPulse AI" },

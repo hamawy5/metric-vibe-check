@@ -14,7 +14,7 @@ import MathGraph, { parseMathGraphSpec } from "@/components/MathGraph";
 
 
 
-export const Route = createFileRoute("/lounge")({
+export const Route = createFileRoute("/_authenticated/lounge")({
   head: () => ({
     meta: [
       { title: "AI Lounge — MatricPulse AI" },
