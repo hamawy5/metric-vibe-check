@@ -16,6 +16,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { LightboxHost } from "@/components/ImageLightbox";
+import { supabase } from "@/integrations/supabase/client";
 
 
 function NotFoundComponent() {
@@ -117,6 +118,7 @@ function BottomNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const focusMode =
     pathname.startsWith("/lounge") ||
+    pathname.startsWith("/auth") ||
     pathname.includes("/quiz/") ||
     pathname.includes("/reading/");
   if (focusMode) return null;
@@ -159,7 +161,19 @@ function BottomNav() {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // Keep router/cache in sync with sign-in / sign-out.
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      router.invalidate();
+      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+    });
+    return () => data.subscription.unsubscribe();
+  }, [router, queryClient]);
+
   const focusMode =
     pathname.startsWith("/lounge") ||
     pathname.includes("/quiz/") ||

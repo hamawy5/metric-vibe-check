@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedStudyingRouteImport } from './routes/_authenticated/studying'
 import { Route as AuthenticatedLoungeRouteImport } from './routes/_authenticated/lounge'
@@ -28,31 +29,35 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
-  id: '/_authenticated/',
-  path: '/',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedStudyingRoute = AuthenticatedStudyingRouteImport.update({
-  id: '/_authenticated/studying',
+  id: '/studying',
   path: '/studying',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedLoungeRoute = AuthenticatedLoungeRouteImport.update({
-  id: '/_authenticated/lounge',
+  id: '/lounge',
   path: '/lounge',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedLeaderboardRoute =
   AuthenticatedLeaderboardRouteImport.update({
-    id: '/_authenticated/leaderboard',
+    id: '/leaderboard',
     path: '/leaderboard',
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedExamRoute = AuthenticatedExamRouteImport.update({
-  id: '/_authenticated/exam',
+  id: '/exam',
   path: '/exam',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedStudyingIndexRoute =
   AuthenticatedStudyingIndexRouteImport.update({
@@ -98,12 +103,12 @@ const AuthenticatedStudyingGradeSubjectReadingUnitSubRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
   '/exam': typeof AuthenticatedExamRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/lounge': typeof AuthenticatedLoungeRoute
   '/studying': typeof AuthenticatedStudyingRouteWithChildren
-  '/': typeof AuthenticatedIndexRoute
   '/studying/$grade': typeof AuthenticatedStudyingGradeRouteWithChildren
   '/studying/': typeof AuthenticatedStudyingIndexRoute
   '/studying/$grade/$subject': typeof AuthenticatedStudyingGradeSubjectRouteWithChildren
@@ -126,6 +131,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/exam': typeof AuthenticatedExamRoute
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
@@ -143,12 +149,12 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/auth'
     | '/exam'
     | '/leaderboard'
     | '/lounge'
     | '/studying'
-    | '/'
     | '/studying/$grade'
     | '/studying/'
     | '/studying/$grade/$subject'
@@ -170,6 +176,7 @@ export interface FileRouteTypes {
     | '/studying/$grade/$subject/reading/$unit/$sub'
   id:
     | '__root__'
+    | '/_authenticated'
     | '/auth'
     | '/_authenticated/exam'
     | '/_authenticated/leaderboard'
@@ -186,12 +193,8 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  AuthenticatedExamRoute: typeof AuthenticatedExamRoute
-  AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
-  AuthenticatedLoungeRoute: typeof AuthenticatedLoungeRoute
-  AuthenticatedStudyingRoute: typeof AuthenticatedStudyingRouteWithChildren
-  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -203,40 +206,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/': {
       id: '/_authenticated/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/studying': {
       id: '/_authenticated/studying'
       path: '/studying'
       fullPath: '/studying'
       preLoaderRoute: typeof AuthenticatedStudyingRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/lounge': {
       id: '/_authenticated/lounge'
       path: '/lounge'
       fullPath: '/lounge'
       preLoaderRoute: typeof AuthenticatedLoungeRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/leaderboard': {
       id: '/_authenticated/leaderboard'
       path: '/leaderboard'
       fullPath: '/leaderboard'
       preLoaderRoute: typeof AuthenticatedLeaderboardRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/exam': {
       id: '/_authenticated/exam'
       path: '/exam'
       fullPath: '/exam'
       preLoaderRoute: typeof AuthenticatedExamRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/studying/': {
       id: '/_authenticated/studying/'
@@ -343,13 +353,28 @@ const AuthenticatedStudyingRouteWithChildren =
     AuthenticatedStudyingRouteChildren,
   )
 
-const rootRouteChildren: RootRouteChildren = {
-  AuthRoute: AuthRoute,
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedExamRoute: typeof AuthenticatedExamRoute
+  AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
+  AuthenticatedLoungeRoute: typeof AuthenticatedLoungeRoute
+  AuthenticatedStudyingRoute: typeof AuthenticatedStudyingRouteWithChildren
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedExamRoute: AuthenticatedExamRoute,
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
   AuthenticatedLoungeRoute: AuthenticatedLoungeRoute,
   AuthenticatedStudyingRoute: AuthenticatedStudyingRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+const rootRouteChildren: RootRouteChildren = {
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
