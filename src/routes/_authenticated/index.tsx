@@ -47,6 +47,16 @@ function HomePage() {
     setShowStreamModal(true);
   };
 
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const handleSignOut = async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  };
+
   const { progress } = useProgress();
   const week = progress ? getWeekBarStatus(progress) : [];
   const currentStreak = progress?.currentStreak ?? 0;
