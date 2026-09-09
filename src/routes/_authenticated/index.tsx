@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Flame,
   CalendarClock,
@@ -8,8 +9,10 @@ import {
   BookOpen,
   Trophy,
   LogIn,
+  LogOut,
   ClipboardCheck,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { StreamSelectorModal } from "@/components/StreamSelectorModal";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { clearStream, useStream } from "@/lib/stream";
