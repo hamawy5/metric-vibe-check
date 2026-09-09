@@ -118,6 +118,7 @@ function BottomNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const focusMode =
     pathname.startsWith("/lounge") ||
+    pathname.startsWith("/auth") ||
     pathname.includes("/quiz/") ||
     pathname.includes("/reading/");
   if (focusMode) return null;
