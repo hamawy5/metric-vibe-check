@@ -12,11 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedSubscribeRouteImport } from './routes/_authenticated/subscribe'
 import { Route as AuthenticatedStudyingRouteImport } from './routes/_authenticated/studying'
+import { Route as AuthenticatedPaymentPendingRouteImport } from './routes/_authenticated/payment-pending'
 import { Route as AuthenticatedLoungeRouteImport } from './routes/_authenticated/lounge'
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
 import { Route as AuthenticatedExamRouteImport } from './routes/_authenticated/exam'
 import { Route as AuthenticatedStudyingIndexRouteImport } from './routes/_authenticated/studying.index'
+import { Route as ApiPublicChapaWebhookRouteImport } from './routes/api/public/chapa-webhook'
 import { Route as AuthenticatedStudyingGradeRouteImport } from './routes/_authenticated/studying.$grade'
 import { Route as AuthenticatedStudyingGradeIndexRouteImport } from './routes/_authenticated/studying.$grade.index'
 import { Route as AuthenticatedStudyingGradeSubjectRouteImport } from './routes/_authenticated/studying.$grade.$subject'
@@ -38,11 +41,22 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSubscribeRoute = AuthenticatedSubscribeRouteImport.update({
+  id: '/subscribe',
+  path: '/subscribe',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedStudyingRoute = AuthenticatedStudyingRouteImport.update({
   id: '/studying',
   path: '/studying',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPaymentPendingRoute =
+  AuthenticatedPaymentPendingRouteImport.update({
+    id: '/payment-pending',
+    path: '/payment-pending',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedLoungeRoute = AuthenticatedLoungeRouteImport.update({
   id: '/lounge',
   path: '/lounge',
@@ -65,6 +79,11 @@ const AuthenticatedStudyingIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedStudyingRoute,
   } as any)
+const ApiPublicChapaWebhookRoute = ApiPublicChapaWebhookRouteImport.update({
+  id: '/api/public/chapa-webhook',
+  path: '/api/public/chapa-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedStudyingGradeRoute =
   AuthenticatedStudyingGradeRouteImport.update({
     id: '/$grade',
@@ -108,8 +127,11 @@ export interface FileRoutesByFullPath {
   '/exam': typeof AuthenticatedExamRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/lounge': typeof AuthenticatedLoungeRoute
+  '/payment-pending': typeof AuthenticatedPaymentPendingRoute
   '/studying': typeof AuthenticatedStudyingRouteWithChildren
+  '/subscribe': typeof AuthenticatedSubscribeRoute
   '/studying/$grade': typeof AuthenticatedStudyingGradeRouteWithChildren
+  '/api/public/chapa-webhook': typeof ApiPublicChapaWebhookRoute
   '/studying/': typeof AuthenticatedStudyingIndexRoute
   '/studying/$grade/$subject': typeof AuthenticatedStudyingGradeSubjectRouteWithChildren
   '/studying/$grade/': typeof AuthenticatedStudyingGradeIndexRoute
@@ -122,7 +144,10 @@ export interface FileRoutesByTo {
   '/exam': typeof AuthenticatedExamRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/lounge': typeof AuthenticatedLoungeRoute
+  '/payment-pending': typeof AuthenticatedPaymentPendingRoute
+  '/subscribe': typeof AuthenticatedSubscribeRoute
   '/': typeof AuthenticatedIndexRoute
+  '/api/public/chapa-webhook': typeof ApiPublicChapaWebhookRoute
   '/studying': typeof AuthenticatedStudyingIndexRoute
   '/studying/$grade': typeof AuthenticatedStudyingGradeIndexRoute
   '/studying/$grade/$subject': typeof AuthenticatedStudyingGradeSubjectIndexRoute
@@ -136,9 +161,12 @@ export interface FileRoutesById {
   '/_authenticated/exam': typeof AuthenticatedExamRoute
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/_authenticated/lounge': typeof AuthenticatedLoungeRoute
+  '/_authenticated/payment-pending': typeof AuthenticatedPaymentPendingRoute
   '/_authenticated/studying': typeof AuthenticatedStudyingRouteWithChildren
+  '/_authenticated/subscribe': typeof AuthenticatedSubscribeRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/studying/$grade': typeof AuthenticatedStudyingGradeRouteWithChildren
+  '/api/public/chapa-webhook': typeof ApiPublicChapaWebhookRoute
   '/_authenticated/studying/': typeof AuthenticatedStudyingIndexRoute
   '/_authenticated/studying/$grade/$subject': typeof AuthenticatedStudyingGradeSubjectRouteWithChildren
   '/_authenticated/studying/$grade/': typeof AuthenticatedStudyingGradeIndexRoute
@@ -154,8 +182,11 @@ export interface FileRouteTypes {
     | '/exam'
     | '/leaderboard'
     | '/lounge'
+    | '/payment-pending'
     | '/studying'
+    | '/subscribe'
     | '/studying/$grade'
+    | '/api/public/chapa-webhook'
     | '/studying/'
     | '/studying/$grade/$subject'
     | '/studying/$grade/'
@@ -168,7 +199,10 @@ export interface FileRouteTypes {
     | '/exam'
     | '/leaderboard'
     | '/lounge'
+    | '/payment-pending'
+    | '/subscribe'
     | '/'
+    | '/api/public/chapa-webhook'
     | '/studying'
     | '/studying/$grade'
     | '/studying/$grade/$subject'
@@ -181,9 +215,12 @@ export interface FileRouteTypes {
     | '/_authenticated/exam'
     | '/_authenticated/leaderboard'
     | '/_authenticated/lounge'
+    | '/_authenticated/payment-pending'
     | '/_authenticated/studying'
+    | '/_authenticated/subscribe'
     | '/_authenticated/'
     | '/_authenticated/studying/$grade'
+    | '/api/public/chapa-webhook'
     | '/_authenticated/studying/'
     | '/_authenticated/studying/$grade/$subject'
     | '/_authenticated/studying/$grade/'
@@ -195,6 +232,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicChapaWebhookRoute: typeof ApiPublicChapaWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -220,11 +258,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/subscribe': {
+      id: '/_authenticated/subscribe'
+      path: '/subscribe'
+      fullPath: '/subscribe'
+      preLoaderRoute: typeof AuthenticatedSubscribeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/studying': {
       id: '/_authenticated/studying'
       path: '/studying'
       fullPath: '/studying'
       preLoaderRoute: typeof AuthenticatedStudyingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/payment-pending': {
+      id: '/_authenticated/payment-pending'
+      path: '/payment-pending'
+      fullPath: '/payment-pending'
+      preLoaderRoute: typeof AuthenticatedPaymentPendingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/lounge': {
@@ -254,6 +306,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/studying/'
       preLoaderRoute: typeof AuthenticatedStudyingIndexRouteImport
       parentRoute: typeof AuthenticatedStudyingRoute
+    }
+    '/api/public/chapa-webhook': {
+      id: '/api/public/chapa-webhook'
+      path: '/api/public/chapa-webhook'
+      fullPath: '/api/public/chapa-webhook'
+      preLoaderRoute: typeof ApiPublicChapaWebhookRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/studying/$grade': {
       id: '/_authenticated/studying/$grade'
@@ -357,7 +416,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedExamRoute: typeof AuthenticatedExamRoute
   AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
   AuthenticatedLoungeRoute: typeof AuthenticatedLoungeRoute
+  AuthenticatedPaymentPendingRoute: typeof AuthenticatedPaymentPendingRoute
   AuthenticatedStudyingRoute: typeof AuthenticatedStudyingRouteWithChildren
+  AuthenticatedSubscribeRoute: typeof AuthenticatedSubscribeRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
@@ -365,7 +426,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedExamRoute: AuthenticatedExamRoute,
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
   AuthenticatedLoungeRoute: AuthenticatedLoungeRoute,
+  AuthenticatedPaymentPendingRoute: AuthenticatedPaymentPendingRoute,
   AuthenticatedStudyingRoute: AuthenticatedStudyingRouteWithChildren,
+  AuthenticatedSubscribeRoute: AuthenticatedSubscribeRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
@@ -375,6 +438,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicChapaWebhookRoute: ApiPublicChapaWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

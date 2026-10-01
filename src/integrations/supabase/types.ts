@@ -14,10 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          created_at: string
+          id: boolean
+          promo_end_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: boolean
+          promo_end_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: boolean
+          promo_end_date?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          plan: string
+          status: string
+          tx_ref: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          plan: string
+          status?: string
+          tx_ref: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          plan?: string
+          status?: string
+          tx_ref?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
           id: string
+          plan: string | null
+          subscription_expires_at: string | null
           subscription_status: string
           trial_start_date: string
           updated_at: string
@@ -25,6 +84,8 @@ export type Database = {
         Insert: {
           created_at?: string
           id: string
+          plan?: string | null
+          subscription_expires_at?: string | null
           subscription_status?: string
           trial_start_date?: string
           updated_at?: string
@@ -32,6 +93,8 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          plan?: string | null
+          subscription_expires_at?: string | null
           subscription_status?: string
           trial_start_date?: string
           updated_at?: string
