@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedSubscribeRouteImport } from './routes/_authenticated/subscribe'
 import { Route as AuthenticatedStudyingRouteImport } from './routes/_authenticated/studying'
+import { Route as AuthenticatedPaymentPendingRouteImport } from './routes/_authenticated/payment-pending'
 import { Route as AuthenticatedLoungeRouteImport } from './routes/_authenticated/lounge'
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
 import { Route as AuthenticatedExamRouteImport } from './routes/_authenticated/exam'
@@ -50,6 +51,12 @@ const AuthenticatedStudyingRoute = AuthenticatedStudyingRouteImport.update({
   path: '/studying',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPaymentPendingRoute =
+  AuthenticatedPaymentPendingRouteImport.update({
+    id: '/payment-pending',
+    path: '/payment-pending',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedLoungeRoute = AuthenticatedLoungeRouteImport.update({
   id: '/lounge',
   path: '/lounge',
@@ -120,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/exam': typeof AuthenticatedExamRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/lounge': typeof AuthenticatedLoungeRoute
+  '/payment-pending': typeof AuthenticatedPaymentPendingRoute
   '/studying': typeof AuthenticatedStudyingRouteWithChildren
   '/subscribe': typeof AuthenticatedSubscribeRoute
   '/studying/$grade': typeof AuthenticatedStudyingGradeRouteWithChildren
@@ -136,6 +144,7 @@ export interface FileRoutesByTo {
   '/exam': typeof AuthenticatedExamRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/lounge': typeof AuthenticatedLoungeRoute
+  '/payment-pending': typeof AuthenticatedPaymentPendingRoute
   '/subscribe': typeof AuthenticatedSubscribeRoute
   '/': typeof AuthenticatedIndexRoute
   '/api/public/chapa-webhook': typeof ApiPublicChapaWebhookRoute
@@ -152,6 +161,7 @@ export interface FileRoutesById {
   '/_authenticated/exam': typeof AuthenticatedExamRoute
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/_authenticated/lounge': typeof AuthenticatedLoungeRoute
+  '/_authenticated/payment-pending': typeof AuthenticatedPaymentPendingRoute
   '/_authenticated/studying': typeof AuthenticatedStudyingRouteWithChildren
   '/_authenticated/subscribe': typeof AuthenticatedSubscribeRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
@@ -172,6 +182,7 @@ export interface FileRouteTypes {
     | '/exam'
     | '/leaderboard'
     | '/lounge'
+    | '/payment-pending'
     | '/studying'
     | '/subscribe'
     | '/studying/$grade'
@@ -188,6 +199,7 @@ export interface FileRouteTypes {
     | '/exam'
     | '/leaderboard'
     | '/lounge'
+    | '/payment-pending'
     | '/subscribe'
     | '/'
     | '/api/public/chapa-webhook'
@@ -203,6 +215,7 @@ export interface FileRouteTypes {
     | '/_authenticated/exam'
     | '/_authenticated/leaderboard'
     | '/_authenticated/lounge'
+    | '/_authenticated/payment-pending'
     | '/_authenticated/studying'
     | '/_authenticated/subscribe'
     | '/_authenticated/'
@@ -257,6 +270,13 @@ declare module '@tanstack/react-router' {
       path: '/studying'
       fullPath: '/studying'
       preLoaderRoute: typeof AuthenticatedStudyingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/payment-pending': {
+      id: '/_authenticated/payment-pending'
+      path: '/payment-pending'
+      fullPath: '/payment-pending'
+      preLoaderRoute: typeof AuthenticatedPaymentPendingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/lounge': {
@@ -396,6 +416,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedExamRoute: typeof AuthenticatedExamRoute
   AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
   AuthenticatedLoungeRoute: typeof AuthenticatedLoungeRoute
+  AuthenticatedPaymentPendingRoute: typeof AuthenticatedPaymentPendingRoute
   AuthenticatedStudyingRoute: typeof AuthenticatedStudyingRouteWithChildren
   AuthenticatedSubscribeRoute: typeof AuthenticatedSubscribeRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
@@ -405,6 +426,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedExamRoute: AuthenticatedExamRoute,
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
   AuthenticatedLoungeRoute: AuthenticatedLoungeRoute,
+  AuthenticatedPaymentPendingRoute: AuthenticatedPaymentPendingRoute,
   AuthenticatedStudyingRoute: AuthenticatedStudyingRouteWithChildren,
   AuthenticatedSubscribeRoute: AuthenticatedSubscribeRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
