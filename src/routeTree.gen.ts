@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedSubscribeRouteImport } from './routes/_authenticated/subscribe'
 import { Route as AuthenticatedStudyingRouteImport } from './routes/_authenticated/studying'
 import { Route as AuthenticatedLoungeRouteImport } from './routes/_authenticated/lounge'
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
@@ -37,6 +38,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSubscribeRoute = AuthenticatedSubscribeRouteImport.update({
+  id: '/subscribe',
+  path: '/subscribe',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedStudyingRoute = AuthenticatedStudyingRouteImport.update({
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/lounge': typeof AuthenticatedLoungeRoute
   '/studying': typeof AuthenticatedStudyingRouteWithChildren
+  '/subscribe': typeof AuthenticatedSubscribeRoute
   '/studying/$grade': typeof AuthenticatedStudyingGradeRouteWithChildren
   '/api/public/chapa-webhook': typeof ApiPublicChapaWebhookRoute
   '/studying/': typeof AuthenticatedStudyingIndexRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByTo {
   '/exam': typeof AuthenticatedExamRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/lounge': typeof AuthenticatedLoungeRoute
+  '/subscribe': typeof AuthenticatedSubscribeRoute
   '/': typeof AuthenticatedIndexRoute
   '/api/public/chapa-webhook': typeof ApiPublicChapaWebhookRoute
   '/studying': typeof AuthenticatedStudyingIndexRoute
@@ -145,6 +153,7 @@ export interface FileRoutesById {
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/_authenticated/lounge': typeof AuthenticatedLoungeRoute
   '/_authenticated/studying': typeof AuthenticatedStudyingRouteWithChildren
+  '/_authenticated/subscribe': typeof AuthenticatedSubscribeRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/studying/$grade': typeof AuthenticatedStudyingGradeRouteWithChildren
   '/api/public/chapa-webhook': typeof ApiPublicChapaWebhookRoute
@@ -164,6 +173,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/lounge'
     | '/studying'
+    | '/subscribe'
     | '/studying/$grade'
     | '/api/public/chapa-webhook'
     | '/studying/'
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/exam'
     | '/leaderboard'
     | '/lounge'
+    | '/subscribe'
     | '/'
     | '/api/public/chapa-webhook'
     | '/studying'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/_authenticated/leaderboard'
     | '/_authenticated/lounge'
     | '/_authenticated/studying'
+    | '/_authenticated/subscribe'
     | '/_authenticated/'
     | '/_authenticated/studying/$grade'
     | '/api/public/chapa-webhook'
@@ -231,6 +243,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/subscribe': {
+      id: '/_authenticated/subscribe'
+      path: '/subscribe'
+      fullPath: '/subscribe'
+      preLoaderRoute: typeof AuthenticatedSubscribeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/studying': {
@@ -378,6 +397,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
   AuthenticatedLoungeRoute: typeof AuthenticatedLoungeRoute
   AuthenticatedStudyingRoute: typeof AuthenticatedStudyingRouteWithChildren
+  AuthenticatedSubscribeRoute: typeof AuthenticatedSubscribeRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
@@ -386,6 +406,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
   AuthenticatedLoungeRoute: AuthenticatedLoungeRoute,
   AuthenticatedStudyingRoute: AuthenticatedStudyingRouteWithChildren,
+  AuthenticatedSubscribeRoute: AuthenticatedSubscribeRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
