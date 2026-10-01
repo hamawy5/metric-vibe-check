@@ -17,6 +17,7 @@ import { Route as AuthenticatedLoungeRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
 import { Route as AuthenticatedExamRouteImport } from './routes/_authenticated/exam'
 import { Route as AuthenticatedStudyingIndexRouteImport } from './routes/_authenticated/studying.index'
+import { Route as ApiPublicChapaWebhookRouteImport } from './routes/api/public/chapa-webhook'
 import { Route as AuthenticatedStudyingGradeRouteImport } from './routes/_authenticated/studying.$grade'
 import { Route as AuthenticatedStudyingGradeIndexRouteImport } from './routes/_authenticated/studying.$grade.index'
 import { Route as AuthenticatedStudyingGradeSubjectRouteImport } from './routes/_authenticated/studying.$grade.$subject'
@@ -65,6 +66,11 @@ const AuthenticatedStudyingIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedStudyingRoute,
   } as any)
+const ApiPublicChapaWebhookRoute = ApiPublicChapaWebhookRouteImport.update({
+  id: '/api/public/chapa-webhook',
+  path: '/api/public/chapa-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedStudyingGradeRoute =
   AuthenticatedStudyingGradeRouteImport.update({
     id: '/$grade',
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/lounge': typeof AuthenticatedLoungeRoute
   '/studying': typeof AuthenticatedStudyingRouteWithChildren
   '/studying/$grade': typeof AuthenticatedStudyingGradeRouteWithChildren
+  '/api/public/chapa-webhook': typeof ApiPublicChapaWebhookRoute
   '/studying/': typeof AuthenticatedStudyingIndexRoute
   '/studying/$grade/$subject': typeof AuthenticatedStudyingGradeSubjectRouteWithChildren
   '/studying/$grade/': typeof AuthenticatedStudyingGradeIndexRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/lounge': typeof AuthenticatedLoungeRoute
   '/': typeof AuthenticatedIndexRoute
+  '/api/public/chapa-webhook': typeof ApiPublicChapaWebhookRoute
   '/studying': typeof AuthenticatedStudyingIndexRoute
   '/studying/$grade': typeof AuthenticatedStudyingGradeIndexRoute
   '/studying/$grade/$subject': typeof AuthenticatedStudyingGradeSubjectIndexRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/_authenticated/studying': typeof AuthenticatedStudyingRouteWithChildren
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/studying/$grade': typeof AuthenticatedStudyingGradeRouteWithChildren
+  '/api/public/chapa-webhook': typeof ApiPublicChapaWebhookRoute
   '/_authenticated/studying/': typeof AuthenticatedStudyingIndexRoute
   '/_authenticated/studying/$grade/$subject': typeof AuthenticatedStudyingGradeSubjectRouteWithChildren
   '/_authenticated/studying/$grade/': typeof AuthenticatedStudyingGradeIndexRoute
@@ -156,6 +165,7 @@ export interface FileRouteTypes {
     | '/lounge'
     | '/studying'
     | '/studying/$grade'
+    | '/api/public/chapa-webhook'
     | '/studying/'
     | '/studying/$grade/$subject'
     | '/studying/$grade/'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/lounge'
     | '/'
+    | '/api/public/chapa-webhook'
     | '/studying'
     | '/studying/$grade'
     | '/studying/$grade/$subject'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/_authenticated/studying'
     | '/_authenticated/'
     | '/_authenticated/studying/$grade'
+    | '/api/public/chapa-webhook'
     | '/_authenticated/studying/'
     | '/_authenticated/studying/$grade/$subject'
     | '/_authenticated/studying/$grade/'
@@ -195,6 +207,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicChapaWebhookRoute: typeof ApiPublicChapaWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -254,6 +267,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/studying/'
       preLoaderRoute: typeof AuthenticatedStudyingIndexRouteImport
       parentRoute: typeof AuthenticatedStudyingRoute
+    }
+    '/api/public/chapa-webhook': {
+      id: '/api/public/chapa-webhook'
+      path: '/api/public/chapa-webhook'
+      fullPath: '/api/public/chapa-webhook'
+      preLoaderRoute: typeof ApiPublicChapaWebhookRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/studying/$grade': {
       id: '/_authenticated/studying/$grade'
@@ -375,6 +395,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicChapaWebhookRoute: ApiPublicChapaWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
