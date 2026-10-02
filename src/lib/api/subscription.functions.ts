@@ -31,7 +31,7 @@ const TRIAL_DAYS = 30;
 /**
  * Single source of truth for "can this user use the app".
  * Promo window (when set and still running) beats everything else; otherwise
- * 7-day trial from trial_start_date, then an active, unexpired subscription.
+ * 30-day trial from trial_start_date, then an active, unexpired subscription.
  */
 export const getAccessState = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
