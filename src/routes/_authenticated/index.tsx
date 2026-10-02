@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -8,13 +8,25 @@ import {
   TrendingUp,
   BookOpen,
   Trophy,
-  LogIn,
   LogOut,
   ClipboardCheck,
+  UserRound,
+  RefreshCw,
+  Crown,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { StreamSelectorModal } from "@/components/StreamSelectorModal";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { clearStream, useStream } from "@/lib/stream";
 import { useProgress } from "@/lib/useProgress";
 import {
@@ -30,6 +42,13 @@ export const Route = createFileRoute("/_authenticated/")({
     meta: [
       { title: "Home — MatricPulse AI" },
       { name: "description", content: "Your daily study pulse, streak, and exam countdown." },
+      { property: "og:title", content: "Home — MatricPulse AI" },
+      {
+        property: "og:description",
+        content: "Track your study streak, continue learning, and prepare for Ethiopia's national exam.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: HomePage,
@@ -41,10 +60,23 @@ function HomePage() {
   const daysLeft = Math.ceil((examDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
   const stream = useStream();
   const [showStreamModal, setShowStreamModal] = useState(false);
+  const [isDark, setIsDark] = useState(true);
 
-  const simulateFreshLogin = () => {
+  useEffect(() => {
+    const storedTheme = localStorage.getItem("theme");
+    setIsDark(storedTheme ? storedTheme === "dark" : true);
+  }, []);
+
+  const changeStream = () => {
     clearStream();
     setShowStreamModal(true);
+  };
+
+  const toggleTheme = () => {
+    const nextTheme = !isDark;
+    setIsDark(nextTheme);
+    document.documentElement.classList.toggle("dark", nextTheme);
+    localStorage.setItem("theme", nextTheme ? "dark" : "light");
   };
 
   const navigate = useNavigate();
@@ -73,10 +105,8 @@ function HomePage() {
 
   return (
     <div className="px-5 pt-12">
-      <ThemeToggle />
-
       <header className="flex items-center justify-between">
-        <div>
+        <div className="min-w-0 pr-3">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Welcome back</p>
           <h1 className="mt-1 text-2xl font-bold tracking-tight">
             Hey,{" "}
@@ -90,7 +120,7 @@ function HomePage() {
             </p>
           ) : null}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <Link
             to="/leaderboard"
             aria-label="National Leaderboard"
@@ -101,27 +131,75 @@ function HomePage() {
           <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[image:var(--gradient-primary)] text-primary-foreground shadow-[var(--shadow-glow)]">
             <Sparkles className="h-5 w-5" />
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                aria-label="Open account menu"
+                className="h-11 w-11 rounded-full border-border bg-card shadow-sm"
+              >
+                <UserRound className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              sideOffset={8}
+              className="w-60 rounded-2xl border-border bg-popover p-2 shadow-xl"
+            >
+              <DropdownMenuLabel className="px-3 py-2 text-xs uppercase tracking-wider text-muted-foreground">
+                Account
+              </DropdownMenuLabel>
+              <DropdownMenuItem
+                onSelect={changeStream}
+                className="gap-3 rounded-xl px-3 py-3"
+              >
+                <RefreshCw className="h-4 w-4 text-primary" />
+                Change stream
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="gap-3 rounded-xl px-3 py-3">
+                <Link to="/subscribe">
+                  <Crown className="h-4 w-4 text-primary" />
+                  Upgrade / Subscribe
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={toggleTheme}
+                className="gap-3 rounded-xl px-3 py-3"
+              >
+                {isDark ? (
+                  <Sun className="h-4 w-4 text-primary" />
+                ) : (
+                  <Moon className="h-4 w-4 text-primary" />
+                )}
+                {isDark ? "Switch to light mode" : "Switch to dark mode"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="my-1" />
+              <DropdownMenuItem
+                onSelect={handleSignOut}
+                className="gap-3 rounded-xl px-3 py-3 text-destructive focus:text-destructive"
+              >
+                <LogOut className="h-4 w-4" />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
-      <div className="mt-4 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={simulateFreshLogin}
-          className="inline-flex items-center gap-2 rounded-full border border-dashed border-white/20 bg-card/40 px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition hover:text-foreground"
-        >
-          <LogIn className="h-3.5 w-3.5" />
-          Change stream
-        </button>
-        <button
-          type="button"
-          onClick={handleSignOut}
-          className="inline-flex items-center gap-2 rounded-full border border-slate-200/80 bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition hover:text-foreground dark:border-white/10"
-        >
-          <LogOut className="h-3.5 w-3.5" />
-          Log out
-        </button>
-      </div>
+      <Link
+        to="/subscribe"
+        className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-primary/25 bg-primary/10 px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-primary/15"
+      >
+        <span className="flex min-w-0 items-center gap-2.5">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[image:var(--gradient-primary)] text-primary-foreground shadow-[var(--shadow-glow)]">
+            <Crown className="h-4 w-4" />
+          </span>
+          <span>See subscription plans</span>
+        </span>
+        <span className="shrink-0 text-xs font-medium text-primary">View plans</span>
+      </Link>
 
       {/* Streak */}
       <section className="mt-6 overflow-hidden rounded-3xl border border-white/5 bg-card p-5 shadow-xl">
