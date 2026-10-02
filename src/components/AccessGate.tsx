@@ -55,7 +55,7 @@ export function AccessGate({ children }: { children: ReactNode }) {
         <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[image:var(--gradient-primary)] text-primary-foreground shadow-[var(--shadow-glow)]">
           <Lock className="h-6 w-6" />
         </div>
-        <h1 className="mt-5 text-xl font-bold">Your free week is over</h1>
+        <h1 className="mt-5 text-xl font-bold">Your free trial is over</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Subscribe to keep your streak, readings, quizzes and the AI tutor.
         </p>
