@@ -26,6 +26,7 @@ export type AccessState = {
 };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const TRIAL_DAYS = 30;
 
 /**
  * Single source of truth for "can this user use the app".
@@ -53,7 +54,7 @@ export const getAccessState = createServerFn({ method: "GET" })
     const promoDaysLeft = promoActive && promoEnd ? Math.ceil((promoEnd - now) / DAY_MS) : 0;
 
     const trialStart = profile?.trial_start_date ? new Date(profile.trial_start_date).getTime() : null;
-    const trialEnd = trialStart != null ? trialStart + 7 * DAY_MS : null;
+    const trialEnd = trialStart != null ? trialStart + TRIAL_DAYS * DAY_MS : null;
     const trialActive = trialEnd != null && now < trialEnd;
 
     const expiresAt = profile?.subscription_expires_at ?? null;
@@ -129,18 +130,21 @@ export const createChapaCheckout = createServerFn({ method: "POST" })
         return_url: `${origin}/payment-pending?tx_ref=${encodeURIComponent(txRef)}`,
         customization: {
           title: "MatricPulse AI",
-          description: `${plan.label} subscription`,
+          description: `${plan.label} subscription`.replace(/[^A-Za-z0-9 ._-]/g, ""),
         },
       }),
     });
 
     const payload = (await response.json().catch(() => null)) as
-      | { status?: string; message?: string; data?: { checkout_url?: string } }
+      | { status?: string; message?: unknown; data?: { checkout_url?: string } }
       | null;
 
     if (!response.ok || !payload?.data?.checkout_url) {
       console.error("[chapa] initialize failed", response.status, payload?.message);
-      throw new Error("Chapa could not start this payment. Please try again.");
+      const detail = payload?.message
+        ? typeof payload.message === "string" ? payload.message : JSON.stringify(payload.message)
+        : "";
+      throw new Error(`Chapa could not start this payment (${response.status})${detail ? `: ${detail}` : "."}`);
     }
 
     return { checkoutUrl: payload.data.checkout_url, txRef };
