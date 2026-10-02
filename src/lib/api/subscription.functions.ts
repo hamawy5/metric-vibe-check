@@ -84,8 +84,11 @@ export const createChapaCheckout = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data, context }) => {
-    const secretKey = process.env["CHAPA_SECRET_KEY"];
-    if (!secretKey) throw new Error("Payments are not configured yet.");
+    const secretKey = process.env["CHAPA_SECRET_KEY"]?.trim();
+    if (!secretKey) {
+      console.error("[chapa] CHAPA_SECRET_KEY is not available to the server");
+      throw new Error("Payments are not configured yet.");
+    }
 
     const plan = PLANS[data.plan as PlanId];
     const { userId, claims } = context;
