@@ -9,31 +9,31 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as AuthenticatedSubscribeRouteImport } from './routes/_authenticated/subscribe'
-import { Route as AuthenticatedStudyingRouteImport } from './routes/_authenticated/studying'
-import { Route as AuthenticatedPaymentPendingRouteImport } from './routes/_authenticated/payment-pending'
-import { Route as AuthenticatedLoungeRouteImport } from './routes/_authenticated/lounge'
-import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
 import { Route as AuthenticatedExamRouteImport } from './routes/_authenticated/exam'
+import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
+import { Route as AuthenticatedLoungeRouteImport } from './routes/_authenticated/lounge'
+import { Route as AuthenticatedPaymentPendingRouteImport } from './routes/_authenticated/payment-pending'
+import { Route as AuthenticatedStudyingRouteImport } from './routes/_authenticated/studying'
+import { Route as AuthenticatedSubscribeRouteImport } from './routes/_authenticated/subscribe'
 import { Route as AuthenticatedStudyingIndexRouteImport } from './routes/_authenticated/studying.index'
-import { Route as ApiPublicChapaWebhookRouteImport } from './routes/api/public/chapa-webhook'
 import { Route as AuthenticatedStudyingGradeRouteImport } from './routes/_authenticated/studying.$grade'
+import { Route as ApiPublicChapaWebhookRouteImport } from './routes/api/public/chapa-webhook'
 import { Route as AuthenticatedStudyingGradeIndexRouteImport } from './routes/_authenticated/studying.$grade.index'
 import { Route as AuthenticatedStudyingGradeSubjectRouteImport } from './routes/_authenticated/studying.$grade.$subject'
 import { Route as AuthenticatedStudyingGradeSubjectIndexRouteImport } from './routes/_authenticated/studying.$grade.$subject.index'
 import { Route as AuthenticatedStudyingGradeSubjectQuizUnitRouteImport } from './routes/_authenticated/studying.$grade.$subject.quiz.$unit'
 import { Route as AuthenticatedStudyingGradeSubjectReadingUnitSubRouteImport } from './routes/_authenticated/studying.$grade.$subject.reading.$unit.$sub'
 
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
@@ -41,25 +41,9 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedSubscribeRoute = AuthenticatedSubscribeRouteImport.update({
-  id: '/subscribe',
-  path: '/subscribe',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedStudyingRoute = AuthenticatedStudyingRouteImport.update({
-  id: '/studying',
-  path: '/studying',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedPaymentPendingRoute =
-  AuthenticatedPaymentPendingRouteImport.update({
-    id: '/payment-pending',
-    path: '/payment-pending',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedLoungeRoute = AuthenticatedLoungeRouteImport.update({
-  id: '/lounge',
-  path: '/lounge',
+const AuthenticatedExamRoute = AuthenticatedExamRouteImport.update({
+  id: '/exam',
+  path: '/exam',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedLeaderboardRoute =
@@ -68,9 +52,25 @@ const AuthenticatedLeaderboardRoute =
     path: '/leaderboard',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedExamRoute = AuthenticatedExamRouteImport.update({
-  id: '/exam',
-  path: '/exam',
+const AuthenticatedLoungeRoute = AuthenticatedLoungeRouteImport.update({
+  id: '/lounge',
+  path: '/lounge',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPaymentPendingRoute =
+  AuthenticatedPaymentPendingRouteImport.update({
+    id: '/payment-pending',
+    path: '/payment-pending',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedStudyingRoute = AuthenticatedStudyingRouteImport.update({
+  id: '/studying',
+  path: '/studying',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSubscribeRoute = AuthenticatedSubscribeRouteImport.update({
+  id: '/subscribe',
+  path: '/subscribe',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedStudyingIndexRoute =
@@ -79,17 +79,17 @@ const AuthenticatedStudyingIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedStudyingRoute,
   } as any)
-const ApiPublicChapaWebhookRoute = ApiPublicChapaWebhookRouteImport.update({
-  id: '/api/public/chapa-webhook',
-  path: '/api/public/chapa-webhook',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedStudyingGradeRoute =
   AuthenticatedStudyingGradeRouteImport.update({
     id: '/$grade',
     path: '/$grade',
     getParentRoute: () => AuthenticatedStudyingRoute,
   } as any)
+const ApiPublicChapaWebhookRoute = ApiPublicChapaWebhookRouteImport.update({
+  id: '/api/public/chapa-webhook',
+  path: '/api/public/chapa-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedStudyingGradeIndexRoute =
   AuthenticatedStudyingGradeIndexRouteImport.update({
     id: '/',
@@ -237,18 +237,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/': {
@@ -258,32 +258,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/subscribe': {
-      id: '/_authenticated/subscribe'
-      path: '/subscribe'
-      fullPath: '/subscribe'
-      preLoaderRoute: typeof AuthenticatedSubscribeRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/studying': {
-      id: '/_authenticated/studying'
-      path: '/studying'
-      fullPath: '/studying'
-      preLoaderRoute: typeof AuthenticatedStudyingRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/payment-pending': {
-      id: '/_authenticated/payment-pending'
-      path: '/payment-pending'
-      fullPath: '/payment-pending'
-      preLoaderRoute: typeof AuthenticatedPaymentPendingRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/lounge': {
-      id: '/_authenticated/lounge'
-      path: '/lounge'
-      fullPath: '/lounge'
-      preLoaderRoute: typeof AuthenticatedLoungeRouteImport
+    '/_authenticated/exam': {
+      id: '/_authenticated/exam'
+      path: '/exam'
+      fullPath: '/exam'
+      preLoaderRoute: typeof AuthenticatedExamRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/leaderboard': {
@@ -293,11 +272,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLeaderboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/exam': {
-      id: '/_authenticated/exam'
-      path: '/exam'
-      fullPath: '/exam'
-      preLoaderRoute: typeof AuthenticatedExamRouteImport
+    '/_authenticated/lounge': {
+      id: '/_authenticated/lounge'
+      path: '/lounge'
+      fullPath: '/lounge'
+      preLoaderRoute: typeof AuthenticatedLoungeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/payment-pending': {
+      id: '/_authenticated/payment-pending'
+      path: '/payment-pending'
+      fullPath: '/payment-pending'
+      preLoaderRoute: typeof AuthenticatedPaymentPendingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/studying': {
+      id: '/_authenticated/studying'
+      path: '/studying'
+      fullPath: '/studying'
+      preLoaderRoute: typeof AuthenticatedStudyingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/subscribe': {
+      id: '/_authenticated/subscribe'
+      path: '/subscribe'
+      fullPath: '/subscribe'
+      preLoaderRoute: typeof AuthenticatedSubscribeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/studying/': {
@@ -307,19 +307,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStudyingIndexRouteImport
       parentRoute: typeof AuthenticatedStudyingRoute
     }
-    '/api/public/chapa-webhook': {
-      id: '/api/public/chapa-webhook'
-      path: '/api/public/chapa-webhook'
-      fullPath: '/api/public/chapa-webhook'
-      preLoaderRoute: typeof ApiPublicChapaWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/studying/$grade': {
       id: '/_authenticated/studying/$grade'
       path: '/$grade'
       fullPath: '/studying/$grade'
       preLoaderRoute: typeof AuthenticatedStudyingGradeRouteImport
       parentRoute: typeof AuthenticatedStudyingRoute
+    }
+    '/api/public/chapa-webhook': {
+      id: '/api/public/chapa-webhook'
+      path: '/api/public/chapa-webhook'
+      fullPath: '/api/public/chapa-webhook'
+      preLoaderRoute: typeof ApiPublicChapaWebhookRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/studying/$grade/': {
       id: '/_authenticated/studying/$grade/'
