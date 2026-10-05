@@ -62,7 +62,8 @@ export const Route = createFileRoute("/api/public/chapa-webhook")({
             return new Response("Missing tx_ref", { status: 400 });
           }
 
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { getAppAdmin } = await import("@/integrations/app-db/admin.server");
+          const supabaseAdmin = getAppAdmin();
           const { data: payment } = await supabaseAdmin
             .from("payments")
             .select("id, user_id, plan, status")

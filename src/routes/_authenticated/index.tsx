@@ -16,7 +16,7 @@ import {
   Moon,
   Sun,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { appDb as supabase } from "@/integrations/app-db/client";
 import { StreamSelectorModal } from "@/components/StreamSelectorModal";
 import { Button } from "@/components/ui/button";
 import {
