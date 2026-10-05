@@ -18,6 +18,7 @@ function make(): Client {
       autoRefreshToken: browser,
       detectSessionInUrl: browser,
       storageKey: "mp-app-auth",
+      flowType: "pkce",
     },
   });
 }

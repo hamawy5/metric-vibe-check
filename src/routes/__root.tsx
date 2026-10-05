@@ -167,6 +167,8 @@ function RootComponent() {
 
   // Keep router/cache in sync with sign-in / sign-out.
   useEffect(() => {
+    // Native app: finish Google sign-in when the deep link returns to the app.
+    void import("@/integrations/app-db/native-oauth").then((m) => m.initNativeOAuthListener());
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();

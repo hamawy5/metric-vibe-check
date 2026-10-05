@@ -3,6 +3,10 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2, Mail, Lock, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { appDb as supabase } from "@/integrations/app-db/client";
+import {
+  isNativeApp,
+  signInWithGoogleNative,
+} from "@/integrations/app-db/native-oauth";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -79,6 +83,16 @@ function AuthPage() {
 
   const google = async () => {
     setBusy(true);
+    if (isNativeApp()) {
+      try {
+        await signInWithGoogleNative();
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Google sign-in failed");
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth` },
