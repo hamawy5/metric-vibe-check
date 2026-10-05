@@ -1,0 +1,2 @@
+- Auth, profiles, payments and app_settings live in the user's own project (xskunuxjjiuzgcnuafzo) via `src/integrations/app-db/*` (`appDb`, `requireAppAuth`, `getAppAdmin` with MY_SUPABASE_SERVICE_ROLE_KEY); never route them through the managed `@/integrations/supabase/*` clients. Why: the user wants one consolidated backend.
+- Only the AI Lounge's `ai-tutor` call still uses the managed client. Why: that function is hosted there.
