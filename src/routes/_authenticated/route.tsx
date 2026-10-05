@@ -16,7 +16,7 @@
 //
 // Edit freely. This file is only re-injected when deleted entirely.
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
-import { supabase } from '@/integrations/supabase/client'
+import { appDb as supabase } from "@/integrations/app-db/client";
 import { AccessGate, PromoBanner } from '@/components/AccessGate'
 
 // Lovable's Supabase auth scaffolds use `/auth`; change this if the app uses another sign-in route.

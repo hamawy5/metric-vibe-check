@@ -17,7 +17,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { LightboxHost } from "@/components/ImageLightbox";
-import { supabase } from "@/integrations/supabase/client";
+import { appDb as supabase } from "@/integrations/app-db/client";
 
 
 function NotFoundComponent() {

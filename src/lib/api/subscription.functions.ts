@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAppAuth } from "@/integrations/app-db/auth";
 
 /** Plan catalogue — prices in ETB. */
 export const PLANS = {
@@ -34,7 +34,7 @@ const TRIAL_DAYS = 30;
  * 30-day trial from trial_start_date, then an active, unexpired subscription.
  */
 export const getAccessState = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAppAuth])
   .handler(async ({ context }): Promise<AccessState> => {
     const { supabase, userId } = context;
 
@@ -77,7 +77,7 @@ export const getAccessState = createServerFn({ method: "GET" })
 
 /** Creates a Chapa checkout session and returns the hosted checkout URL. */
 export const createChapaCheckout = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAppAuth])
   .inputValidator(
     z.object({
       plan: z.enum(["monthly", "term"]),
@@ -101,7 +101,8 @@ export const createChapaCheckout = createServerFn({ method: "POST" })
       process.env["CHAPA_CALLBACK_URL"] ??
       "https://project--d0587f0a-40f6-4f03-b2b1-930389da4c1c.lovable.app/api/public/chapa-webhook";
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { getAppAdmin } = await import("@/integrations/app-db/admin.server");
+    const supabaseAdmin = getAppAdmin();
     const { error: insertError } = await supabaseAdmin.from("payments").insert({
       user_id: userId,
       tx_ref: txRef,
@@ -152,7 +153,7 @@ export const createChapaCheckout = createServerFn({ method: "POST" })
 
 /** Lets the pending screen poll whether the webhook has activated the plan. */
 export const getPaymentStatus = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAppAuth])
   .inputValidator(z.object({ txRef: z.string().min(1) }))
   .handler(async ({ data, context }) => {
     const { data: payment } = await context.supabase
