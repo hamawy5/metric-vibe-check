@@ -4,7 +4,6 @@ import { Loader2, Mail, Lock, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { appDb as supabase } from "@/integrations/app-db/client";
 import {
-  initNativeOAuthListener,
   isNativeApp,
   signInWithGoogleNative,
 } from "@/integrations/app-db/native-oauth";
