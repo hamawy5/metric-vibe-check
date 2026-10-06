@@ -4,17 +4,6 @@ import { Capacitor } from "@capacitor/core";
 
 const MAIN_TABS = ["/", "/studying", "/exam", "/lounge"] as const;
 
-function studyParent(pathname: string) {
-  const parts = pathname.split("/").filter(Boolean);
-  if (parts[0] !== "studying") return null;
-  if (parts.includes("reading") || parts.includes("quiz")) {
-    return parts.length >= 3 ? `/studying/${parts[1]}/${parts[2]}` : "/studying";
-  }
-  if (parts.length >= 3) return `/studying/${parts[1]}`;
-  if (parts.length === 2) return "/studying";
-  return "/";
-}
-
 export function NativeBackHandler() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
@@ -24,9 +13,29 @@ export function NativeBackHandler() {
     let removeListener: (() => Promise<void>) | undefined;
     void import("@capacitor/app").then(async ({ App }) => {
       const listener = await App.addListener("backButton", async () => {
-        const parent = studyParent(pathname);
-        if (parent) {
-          await navigate({ to: parent });
+        const parts = pathname.split("/").filter(Boolean);
+        if (parts[0] === "studying" && (parts.includes("reading") || parts.includes("quiz"))) {
+          const grade = parts[1];
+          const subject = parts[2];
+          if (grade && subject) {
+            await navigate({ to: "/studying/$grade/$subject", params: { grade, subject } });
+          } else {
+            await navigate({ to: "/studying" });
+          }
+          return;
+        }
+        if (parts[0] === "studying" && parts.length >= 3) {
+          const grade = parts[1];
+          if (grade) await navigate({ to: "/studying/$grade", params: { grade } });
+          else await navigate({ to: "/studying" });
+          return;
+        }
+        if (parts[0] === "studying" && parts.length === 2) {
+          await navigate({ to: "/studying" });
+          return;
+        }
+        if (pathname === "/studying") {
+          await navigate({ to: "/" });
           return;
         }
         if (pathname !== "/") {
@@ -67,7 +76,10 @@ export function MainTabSwipe({ children }: { children: ReactNode }) {
     if (Math.abs(dx) < 64 || Math.abs(dx) <= Math.abs(dy) * 1.35) return;
     const nextIndex = dx < 0 ? currentIndex + 1 : currentIndex - 1;
     const destination = MAIN_TABS[nextIndex];
-    if (destination) void navigate({ to: destination });
+    if (destination === "/") void navigate({ to: "/" });
+    if (destination === "/studying") void navigate({ to: "/studying" });
+    if (destination === "/exam") void navigate({ to: "/exam" });
+    if (destination === "/lounge") void navigate({ to: "/lounge" });
   };
 
   return (

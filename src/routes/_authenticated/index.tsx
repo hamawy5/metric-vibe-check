@@ -13,6 +13,7 @@ import {
   UserRound,
   RefreshCw,
   Crown,
+  CheckCircle2,
   Moon,
   Sun,
 } from "lucide-react";
