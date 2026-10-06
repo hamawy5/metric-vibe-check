@@ -7,7 +7,7 @@ import { Capacitor } from "@capacitor/core";
 import { appDb } from "./client";
 
 /** Must match the URL scheme registered in AndroidManifest / Info.plist. */
-export const NATIVE_SCHEME = "com.matricpulse.app";
+export const NATIVE_SCHEME = "com.hamawy5.matricpulse";
 export const NATIVE_REDIRECT = `${NATIVE_SCHEME}://auth-callback`;
 
 export const isNativeApp = () =>
