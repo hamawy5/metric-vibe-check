@@ -19,6 +19,7 @@ import {
 import { appDb as supabase } from "@/integrations/app-db/client";
 import { StreamSelectorModal } from "@/components/StreamSelectorModal";
 import { Button } from "@/components/ui/button";
+import { useAccessState } from "@/components/AccessGate";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -90,6 +91,8 @@ function HomePage() {
   };
 
   const { progress } = useProgress();
+  const { data: access } = useAccessState();
+  const subscribed = access?.subscriptionActive && access.subscriptionExpiresAt;
   const week = progress ? getWeekBarStatus(progress) : [];
   const currentStreak = progress?.currentStreak ?? 0;
   const weakTopics = progress ? getWeakTopics(progress) : [];
@@ -131,6 +134,13 @@ function HomePage() {
           <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[image:var(--gradient-primary)] text-primary-foreground shadow-[var(--shadow-glow)]">
             <Sparkles className="h-5 w-5" />
           </div>
+          <div className="relative">
+            {subscribed ? (
+              <span
+                aria-label="Active subscription"
+                className="absolute -right-0.5 -top-0.5 z-10 h-3.5 w-3.5 rounded-full border-2 border-background bg-emerald-500 shadow-sm"
+              />
+            ) : null}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -185,20 +195,27 @@ function HomePage() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </div>
       </header>
 
       <Link
         to="/subscribe"
-        className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-primary/25 bg-primary/10 px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-primary/15"
+        className={`mt-4 flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-foreground transition ${subscribed ? "border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/15" : "border border-primary/25 bg-primary/10 hover:bg-primary/15"}`}
       >
         <span className="flex min-w-0 items-center gap-2.5">
           <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[image:var(--gradient-primary)] text-primary-foreground shadow-[var(--shadow-glow)]">
-            <Crown className="h-4 w-4" />
+            {subscribed ? <CheckCircle2 className="h-4 w-4" /> : <Crown className="h-4 w-4" />}
           </span>
-          <span>See subscription plans</span>
+          <span>
+            {subscribed
+              ? `Subscribed — active until ${new Date(access.subscriptionExpiresAt).toLocaleDateString()}`
+              : "See subscription plans"}
+          </span>
         </span>
-        <span className="shrink-0 text-xs font-medium text-primary">View plans</span>
+        <span className={`shrink-0 text-xs font-medium ${subscribed ? "text-emerald-600 dark:text-emerald-300" : "text-primary"}`}>
+          {subscribed ? (access.plan === "term" ? "Extend" : "Upgrade") : "View plans"}
+        </span>
       </Link>
 
       {/* Streak */}

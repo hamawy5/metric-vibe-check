@@ -95,6 +95,7 @@ function ReadingPage() {
   useEffect(() => {
     setQuizOpen(false);
     setReadingDone(getSubunitStatus(getProgress(stream), progressId) !== "none");
+    document.getElementById("app-scroll-container")?.scrollTo({ top: 0, behavior: "auto" });
   }, [subunitCode, stream, progressId]);
 
   // Track where the student is, so Home's "Continue" card stays accurate.
@@ -125,7 +126,6 @@ function ReadingPage() {
         sub: subParam(String(target.unit_number), target.subunit_code),
       },
     });
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const summaryBullets = (data?.corner_summary ?? "")
@@ -147,14 +147,16 @@ function ReadingPage() {
       </button>
 
       <div className="px-5 pt-12 pb-10">
-        <Link
-          to="/studying/$grade/$subject"
-          params={{ grade, subject }}
-          className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-card/60 px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Units
-        </Link>
+        <div className="sticky top-2 z-30 flex w-fit">
+          <Link
+            to="/studying/$grade/$subject"
+            params={{ grade, subject }}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/90 px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-lg backdrop-blur-xl transition hover:text-foreground"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to Units
+          </Link>
+        </div>
 
         <header className="mt-5">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
@@ -422,7 +424,7 @@ function ReadingPage() {
             onClick={() => setSummaryOpen(false)}
           />
           <aside className="fixed right-0 top-0 z-50 flex h-dvh w-[88%] max-w-sm flex-col border-l border-white/10 bg-card shadow-2xl animate-in slide-in-from-right duration-200">
-            <header className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
+            <header className="flex items-center justify-between gap-3 border-b border-white/10 px-5 pb-4 pt-[calc(1rem+env(safe-area-inset-top))]">
               <div className="flex items-center gap-2 text-primary">
                 <StickyNote className="h-4 w-4" />
                 <p className="text-[11px] font-bold uppercase tracking-wider">

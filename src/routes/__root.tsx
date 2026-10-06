@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { LightboxHost } from "@/components/ImageLightbox";
 import { appDb as supabase } from "@/integrations/app-db/client";
+import { MainTabSwipe, NativeBackHandler } from "@/components/NativeNavigation";
 
 
 function NotFoundComponent() {
@@ -117,15 +118,11 @@ const NAV = [
 
 function BottomNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const focusMode =
-    pathname.startsWith("/lounge") ||
-    pathname.startsWith("/auth") ||
-    pathname.includes("/quiz/") ||
-    pathname.includes("/reading/");
-  if (focusMode) return null;
+  const visible = pathname === "/" || pathname === "/studying" || pathname === "/exam" || pathname === "/lounge";
+  if (!visible) return null;
   return (
-    <nav className="relative z-40 shrink-0 border-t border-slate-200/80 bg-white/85 backdrop-blur-md pb-[env(safe-area-inset-bottom)] dark:border-white/5 dark:bg-background/80">
-      <div className="mx-auto flex max-w-md items-center justify-around px-2 py-2">
+    <div className="relative z-40 shrink-0 px-3 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2">
+      <nav className="mx-auto flex max-w-md items-center justify-around rounded-3xl border border-white/50 bg-card/75 px-2 py-2 shadow-[0_14px_40px_-18px_oklch(0.18_0.03_265/0.45)] backdrop-blur-xl dark:border-white/10 dark:bg-card/70">
         {NAV.map(({ to, label, icon: Icon }) => {
           const active = pathname === to;
           return (
@@ -155,8 +152,8 @@ function BottomNav() {
             </Link>
           );
         })}
-      </div>
-    </nav>
+      </nav>
+    </div>
   );
 }
 
@@ -185,6 +182,7 @@ function RootComponent() {
   const ownsShell = pathname.startsWith("/lounge");
   return (
     <QueryClientProvider client={queryClient}>
+      <NativeBackHandler />
       <div className="relative mx-auto flex h-[100dvh] max-w-md flex-col overflow-hidden bg-background">
         {/* Ambient glow */}
         <div
@@ -195,26 +193,29 @@ function RootComponent() {
               "radial-gradient(60% 60% at 30% 0%, oklch(0.72 0.18 295 / 0.35), transparent 70%), radial-gradient(60% 60% at 80% 10%, oklch(0.78 0.15 200 / 0.25), transparent 70%)",
           }}
         />
-        <main
-          className={cn(
-            "relative z-10 min-h-0 flex-1",
-            ownsShell
-              ? "flex flex-col overflow-hidden"
-              : cn(
-                  "overflow-y-auto pt-[env(safe-area-inset-top)]",
-                  focusMode ? "pb-[calc(1.5rem+env(safe-area-inset-bottom))]" : "pb-6",
-                ),
-          )}
-          style={
-            pathname === "/exam"
-              ? {
-                  background: "var(--gradient-exam)",
-                }
-              : undefined
-          }
-        >
-          <Outlet />
-        </main>
+        <MainTabSwipe>
+          <main
+            id="app-scroll-container"
+            className={cn(
+              "relative z-10 min-h-0 flex-1",
+              ownsShell
+                ? "flex flex-col overflow-hidden"
+                : cn(
+                    "overflow-y-auto pt-[env(safe-area-inset-top)]",
+                    focusMode ? "pb-[calc(1.5rem+env(safe-area-inset-bottom))]" : "pb-6",
+                  ),
+            )}
+            style={
+              pathname === "/exam"
+                ? {
+                    background: "var(--gradient-exam)",
+                  }
+                : undefined
+            }
+          >
+            <Outlet />
+          </main>
+        </MainTabSwipe>
         <BottomNav />
         
         <Toaster />
