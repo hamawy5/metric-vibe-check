@@ -1,5 +1,14 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
+import assert from "node:assert/strict";
 import { getBackDestination, getSwipeDestination, showMainTabs } from "./navigation";
+
+function expect(actual: unknown) {
+  return {
+    toEqual: (expected: unknown) => assert.deepEqual(actual, expected),
+    toBe: (expected: unknown) => assert.equal(actual, expected),
+    toBeNull: () => assert.equal(actual, null),
+  };
+}
 
 describe("Study back hierarchy", () => {
   test("reading returns to that subject's units, not previous reading", () => {

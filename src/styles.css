@@ -46,6 +46,8 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
   --color-ring-offset-background: var(--background);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -64,6 +66,11 @@
 
 :root {
   --radius: 0.625rem;
+  --success: oklch(0.50 0.14 155);
+  --success-foreground: oklch(1 0 0);
+  --dock-surface: oklch(1 0 0 / 0.72);
+  --dock-border: oklch(0.9 0.015 260 / 0.65);
+  --dock-shadow: 0 8px 28px -8px oklch(0.18 0.03 265 / 0.18);
   /* Soft off-white with the slightest indigo tint so cards can float above it */
   --background: oklch(0.985 0.006 260);
   --foreground: oklch(0.18 0.03 265);
@@ -105,6 +112,11 @@
 }
 
 .dark {
+  --success: oklch(0.76 0.15 155);
+  --success-foreground: oklch(0.18 0.03 265);
+  --dock-surface: oklch(0.24 0.022 265 / 0.72);
+  --dock-border: oklch(1 0 0 / 0.12);
+  --dock-shadow: 0 8px 28px -8px oklch(0 0 0 / 0.45);
   --background: oklch(0.16 0.018 265);
   --foreground: oklch(0.98 0.005 250);
   --card: oklch(0.21 0.022 265);
@@ -166,6 +178,14 @@
       radial-gradient(60% 60% at 15% 0%, oklch(0.72 0.18 295 / 0.18), transparent 70%),
       radial-gradient(60% 60% at 90% 10%, oklch(0.78 0.15 200 / 0.14), transparent 70%);
   }
+}
+
+.floating-dock {
+  background: var(--dock-surface);
+  border-color: var(--dock-border);
+  box-shadow: var(--dock-shadow);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 /*
