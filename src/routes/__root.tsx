@@ -19,6 +19,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { LightboxHost } from "@/components/ImageLightbox";
 import { appDb as supabase } from "@/integrations/app-db/client";
 import { MainTabSwipe, NativeBackHandler } from "@/components/NativeNavigation";
+import { normalizePath, showMainTabs } from "@/lib/navigation";
 
 
 function NotFoundComponent() {
@@ -118,13 +119,13 @@ const NAV = [
 
 function BottomNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const visible = pathname === "/" || pathname === "/studying" || pathname === "/exam" || pathname === "/lounge";
+  const visible = showMainTabs(pathname);
   if (!visible) return null;
   return (
     <div className="relative z-40 shrink-0 px-3 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2">
-      <nav className="mx-auto flex max-w-md items-center justify-around rounded-3xl border border-white/50 bg-card/75 px-2 py-2 shadow-[0_14px_40px_-18px_oklch(0.18_0.03_265/0.45)] backdrop-blur-xl dark:border-white/10 dark:bg-card/70">
+      <nav aria-label="Main tabs" className="floating-dock mx-auto flex max-w-md items-center justify-around rounded-3xl border px-2 py-1">
         {NAV.map(({ to, label, icon: Icon }) => {
-          const active = pathname === to;
+          const active = normalizePath(pathname) === to;
           return (
             <Link
               key={to}

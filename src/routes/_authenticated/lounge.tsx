@@ -182,7 +182,7 @@ function LoungePage() {
   };
 
   return (
-    <div className="flex h-full min-h-0 w-full max-w-full flex-col overflow-x-hidden">
+    <div data-tab-swipe-block={drawer || shareOpen || sheetOpen ? "" : undefined} className="flex h-full min-h-0 w-full max-w-full flex-col overflow-x-hidden">
       {/* Header */}
       <header className="flex shrink-0 items-center justify-between gap-2 border-b border-white/5 bg-background/80 px-3 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-3 backdrop-blur-xl">
         <Link

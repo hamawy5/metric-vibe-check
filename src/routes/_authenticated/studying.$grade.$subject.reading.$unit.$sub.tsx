@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, StickyNote, X, BookOpen, Sparkles, CheckCircle2, XCircle, RotateCcw, ChevronDown, Flag } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -12,6 +12,7 @@ import { subUnitsQuery, subParam } from "@/lib/curriculum";
 import { MermaidDiagram } from "@/components/MermaidDiagram";
 import { openImageLightbox } from "@/components/ImageLightbox";
 import { useStream } from "@/lib/stream";
+import { Button } from "@/components/ui/button";
 import {
   getProgress,
   getSubunitStatus,
@@ -60,7 +61,6 @@ function parseQuizQuestions(raw: string | null | undefined): ParsedQ[] {
 
 function ReadingPage() {
   const { grade, subject, unit, sub } = Route.useParams();
-  const navigate = useNavigate();
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [quizOpen, setQuizOpen] = useState(false);
 
@@ -94,8 +94,11 @@ function ReadingPage() {
 
   useEffect(() => {
     setQuizOpen(false);
+    setSummaryOpen(false);
     setReadingDone(getSubunitStatus(getProgress(stream), progressId) !== "none");
     document.getElementById("app-scroll-container")?.scrollTo({ top: 0, behavior: "auto" });
+    const frame = requestAnimationFrame(() => document.getElementById("app-scroll-container")?.scrollTo({ top: 0, behavior: "auto" }));
+    return () => cancelAnimationFrame(frame);
   }, [subunitCode, stream, progressId]);
 
   // Track where the student is, so Home's "Continue" card stays accurate.
@@ -116,18 +119,6 @@ function ReadingPage() {
     currentIdx >= 0 && currentIdx < siblings.length - 1 ? siblings[currentIdx + 1] : null;
   const isLast = currentIdx >= 0 && currentIdx === siblings.length - 1;
 
-  const goToSub = (target: SubUnit) => {
-    navigate({
-      to: "/studying/$grade/$subject/reading/$unit/$sub",
-      params: {
-        grade,
-        subject,
-        unit: String(target.unit_number),
-        sub: subParam(String(target.unit_number), target.subunit_code),
-      },
-    });
-  };
-
   const summaryBullets = (data?.corner_summary ?? "")
     .split(/\n+/)
     .map((l) => l.replace(/^[•\-*]\s*/, "").trim())
@@ -137,17 +128,11 @@ function ReadingPage() {
 
   return (
     <div className="relative min-h-dvh bg-background">
-      <button
-        type="button"
-        onClick={() => setSummaryOpen(true)}
-        className="fixed right-4 top-12 z-30 flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/15 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-primary shado[...]"
-      >
-        <StickyNote className="h-3.5 w-3.5" />
-        Summary
-      </button>
-
       <div className="px-5 pt-12 pb-10">
-        <div className="sticky top-2 z-30 flex w-fit">
+        <div className="sticky top-[calc(0.5rem+env(safe-area-inset-top))] z-30 flex items-center justify-between gap-3">
+          <Button type="button" variant="outline" size="sm" onClick={() => setSummaryOpen(true)} className="rounded-full border-primary/40 bg-card/90 text-primary shadow-lg backdrop-blur-xl">
+            <StickyNote className="h-3.5 w-3.5" /> Summary
+          </Button>
           <Link
             to="/studying/$grade/$subject"
             params={{ grade, subject }}
@@ -366,9 +351,10 @@ function ReadingPage() {
           <nav className="mt-10 border-t border-slate-200/70 pt-6 dark:border-white/10">
             <div className="flex flex-col gap-2.5">
               {prevSub ? (
-                <button
-                  type="button"
-                  onClick={() => goToSub(prevSub)}
+                <Link
+                  to="/studying/$grade/$subject/reading/$unit/$sub"
+                  params={{ grade, subject, unit: String(prevSub.unit_number), sub: subParam(String(prevSub.unit_number), prevSub.subunit_code) }}
+                  resetScroll={false}
                   className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-card px-4 py-3.5 text-left transition active:scale-[0.99] dark:border-white/10"
                 >
                   <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -380,13 +366,14 @@ function ReadingPage() {
                       {prevSub.subunit_code} {prevSub.title}
                     </span>
                   </span>
-                </button>
+                </Link>
               ) : null}
 
               {nextSub ? (
-                <button
-                  type="button"
-                  onClick={() => goToSub(nextSub)}
+                <Link
+                  to="/studying/$grade/$subject/reading/$unit/$sub"
+                  params={{ grade, subject, unit: String(nextSub.unit_number), sub: subParam(String(nextSub.unit_number), nextSub.subunit_code) }}
+                  resetScroll={false}
                   className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-primary to-primary-glow px-4 py-3.5 text-left text-primary-foreground shadow-[var(--shadow-glow)] transition[...]"
                 >
                   <span className="min-w-0 flex-1">
@@ -398,7 +385,7 @@ function ReadingPage() {
                     </span>
                   </span>
                   <ArrowRight className="h-4 w-4 shrink-0" />
-                </button>
+                </Link>
               ) : null}
 
               {isLast ? (
@@ -423,7 +410,7 @@ function ReadingPage() {
             className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
             onClick={() => setSummaryOpen(false)}
           />
-          <aside className="fixed right-0 top-0 z-50 flex h-dvh w-[88%] max-w-sm flex-col border-l border-white/10 bg-card shadow-2xl animate-in slide-in-from-right duration-200">
+          <aside role="dialog" aria-modal="true" aria-label="Sub-unit summary" className="fixed right-0 top-0 z-50 flex h-dvh w-[88%] max-w-sm flex-col border-l border-white/10 bg-card shadow-2xl animate-in slide-in-from-right duration-200">
             <header className="flex items-center justify-between gap-3 border-b border-white/10 px-5 pb-4 pt-[calc(1rem+env(safe-area-inset-top))]">
               <div className="flex items-center gap-2 text-primary">
                 <StickyNote className="h-4 w-4" />
@@ -440,7 +427,7 @@ function ReadingPage() {
                 <X className="h-4 w-4" />
               </button>
             </header>
-            <div className="flex-1 overflow-y-auto px-5 py-5 text-sm leading-relaxed text-foreground/90">
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 pt-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] text-sm leading-relaxed text-foreground/90">
               {summaryBullets.length === 0 ? (
                 <p className="text-muted-foreground">No summary available yet.</p>
               ) : (
