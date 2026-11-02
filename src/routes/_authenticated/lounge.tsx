@@ -11,16 +11,12 @@ import { StreamGate } from "@/components/StreamGate";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatChart, ChatSvg } from "@/components/ChatChart";
 import MathGraph, { parseMathGraphSpec } from "@/components/MathGraph";
+import { pageHead } from "@/lib/page-head";
 
 
 
 export const Route = createFileRoute("/_authenticated/lounge")({
-  head: () => ({
-    meta: [
-      { title: "AI Lounge — MatricPulse AI" },
-      { name: "description", content: "Chat with your AI study tutor anytime." },
-    ],
-  }),
+  head: () => pageHead("AI Lounge — MatricPulse AI", "Chat with your AI study tutor about Ethiopia's curriculum."),
   component: () => (
     <StreamGate>
       <LoungePage />

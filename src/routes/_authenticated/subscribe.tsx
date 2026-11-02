@@ -11,6 +11,8 @@ export const Route = createFileRoute("/_authenticated/subscribe")({
   head: () => ({
     meta: [
       { title: "Subscribe — MatricPulse AI" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       {
         name: "description",
         content: "Choose a MatricPulse AI plan: 150 ETB monthly or 380 ETB for three months.",

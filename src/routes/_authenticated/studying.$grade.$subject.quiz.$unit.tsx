@@ -27,11 +27,10 @@ import {
 import { deepExplain } from "@/lib/api/deep-explain.functions";
 import { useStream } from "@/lib/stream";
 import { markQuizComplete, updateLastPosition } from "@/lib/progress";
+import { pageHead } from "@/lib/page-head";
 
 export const Route = createFileRoute("/_authenticated/studying/$grade/$subject/quiz/$unit")({
-  head: ({ params }) => ({
-    meta: [{ title: `Unit ${params.unit} Quiz — MatricPulse AI` }],
-  }),
+  head: ({ params }) => pageHead(`Grade ${params.grade} ${params.subject} · Unit ${params.unit} Quiz — MatricPulse AI`, `Test your mastery of Grade ${params.grade} ${params.subject}, Unit ${params.unit}.`),
   component: QuizPage,
 });
 

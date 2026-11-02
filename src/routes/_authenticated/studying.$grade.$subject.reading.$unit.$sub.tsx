@@ -13,6 +13,7 @@ import { MermaidDiagram } from "@/components/MermaidDiagram";
 import { openImageLightbox } from "@/components/ImageLightbox";
 import { useStream } from "@/lib/stream";
 import { Button } from "@/components/ui/button";
+import { pageHead } from "@/lib/page-head";
 import {
   getProgress,
   getSubunitStatus,
@@ -22,11 +23,7 @@ import {
 } from "@/lib/progress";
 
 export const Route = createFileRoute("/_authenticated/studying/$grade/$subject/reading/$unit/$sub")({
-  head: ({ params }) => ({
-    meta: [
-      { title: `Unit ${params.unit}.${params.sub} Reading — MatricPulse AI` },
-    ],
-  }),
+  head: ({ params }) => pageHead(`Grade ${params.grade} ${params.subject} · ${params.unit}.${params.sub} Reading — MatricPulse AI`, `Study sub-unit ${params.unit}.${params.sub} with reading material, a summary, and a quick quiz.`),
   component: ReadingPage,
 });
 

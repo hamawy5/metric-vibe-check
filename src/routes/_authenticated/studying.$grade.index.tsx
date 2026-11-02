@@ -16,9 +16,11 @@ import {
   Scale,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { pageHead } from "@/lib/page-head";
 import { useStream, NATURAL_SUBJECTS, SOCIAL_SUBJECTS } from "@/lib/stream";
 
 export const Route = createFileRoute("/_authenticated/studying/$grade/")({
+  head: ({ params }) => pageHead(`Grade ${params.grade} Subjects — MatricPulse AI`, `Choose a subject from the Grade ${params.grade} curriculum.`),
   component: SubjectsPage,
 });
 

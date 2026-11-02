@@ -3,14 +3,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, ChevronDown, Trophy, Timer, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStream } from "@/lib/stream";
+import { pageHead } from "@/lib/page-head";
 
 export const Route = createFileRoute("/_authenticated/leaderboard")({
-  head: () => ({
-    meta: [
-      { title: "National Leaderboard — MatricPulse AI" },
-      { name: "description", content: "See where you stand in the monthly national mock exam ranking." },
-    ],
-  }),
+  head: () => pageHead("National Leaderboard — MatricPulse AI", "See where you stand in the monthly national mock exam ranking."),
   component: LeaderboardPage,
 });
 

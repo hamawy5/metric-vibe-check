@@ -122,7 +122,7 @@ function BottomNav() {
   const visible = showMainTabs(pathname);
   if (!visible) return null;
   return (
-    <div className="relative z-40 shrink-0 px-3 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2">
+    <div className={cn("z-40 shrink-0 px-3 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2", normalizePath(pathname) === "/lounge" ? "relative" : "absolute inset-x-0 bottom-0")}>
       <nav aria-label="Main tabs" className="floating-dock mx-auto flex max-w-md items-center justify-around rounded-3xl border px-2 py-1">
         {NAV.map(({ to, label, icon: Icon }) => {
           const active = normalizePath(pathname) === to;
@@ -203,7 +203,7 @@ function RootComponent() {
                 ? "flex flex-col overflow-hidden"
                 : cn(
                     "overflow-y-auto pt-[env(safe-area-inset-top)]",
-                    focusMode ? "pb-[calc(1.5rem+env(safe-area-inset-bottom))]" : "pb-6",
+                    showMainTabs(pathname) ? "pb-[calc(7rem+env(safe-area-inset-bottom))]" : focusMode ? "pb-[calc(1.5rem+env(safe-area-inset-bottom))]" : "pb-6",
                   ),
             )}
             style={

@@ -3,3 +3,4 @@
 - Google sign-in in the Capacitor app uses PKCE + in-app browser + deep link `com.hamawy5.matricpulse://auth-callback` (`src/integrations/app-db/native-oauth.ts`); web keeps the normal redirect. Why: system-browser storage never reaches the WebView.
 - Native Android back navigation follows explicit route parents for the Study hierarchy and exits only from Home. Why: history order is unreliable after deep links and cross-tab navigation.
 - Horizontal tab swipes apply only on Home, Study grade selection, Exam, and AI. Why: nested study content and interactive horizontal content must retain their own gestures.
+- Content routes define leaf metadata, using the shared page-head helper where appropriate. Why: each shareable page needs its own descriptive social and search metadata.
