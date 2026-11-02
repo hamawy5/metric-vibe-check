@@ -12,6 +12,8 @@ export const Route = createFileRoute("/_authenticated/payment-pending")({
   head: () => ({
     meta: [
       { title: "Confirming payment — MatricPulse AI" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       {
         name: "description",
         content: "We are confirming your Chapa payment and activating your MatricPulse plan.",

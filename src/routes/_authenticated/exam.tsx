@@ -1,14 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ClipboardCheck, Clock, Target, Trophy, Play } from "lucide-react";
 import { StreamGate } from "@/components/StreamGate";
+import { pageHead } from "@/lib/page-head";
 
 export const Route = createFileRoute("/_authenticated/exam")({
-  head: () => ({
-    meta: [
-      { title: "Exam Simulator — MatricPulse AI" },
-      { name: "description", content: "Take full-length mock national exams under timed conditions." },
-    ],
-  }),
+  head: () => pageHead("Exam Simulator — MatricPulse AI", "Take full-length mock national exams under timed conditions."),
   component: () => (
     <StreamGate>
       <ExamPage />

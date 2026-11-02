@@ -1,14 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { GraduationCap, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { pageHead } from "@/lib/page-head";
 
 export const Route = createFileRoute("/_authenticated/studying/")({
-  head: () => ({
-    meta: [
-      { title: "Studying — MatricPulse AI" },
-      { name: "description", content: "Pick your grade to begin." },
-    ],
-  }),
+  head: () => pageHead("Studying — MatricPulse AI", "Pick your grade to begin studying the Grade 9–12 curriculum."),
   component: GradesPage,
 });
 

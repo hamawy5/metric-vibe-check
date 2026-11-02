@@ -11,13 +11,10 @@ import {
 } from "@/lib/curriculum";
 import { useStream } from "@/lib/stream";
 import { updateLastPosition } from "@/lib/progress";
+import { pageHead } from "@/lib/page-head";
 
 export const Route = createFileRoute("/_authenticated/studying/$grade/$subject/")({
-  head: ({ params }) => ({
-    meta: [
-      { title: `Grade ${params.grade} · ${params.subject} — MatricPulse AI` },
-    ],
-  }),
+  head: ({ params }) => pageHead(`Grade ${params.grade} · ${params.subject} — MatricPulse AI`, `Explore units and sub-unit readings for Grade ${params.grade} ${params.subject}.`),
   loader: ({ context, params }) => {
     context.queryClient.ensureQueryData(subUnitsQuery(params.grade, params.subject));
   },
